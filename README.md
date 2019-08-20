@@ -4,14 +4,14 @@ The hashi-homelab was born of a desire to have a simple to maintain but very fle
 
 ### Componets:
 
-Scheduler - Nomad
-Service Catalog/Registry - Consul
-Service Mesh - HAProxy2
-*the decicision was between haproxy and nginx as they are both the lightest weight options however since haproxy2 now supports retry logic and native prometheus metrics I thought I would give it a try.
-DNS - CoreDNS
-Monitoring - Prometheus, Alertmanager, Telegraf, Blackbox-exporter, and Grafana
-Container Registry - Docker-Registry
-*because sometimes you don't want to rely on dockerhub being up
+Scheduler - Nomad  
+Service Catalog/Registry - Consul  
+Service Mesh - HAProxy2  
+*the decicision was between haproxy and nginx as they are both the lightest weight options however since haproxy2 now supports retry logic and native prometheus metrics I thought I would give it a try.  
+DNS - CoreDNS  
+Monitoring - Prometheus, Alertmanager, Telegraf, Blackbox-exporter, and Grafana  
+Container Registry - Docker-Registry  
+*because sometimes you don't want to rely on dockerhub being up  
 
 ### Setup
 
@@ -29,14 +29,14 @@ export VAULT_TOKEN=''
 ```
 `.envrc` example
 
-once this is done you simply run a `make deploy-all` and point your dns to resolve via one of the nomad nodes ip address.
+once this is done you simply run a `make deploy-all` and point your dns to resolve via one of the nomad nodes ip address.  
 *two of the jobs `grafana` and `docker-registry` use my nfs mount path of `/mnt/cucumber/nomad` you can change this to your own nfs mount or if you don't have one you can pint these jobs to a particular node to have persistant storage.
 
-services are exposed via http://$service_name.homelab after you point your dns to a nomad node.
-For example you can go to http://prometheus.homelab to visit the prometheus-ui 
-http://nomad-ui.homelab to view the nomad ui and explore the jobs
-http://consul-agent.homelab import some of the dashboards to explore around more.
-http://grafana.homelab and import some of the dashboards from the repo to view your metrics
+services are exposed via http://$service_name.homelab after you point your dns to a nomad node.  
+For example you can go to http://prometheus.homelab to visit the prometheus-ui  
+http://nomad-ui.homelab to view the nomad ui and explore the jobs  
+http://consul-agent.homelab import some of the dashboards to explore around more.  
+http://grafana.homelab and import some of the dashboards from the repo to view your metrics  
 
 
 
