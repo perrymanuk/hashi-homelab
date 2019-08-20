@@ -15,9 +15,9 @@ Container Registry - Docker-Registry
 
 ### Setup
 
-You need to have Nomad and Consul already running, a simple setup with the -dev flag with suffice. If don't already have a Nomad and Consul cluster there are some excellent guides here...
-https://www.nomadproject.io/guides/install/production/deployment-guide.html
-https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide
+You need to have Nomad and Consul already running, a simple setup with the -dev flag with suffice. If don't already have a Nomad and Consul cluster there are some excellent guides here...  
+https://www.nomadproject.io/guides/install/production/deployment-guide.html  
+https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide  
 
 There are also some files in the `config` folder to help you get started and also one with some services to announce so the consul and nomad ui are available over the service mesh.
 
@@ -30,7 +30,7 @@ export VAULT_TOKEN=''
 `.envrc` example
 
 once this is done you simply run a `make deploy-all` and point your dns to resolve via one of the nomad nodes ip address.  
-*two of the jobs `grafana` and `docker-registry` use my nfs mount path of `/mnt/cucumber/nomad` you can change this to your own nfs mount or if you don't have one you can pint these jobs to a particular node to have persistant storage.
+*two of the jobs `grafana` and `docker-registry` use my nfs mount path of `/mnt/cucumber/nomad` you can change this to your own nfs mount or if you don't have one you can pint these jobs to a particular node to have persistant storage.  
 
 services are exposed via http://$service_name.homelab after you point your dns to a nomad node.  
 For example you can go to http://prometheus.homelab to visit the prometheus-ui  
