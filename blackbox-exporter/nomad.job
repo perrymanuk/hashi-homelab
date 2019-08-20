@@ -1,0 +1,94 @@
+job "blackbox-exporter" {
+  region      = "home"
+  datacenters = ["dc1"]
+  type = "system"
+
+  group "blackbox-exporter" {
+
+    update {
+      max_parallel     = 1
+      canary           = 1
+      min_healthy_time = "30s"
+      healthy_deadline = "8m"
+      auto_revert      = true
+    }
+
+    task "blackbox_exporter" {
+      driver = "docker"
+      service {
+        tags = ["net-internal", "blackbox-exporter"]
+        name = "blackbox-exporter"
+        port = "http"
+
+        check {
+          type     = "tcp"
+          interval = "5s"
+          timeout  = "2s"
+        }
+      }
+
+      config {
+        image = "prom/blackbox-exporter:v0.14.0"
+        network_mode = "host"
+        args = [
+          "--config.file=/local/config.yaml",
+        ]
+
+      }
+      template {
+data = <<EOH
+modules:
+  http_2xx:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2"]
+      valid_status_codes: []  # Defaults to 2xx
+      method: GET
+      no_follow_redirects: false
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: "ip4" # defaults to "ip6"
+  tls_tcp:
+    prober: tcp
+    timeout: 10s
+    tcp:
+      tls: false
+      preferred_ip_protocol: ip4
+  dns_consul:
+    prober: dns
+    dns:
+      preferred_ip_protocol: "ip4"
+      query_name: "consul.service.consul"
+      query_type: "MX"
+  dns_google_com:
+    prober: dns
+    dns:
+      preferred_ip_protocol: "ip4"
+      query_name: "www.google.com"
+      query_type: "MX"
+  dns_vault:
+    prober: dns
+    dns:
+      preferred_ip_protocol: "ip4"
+      query_name: "vault.service.home"
+      query_type: "MX"
+
+EOH
+        destination = "local/config.yaml"
+         env         = false
+      }
+      resources {
+        cpu    = 100
+        memory = 64
+
+        network {
+          port "http" { static = 9115 }
+        }
+      }
+    }
+  }
+}
+

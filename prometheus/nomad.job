@@ -1,0 +1,200 @@
+job "prometheus" {
+  region      = "home"
+  datacenters = ["dc1"]
+  type        = "service"
+
+  update {
+    stagger      = "20s"
+    max_parallel = 1
+  }
+
+  group "monitoring" {
+    count = 1
+
+    task "prometheus" {
+      driver = "docker"
+      constraint {
+        attribute = "${attr.unique.hostname}"
+        value     = "videowald"
+      }
+
+      service {
+        tags = ["prometheus", "net-internal"]
+        name = "prometheus"
+        port = "http"
+
+        check {
+          type     = "http"
+          path     = "/-/healthy"
+          name     = "http"
+          interval = "5s"
+          timeout  = "2s"
+        }
+      }
+
+      # main configuration file
+      template {
+        data = <<EOH
+global:
+  scrape_interval:     60s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 60s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'metrics'
+    scrape_interval: 5s
+    metrics_path: /metrics
+    consul_sd_configs:
+            - server: 'localhost:8500'
+              tags: ['metrics']
+    relabel_configs:
+      - source_labels: ['__meta_consul_dc']
+        target_label:  'dc'
+      - source_labels: [__meta_consul_service]
+        target_label:  'job'
+      - source_labels: ['__meta_consul_node']
+        target_label:  'host'
+      - source_labels: ['__meta_consul_tags']
+        target_label: 'tags'
+      - source_labels: ['__meta_consul_tags']
+        regex: '.*,([^=]+)=([^,]+),.*'
+        replacement: '${2}'
+        target_label: '${1}'
+      - source_labels: [__meta_consul_tags]
+        regex: '.*alloc-id-([[:alnum:]]+)-.*'
+        replacement: '${1}'
+        target_label: 'alloc'
+      - source_labels: ['__meta_consul_tags']
+        regex: '.*job-(.*?)(,.*)'
+        replacement: '${1}'
+        target_label: 'job_name'
+
+  - job_name: 'consul-server'
+    scrape_interval: 10s
+    metrics_path: /v1/agent/metrics
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    consul_sd_configs:
+      - server: 'localhost:8500'
+        services: ['consul-agent']
+    relabel_configs:
+      - source_labels: ['__meta_consul_dc']
+        target_label:  'dc'
+      - source_labels: ['__meta_consul_node']
+        target_label:  'host'
+      - source_labels: ['__meta_consul_tags']
+        target_label: 'tags'
+      - source_labels: ['__meta_consul_tags']
+        regex: '.*,([^=]+)=([^,]+),.*'
+        replacement: '${2}'
+        target_label: '${1}'
+
+  - job_name: 'nomad-client'
+    consul_sd_configs:
+    - server: '{{ env "NOMAD_IP_http" }}:8500'
+      services: ['nomad-client']
+      tags: ['http']
+    scrape_interval: 10s
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: ['__meta_consul_dc']
+        target_label:  'dc'
+      - source_labels: [__meta_consul_service]
+        target_label:  'job'
+      - source_labels: ['__meta_consul_node']
+        target_label:  'host'
+
+  - job_name: 'blackbox_http_2xx'
+    metrics_path: /probe
+    scheme: http
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    params:
+      module: [ http_2xx ]
+    static_configs:
+      - targets:
+        - https://www.google.com/
+        - http://prometheus.homelab/
+    relabel_configs:
+      - source_labels: ['__address__']
+        regex: 'https?://(.+?)(/.*)'
+        replacement: '${1}'
+        target_label: 'url'
+      - source_labels: ['__param_target']
+        target_label: 'instance'
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: blackbox-exporter.service.home:9115
+      - source_labels: ['__param_target']
+        target_label: 'endpoint'
+
+  - job_name: 'dns_google_com' 
+    metrics_path: /probe   
+    params:                
+      module: [dns_google_com]                                                                 
+    static_configs:        
+      - targets:           
+        - 8.8.8.8
+        - 1.1.1.1
+        labels:                            
+          dc: 'dc1'        
+          region: 'home'        
+    relabel_configs:       
+      - source_labels: [__address__] 
+        target_label: __param_target 
+      - source_labels: [__param_target] 
+        target_label: instance 
+      - target_label: __address__ 
+        replacement: blackbox-exporter.service.home:9115
+
+EOH
+
+        destination   = "local/prometheus.yml"
+        change_mode   = "signal"
+        change_signal = "SIGHUP"
+        env           = false
+      }
+
+      config {
+        image = "prom/prometheus"
+        network_mode = "host"
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data"]
+        force_pull = true
+        network_mode = "host"
+        volumes = [
+          "/opt/prometheus:/data",
+        ]
+      }
+
+      resources {
+        cpu    = 400
+        memory = 256
+
+        network {
+          port "http" { static = "9090" }
+        }
+      }
+    }
+  }
+}
+

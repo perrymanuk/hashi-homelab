@@ -1,0 +1,50 @@
+job "grafana" {
+  region = "home"
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "grafana" {
+      driver = "docker"
+      config {
+        image = "grafana/grafana"
+        volumes = [
+          "/mnt/cucumber/nomad/grafana/config:/etc/grafana/",
+          "/opt/grafana/data:/var/lib/grafana",
+        ]
+
+        network_mode = "host"
+      }
+      user = 1002
+      env {
+        GF_PATHS_DATA = "/var/lib/grafana"
+        GF_INSTALL_PLUGINS = "grafana-piechart-panel"
+      }
+      service {
+        port = "http"
+	      name = "grafana"
+        tags = ["net-internal", "grafana"]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+        network {
+          port "http" { static = "3000" }
+        }
+      }
+    }
+  }
+}
+

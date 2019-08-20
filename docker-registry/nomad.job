@@ -1,0 +1,47 @@
+job "docker-registry" {
+  region = "home"
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "infrastructure" {
+    count = 1 
+    task "docker-registry" {
+      driver = "docker"
+      config {
+        image = "registry:2.7.1"
+        volumes = [
+          "/mnt/cucumber/nomad/docker-registry:/data",
+        ]
+
+        network_mode = "host"
+      }
+      env {
+        REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY = "/data"
+      }
+      service {
+        port = "http"
+	      name = "docker"
+        tags = ["net-internal", "docker-registry"]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 20
+        memory = 256
+        network {
+          port "http" { static = "5000" }
+        }
+      }
+    }
+  }
+}
+

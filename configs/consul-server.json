@@ -1,0 +1,14 @@
+{
+  "advertise_addr": "",
+  "advertise_addr_wan": "",
+  "bind_addr": "0.0.0.0",
+  "client_addr": "0.0.0.0",
+  "data_dir": "/appdata/consul",
+  "datacenter": "home",
+  "enable_syslog": true,
+  "log_level": "WARN",
+  "start_join": [
+    ""
+  ]
+}
+

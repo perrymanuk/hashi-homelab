@@ -1,0 +1,166 @@
+job "haproxy" {
+  region = "home"
+  datacenters = ["dc1"]
+  type = "system"
+
+  meta {
+    version = "1"
+  }
+
+  group "lbs" {
+    count = 1
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+    task "haproxy" {
+      driver = "docker"
+      service {
+        tags = ["haproxy"]
+        name = "haproxy"
+        port = "http"
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+
+      }
+      service {
+        tags = ["metrics", "${NOMAD_ALLOC_ID}"]
+        name = "haproxy-metrics"
+        port = "metrics"
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      service {
+        tags = ["metrics", "${NOMAD_ALLOC_ID}"]
+        name = "service-mesh"
+        port = "http"
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      config {
+        image = "haproxy:2.0.4-alpine"
+        args = ["-W", "-f", "local/etc/haproxy.cfg"]
+        network_mode = "host"
+      }
+
+      template {
+data = <<EOH
+global
+  maxconn     20000
+  pidfile     /run/haproxy.pid
+  stats timeout 2m
+  daemon
+
+defaults
+  retry-on all-retryable-errors
+  option http-use-htx
+  errorfile 503 local/etc/error503.http
+
+frontend http
+  bind 0.0.0.0:80
+  # options
+  http-request add-header x-forwarded-proto http
+  maxconn 50000
+  mode http
+  timeout client 0s
+  timeout server 0s
+  # acls
+{{ range services }}{{ if .Tags | contains "net-internal" }}
+  acl {{ .Name }}_net-internal hdr_reg(Host) -i {{ .Name }}.homelab
+  acl {{ .Name }}_net-internal base_dom {{ .Name }}.homelab
+  use_backend {{ .Name }}_net-internal if {{ .Name }}_net-internal
+{{ end }}{{ end }}
+
+
+# services
+
+{{ range services -}}{{ if .Tags | contains "net-internal" -}}
+backend {{ .Name }}_net-internal
+  mode http
+  option redispatch
+  retries 10
+
+  timeout connect 5s
+  timeout queue 30s
+  timeout server 30s
+
+  {{ range service .Name -}}
+  {{ if .Tags | contains "net-internal" -}}
+  server {{ .ID }} {{ .Address }}:{{ .Port }}
+  {{ end -}}
+  {{ end }}
+{{ end -}}
+{{ end -}}
+
+listen 0.0.0.0
+  mode http
+
+  bind :${NOMAD_PORT_metrics}
+
+  timeout client 30s
+  timeout connect 5s
+  timeout server  30s
+  timeout queue   30s
+
+  http-request use-service prometheus-exporter if { path /metrics }
+
+  stats enable
+  stats uri /
+  stats show-node
+  stats refresh 30s
+  stats show-legends
+
+
+EOH
+        destination = "local/etc/haproxy.cfg"
+        env         = false
+        change_mode = "signal"
+        change_signal = "SIGUSR2"
+      }
+
+      template {
+data = <<EOH
+HTTP/1.0 503 Service Unavailable
+Cache-Control: no-cache
+Connection: close
+Content-Type: text/plain
+
+Error 503: The specified service was not found or has no allocations. Please check your service configuration and try again
+
+EOH
+        destination = "local/etc/error503.http"
+        env         = false
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+      }
+
+      resources {
+        cpu = 100
+        memory = 64
+        network {
+          port "http" { 
+            static = "80" 
+          }
+          port "metrics" {}
+        }
+      }
+    }
+  }
+}
+
+

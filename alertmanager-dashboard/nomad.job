@@ -1,0 +1,46 @@
+job "alertmanager-dashboard" {
+  region = "home"
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "ui" {
+    count = 1 
+    task "alertmanager-dashboard" {
+      driver = "docker"
+      config {
+        image = "lmierzwa/karma:v0.39"
+        network_mode = "host"
+      }
+      env {
+        ALERTMANAGER_URI = "http://alertmanager.service.home:9093"
+        HOST = "${NOMAD_IP_http}"
+        PORT = "${NOMAD_PORT_http}"
+        ALERTMANAGER_PROXY = "true"
+      }
+      service {
+        port = "http"
+	      name = "alerts"
+        tags = ["net-internal"]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 20
+        memory = 24
+        network {
+          port "http" {}
+        }
+      }
+    }
+  }
+}
+

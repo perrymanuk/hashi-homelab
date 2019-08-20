@@ -1,0 +1,4 @@
+{
+  "insecure-registries" : ["docker.service.home:5000"]
+}
+
