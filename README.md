@@ -5,7 +5,7 @@
 
 The hashi-homelab was born of a desire to have a simple to maintain but very flexible homelab setup. The main goals were to keep the resources required to run the base lab setup small and to have all of the parts be easily exchangeable. For example I made the main ingress point to the service mesh a DNS round robin. While this isn't a setup I would ever use in production because it isn't the most dynamically flexible in terms of service discovery, it is however a very easy setup and if you want to launch a new mesh you just give it the Consul name `service-mesh` and run the job and then bam! Bob's your uncle.  
 
-In the future I would like to provide a ready to boot image for a raspberry pi where you can run all of this as the resources needed are really minimal. With just the basics you can get away with one pi4 4gb model with pleny of room to spare.
+In the future I would like to provide a ready to boot image for a raspberry pi where you can run all of this as the resources needed are really minimal. With just the basics you can get away with one pi4 4gb model with plenty of room to spare.
 
 ### Componets:
 
