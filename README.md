@@ -1,5 +1,5 @@
 # Hashi-Homelab
-![hashi-homelab-logo](/homelab.png = 250x)
+![hashi-homelab-logo](/homelab.png =250x)
 
 The hashi-homelab was born of a desire to have a simple to maintain but very flexible homelab setup. The main goals were to keep the resources required to run the base lab setup small and to have all of the parts be easily exchangeable. For example I made the main ingress point to the service mesh a dns round robin. While This isn't a setup I would ever use in production because it isn't the most dynamically flexible in terms of service discovery it is however a very easy setup and if you want to launch a new mesh you just give it the consul name `service-mesh` and run the job and the bam bob's your uncle.
 
