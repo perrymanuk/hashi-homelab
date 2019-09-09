@@ -9,10 +9,10 @@ help:
 
 .PHONY: deploy-all
 deploy-all:
-	$(foreach var,$(deployments),nomad run $(var)/nomad.job;)
+	@echo -n "This will deploy all jobs in this repo. Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
+	$(foreach var,$(deployments), docker run --rm -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant levant deploy -var-file=/workdir/levant/defaults.yml $(var)/nomad.job;)
 
 .PHONY: plan-all
 plan-all:
-	@echo -n "This will deploy all jobs in this repo. Are you sure? [y/N] " && read ans && [ $${ans:-N} == y ]
-	$(foreach var,$(deployments),nomad job plan $(var)/nomad.job;)
+	$(foreach var,$(deployments), docker run --rm -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant levant plan -var-file=/workdir/levant/defaults.yml $(var)/nomad.job;)
 

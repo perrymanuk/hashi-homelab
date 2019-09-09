@@ -14,8 +14,8 @@ job "grafana" {
       config {
         image = "grafana/grafana"
         volumes = [
-          "/mnt/cucumber/nomad/grafana/config:/etc/grafana/",
-          "/opt/grafana/data:/var/lib/grafana",
+          "[[ .volume_dir ]]grafana/config:/etc/grafana/",
+          "[[ .volume_dir ]]/grafana/data:/var/lib/grafana",
         ]
 
         network_mode = "host"

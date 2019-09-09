@@ -36,7 +36,7 @@ export VAULT_TOKEN=''
 ```
 
 Once this is done, you simply run a `make deploy-all` and point your DNS to resolve via one of the Nomad nodes' IP address.  
-*Two of the jobs, `grafana` and `docker-registry`, use my NFS mount path of `/mnt/cucumber/nomad`. You can change this to your own NFS mount or if you don't have one you can pin these jobs to a particular node to have persistent storage.  
+*Two of the jobs, `grafana` and `docker-registry`, use my NFS mount path of `/mnt/cucumber/nomad`. You can change this to your own NFS mount or if you don't have one you can pin these jobs to a particular node to have persistent storage. To change the mount path edit `levant/defaults.yml` and replace the `volume_dir` with the path to your nfs mount or other persistant storage location.  
 
 Services are exposed via http://$service_name.homelab after you point your DNS to a Nomad node.  
 For example, you can go to http://prometheus.homelab to visit the Prometheus UI or 
