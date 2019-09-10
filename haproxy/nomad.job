@@ -1,6 +1,6 @@
 job "haproxy" {
-  region = "home"
-  datacenters = ["dc1"]
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type = "system"
 
   meta {

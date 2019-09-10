@@ -1,6 +1,6 @@
 job "alertmanager-dashboard" {
-  region = "home"
-  datacenters = ["dc1"]
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type        = "service"
 
   meta {
@@ -16,7 +16,7 @@ job "alertmanager-dashboard" {
         network_mode = "host"
       }
       env {
-        ALERTMANAGER_URI = "http://alertmanager.service.home:9093"
+        ALERTMANAGER_URI = "http://alertmanager.service.[[ .region ]]:9093"
         HOST = "${NOMAD_IP_http}"
         PORT = "${NOMAD_PORT_http}"
         ALERTMANAGER_PROXY = "true"

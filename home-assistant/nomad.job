@@ -1,0 +1,45 @@
+job "home-assistant" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "5"
+  }
+
+  group "homeautomation" {
+    count = 1 
+    task "home-assistant" {
+      driver = "docker"
+      config {
+        image = "homeassistant/home-assistant"
+        force_pull = true
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]home-assistant:/config",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "hass"
+        tags = ["net-internal", "net-external", "home-assistant", "metrics"]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+        network {
+          port "http" { static = "8123" }
+        }
+      }
+    }
+  }
+}
+

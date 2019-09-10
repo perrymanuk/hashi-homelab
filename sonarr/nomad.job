@@ -1,4 +1,4 @@
-job "grafana" {
+job "sonarr" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -9,26 +9,22 @@ job "grafana" {
 
   group "downloaders" {
     count = 1 
-    task "grafana" {
+    task "sonarr" {
       driver = "docker"
       config {
-        image = "grafana/grafana"
-        volumes = [
-          "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
-        ]
-
+        image = "linuxserver/sonarr"
         network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]sonarr:/config",
+          "[[ .dirs.downloads ]]:/downloads",
+          "[[ .dirs.tv ]]:/media/TV",
+        ]
       }
-      user = 1002
-      env {
-        GF_PATHS_DATA = "/var/lib/grafana"
-        GF_INSTALL_PLUGINS = "grafana-piechart-panel"
-      }
+
       service {
         port = "http"
-	      name = "grafana"
-        tags = ["net-internal", "grafana"]
+	      name = "sonarr"
+        tags = ["net-internal", "net-external", "sonarr", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
           path     = "/"
@@ -41,7 +37,7 @@ job "grafana" {
         cpu    = 100
         memory = 128
         network {
-          port "http" { static = "3000" }
+          port "http" { static = "8989" }
         }
       }
     }

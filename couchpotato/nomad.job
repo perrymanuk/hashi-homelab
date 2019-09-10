@@ -1,4 +1,4 @@
-job "grafana" {
+job "couchpotato" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -9,26 +9,22 @@ job "grafana" {
 
   group "downloaders" {
     count = 1 
-    task "grafana" {
+    task "couchpotato" {
       driver = "docker"
       config {
-        image = "grafana/grafana"
+        image = "linuxserver/couchpotato"
         volumes = [
-          "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
+          "[[ .dirs.shared ]]couchpotato/config:/config",
+          "[[ .dirs.downloads ]]:/downloads",
+          "[[ .dirs.movies ]]:/movies",
         ]
-
         network_mode = "host"
       }
-      user = 1002
-      env {
-        GF_PATHS_DATA = "/var/lib/grafana"
-        GF_INSTALL_PLUGINS = "grafana-piechart-panel"
-      }
+
       service {
         port = "http"
-	      name = "grafana"
-        tags = ["net-internal", "grafana"]
+	      name = "couch"
+        tags = ["net-internal", "net-external", "couchpotato", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
           path     = "/"
@@ -38,10 +34,10 @@ job "grafana" {
       }
 
       resources {
-        cpu    = 100
+        cpu    = 50
         memory = 128
         network {
-          port "http" { static = "3000" }
+          port "http" { static = "5050" }
         }
       }
     }

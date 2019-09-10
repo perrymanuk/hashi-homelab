@@ -1,6 +1,6 @@
 job "blackbox-exporter" {
-  region      = "home"
-  datacenters = ["dc1"]
+  region      = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type = "system"
 
   group "blackbox-exporter" {
@@ -73,7 +73,7 @@ modules:
     prober: dns
     dns:
       preferred_ip_protocol: "ip4"
-      query_name: "vault.service.home"
+      query_name: "vault.service.[[ .region ]]"
       query_type: "MX"
 
 EOH

@@ -1,6 +1,6 @@
 job "prometheus" {
-  region      = "home"
-  datacenters = ["dc1"]
+  region      = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type        = "service"
 
   update {
@@ -133,7 +133,7 @@ scrape_configs:
     static_configs:
       - targets:
         - https://www.google.com/
-        - http://prometheus.homelab/
+        - http://prometheus.[[ .region ]]lab/
     relabel_configs:
       - source_labels: ['__address__']
         regex: 'https?://(.+?)(/.*)'
@@ -144,7 +144,7 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - target_label: __address__
-        replacement: blackbox-exporter.service.home:9115
+        replacement: blackbox-exporter.service.[[ .region ]]:9115
       - source_labels: ['__param_target']
         target_label: 'endpoint'
 
@@ -157,15 +157,15 @@ scrape_configs:
         - 8.8.8.8
         - 1.1.1.1
         labels:                            
-          dc: 'dc1'        
-          region: 'home'        
+          dc: '[[ .datacenter ]]'        
+          region: '[[ .region ]]'        
     relabel_configs:       
       - source_labels: [__address__] 
         target_label: __param_target 
       - source_labels: [__param_target] 
         target_label: instance 
       - target_label: __address__ 
-        replacement: blackbox-exporter.service.home:9115
+        replacement: blackbox-exporter.service.[[ .region ]]:9115
 
 EOH
 

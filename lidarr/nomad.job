@@ -1,0 +1,45 @@
+job "lidarr" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "lidarr" {
+      driver = "docker"
+      config {
+        image = "linuxserver/lidarr"
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]lidarr:/config",
+          "[[ .dirs.downloads ]]:/downloads",
+          "[[ .dirs.music ]]:/music",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "lidarr"
+        tags = ["net-internal", "net-external", "lidarr", "net.frontend.entryPoints=https"]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+        network {
+          port "http" { static = "8686" }
+        }
+      }
+    }
+  }
+}
+

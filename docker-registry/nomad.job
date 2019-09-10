@@ -1,6 +1,6 @@
 job "docker-registry" {
-  region = "home"
-  datacenters = ["dc1"]
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type        = "service"
 
   meta {
@@ -14,7 +14,7 @@ job "docker-registry" {
       config {
         image = "registry:2.7.1"
         volumes = [
-          "[[ .volume_dir ]]docker-registry:/data",
+          "[[ .dirs.shared ]]docker-registry:/data",
         ]
 
         network_mode = "host"

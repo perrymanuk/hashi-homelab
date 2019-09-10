@@ -1,1 +1,8 @@
-volume_dir: '/mnt/cucumber/nomad/'
+region: 'home'
+datacenter: 'dc1'
+dirs:
+  shared: '/mnt/cucumber/nomad/'
+  downloads: '/mnt/cucumber/downloads'
+  music: '/mnt/cucumber/Music'
+  tv: '/mnt/cucumber/TV'
+  movies: '/mnt/cucumber/Movies'

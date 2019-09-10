@@ -1,0 +1,76 @@
+job "adb" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "3"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "adb" {
+      driver = "docker"
+      config {
+        image = "docker.service.home:5000/adb"
+        command = "/local/start.sh"
+        network_mode = "host"
+        args = ["&", "adb", "-a", "-P", "5037", "server", "nodaemon"]
+        volumes = [
+          "[[ .dirs.shared ]][[ .region ]]-assistant/android:/root/.android",
+          "/dev/bus/usb:/dev/bus/usb",
+        ]
+      }
+
+      service {
+        port = "tcp"
+	      name = "adb"
+        tags = ["net-internal", "adb"]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      template {
+data = <<EOH
+#!/bin/sh
+echo "Start the server in background mode..."
+adb -a -P 5037 server nodaemon &
+echo "Sleep 10 seconds for the adb server to start"
+sleep 10
+DEVICES="[[ .adb.devices ]]"
+echo "Connecting to devices."
+for device in $DEVICES; do
+echo "Connect to device: $device"
+adb connect $device
+done   
+echo "Done."
+echo "Foreground the server again..."
+       
+wait %1 
+
+EOH
+        destination = "local/start.sh"
+        env         = false
+        perms       = 755
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+
+      resources {
+        cpu    = 100
+        memory = 10
+        network {
+          port "tcp" { static = "5037" }
+        }
+      }
+    }
+  }
+}
+

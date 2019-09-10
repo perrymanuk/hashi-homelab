@@ -1,6 +1,6 @@
 job "telegraf" {
-  region = "home"
-  datacenters = ["dc1"]
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type = "system"
   group "telegraf-exporter" {
 
@@ -34,7 +34,7 @@ job "telegraf" {
       template {
 data = <<EOH
 [global_tags]
-  realm = 'home'
+  realm = '[[ .region ]]'
   role = 'nomad'
 [agent]
 [[outputs.prometheus_client]]

@@ -1,4 +1,4 @@
-job "grafana" {
+job "tautulli" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -7,28 +7,25 @@ job "grafana" {
     version = "1"
   }
 
-  group "downloaders" {
+  group "metrics" {
     count = 1 
-    task "grafana" {
+    task "tautulli" {
       driver = "docker"
       config {
-        image = "grafana/grafana"
+        image = "tautulli/tautulli"
         volumes = [
-          "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
+          "[[ .dirs.shared ]]tautulli:/config",
+          "[[ .dirs.plexlogs ]]:/media/TV",
         ]
+        port_map = {
+	        http = 8181
+	      }
+      }
 
-        network_mode = "host"
-      }
-      user = 1002
-      env {
-        GF_PATHS_DATA = "/var/lib/grafana"
-        GF_INSTALL_PLUGINS = "grafana-piechart-panel"
-      }
       service {
         port = "http"
-	      name = "grafana"
-        tags = ["net-internal", "grafana"]
+	      name = "tautulli"
+        tags = ["net-internal", "net-external", "tautulli", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
           path     = "/"
@@ -41,7 +38,7 @@ job "grafana" {
         cpu    = 100
         memory = 128
         network {
-          port "http" { static = "3000" }
+          port "http" {}
         }
       }
     }

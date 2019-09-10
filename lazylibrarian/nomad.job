@@ -1,4 +1,4 @@
-job "grafana" {
+job "lazylibrarian" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -9,26 +9,21 @@ job "grafana" {
 
   group "downloaders" {
     count = 1 
-    task "grafana" {
+    task "lazylibrarian" {
       driver = "docker"
       config {
-        image = "grafana/grafana"
+        image = "linuxserver/lazylibrarian"
         volumes = [
-          "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
+          "[[ dirs.shared ]]lazylibrarian:/config",
+          "[[ dirs.books ]]:/books",
+          "[[ dirs.downloads ]]:/downloads",
         ]
+      }
 
-        network_mode = "host"
-      }
-      user = 1002
-      env {
-        GF_PATHS_DATA = "/var/lib/grafana"
-        GF_INSTALL_PLUGINS = "grafana-piechart-panel"
-      }
       service {
         port = "http"
-	      name = "grafana"
-        tags = ["net-internal", "grafana"]
+	      name = "lazylibrarian"
+        tags = ["net-internal", "net-external", "lazylibrarian", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
           path     = "/"
@@ -41,7 +36,7 @@ job "grafana" {
         cpu    = 100
         memory = 128
         network {
-          port "http" { static = "3000" }
+          port "http" { static = "5299" }
         }
       }
     }

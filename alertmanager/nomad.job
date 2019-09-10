@@ -1,6 +1,6 @@
 job "alertmanager" {
-  region      = "home"
-  datacenters = ["dc1"]
+  region      = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
   type = "service"
 
   meta {
@@ -38,7 +38,7 @@ job "alertmanager" {
         image = "prom/alertmanager"
         network_mode = "host"
         force_pull = true
-        args = ["--web.external-url", "http://alertmanager.homelab", "--config.file", "/local/config.yml", "--storage.path", "/local/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
+        args = ["--web.external-url", "http://alertmanager.[[ .region ]]lab", "--config.file", "/local/config.yml", "--storage.path", "/local/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
       }
 
       template {
