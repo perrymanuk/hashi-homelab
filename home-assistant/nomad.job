@@ -16,8 +16,10 @@ job "home-assistant" {
         image = "homeassistant/home-assistant"
         force_pull = true
         network_mode = "host"
+        privileged = true
         volumes = [
           "[[ .dirs.shared ]]home-assistant:/config",
+          "/dev/ttyS4:/dev/ttyS4",
         ]
       }
 

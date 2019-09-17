@@ -6,3 +6,7 @@ dirs:
   music: '/mnt/cucumber/Music'
   tv: '/mnt/cucumber/TV'
   movies: '/mnt/cucumber/Movies'
+  books: '/mnt/cucumber/Books'
+  plexlogs: '/mnt/plexdata/Plex Media Server/Logs'
+adb:
+  devices: '10.90.80.42'
