@@ -19,7 +19,7 @@ job "home-assistant" {
         privileged = true
         volumes = [
           "[[ .dirs.shared ]]home-assistant:/config",
-          "/dev/ttyS4:/dev/ttyS4",
+          "/dev/ttyS4:/dev/zigbee",
         ]
       }
 
