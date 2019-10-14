@@ -1,0 +1,60 @@
+job "owntracks-recorder" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "5"
+  }
+
+  group "homeautomation" {
+    count = 1 
+    task "owntracks-recorder" {
+      driver = "docker"
+      config {
+        image = "owntracks/recorder"
+        args = [
+          "--http-host", "${NOMAD_IP_http}"
+        ]
+        force_pull = true
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]owntracks-recorder:/store/",
+          "[[ .dirs.shared ]]owntracks-recorder/views:/htdocs/views/",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "owntracks"
+        tags = ["net-internal", "net-external", "owntracks", "traefik.frontend.auth.basic.users=trackme:$apr1$ocbwkhl8$yy2VFtq.TK4UBT6moLjXM1"]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      env {
+        TZ = "Europe/Amsterdam"
+        OTR_HTTPHOST = "${NOMAD_ADDR_http}"
+        #OTR_HTTPPORT = "${NOMAD_PORT_http}"
+        OTR_HOST = "mqtt.service.homelab"
+        OTR_STORAGEDIR = "/store"
+        OTR_VIEWSDIR = "/store/views"
+        #OTR_CAPATH = "/etc/ssl/certs"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+        network {
+          port "http" { static = "8083" }
+        }
+      }
+    }
+  }
+}
+
