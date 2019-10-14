@@ -3,6 +3,9 @@ job "prometheus" {
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
 
+  meta {
+  version = "1"
+  }
   update {
     stagger      = "20s"
     max_parallel = 1
@@ -76,10 +79,6 @@ scrape_configs:
         regex: '.*,([^=]+)=([^,]+),.*'
         replacement: '${2}'
         target_label: '${1}'
-      - source_labels: [__meta_consul_tags]
-        regex: '.*alloc-id-([[:alnum:]]+)-.*'
-        replacement: '${1}'
-        target_label: 'alloc'
       - source_labels: ['__meta_consul_tags']
         regex: '.*job-(.*?)(,.*)'
         replacement: '${1}'
@@ -133,7 +132,7 @@ scrape_configs:
     static_configs:
       - targets:
         - https://www.google.com/
-        - http://prometheus.[[ .region ]]lab/
+        - http://prometheus.homelab/
     relabel_configs:
       - source_labels: ['__address__']
         regex: 'https?://(.+?)(/.*)'
@@ -178,7 +177,7 @@ EOH
       config {
         image = "prom/prometheus"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data"]
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "${NOMAD_ADDR_http}"]
         force_pull = true
         network_mode = "host"
         volumes = [

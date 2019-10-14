@@ -1,11 +1,11 @@
 job "telegraf" {
   region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  datacenters = [[ .datacenters ]]
   type = "system"
+
   group "telegraf-exporter" {
 
     update {
-      max_parallel     = 1
       min_healthy_time = "30s"
       auto_revert      = true
     }
@@ -13,7 +13,7 @@ job "telegraf" {
     task "telegraf" {
       driver = "docker"
       service {
-        tags = ["metrics"]
+        tags = ["trv-net-[[ .environment ]]-internal", "tcs-telegraf-exporter", "trv-env-[[ .environment ]]", "trv-metrics"]
         name = "telegraf"
         port = "http"
 
@@ -26,13 +26,12 @@ job "telegraf" {
 
       config {
         image = "telegraf"
-
         args = [
           "--config=/local/config.yaml",
         ]
       }
       template {
-data = <<EOH
+      data = <<EOH
 [global_tags]
   realm = '[[ .region ]]'
   role = 'nomad'
@@ -55,7 +54,7 @@ data = <<EOH
 
 EOH
         destination = "local/config.yaml"
-         env         = false
+        env         = false
       }
       resources {
         cpu    = 100

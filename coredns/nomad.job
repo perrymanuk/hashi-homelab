@@ -4,7 +4,7 @@ job "coredns" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "6"
   }
 
   group "infrastructure" {
@@ -12,7 +12,7 @@ job "coredns" {
     task "coredns" {
       driver = "docker"
       config {
-        image = "docker.stuck-in-blue.com/coredns:1"
+        image = "coredns/coredns"
         args = ["-conf", "local/coredns/corefile"]
         network_mode = "host"
       }
@@ -41,28 +41,29 @@ job "coredns" {
       template {
 data = <<EOH
 . {
-{{ key "app/coredns/corefile-ads"}}
+  bind {{ env "NOMAD_IP_http" }}
   forward . 8.8.8.8
   log
-  prometheus 0.0.0.0:9153
+  prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
 home.:53 {
+  bind {{ env "NOMAD_IP_http" }}
   forward . {{ env "NOMAD_IP_http" }}:8600
   log
-  prometheus 0.0.0.0:9153
+  prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
 homelab.:53 {
+  bind {{ env "NOMAD_IP_http" }}
   errors
   file /local/coredns/zones/homelab {
     reload 60s
   }
   log
-  prometheus 0.0.0.0:9153
+  prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
-{{ key "app/coredns/corefile"}}
 EOH
         destination = "local/coredns/corefile"
         env         = false

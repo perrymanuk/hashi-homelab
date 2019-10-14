@@ -5,7 +5,7 @@ job "home-assistant" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "5"
+    version = "12"
   }
 
   group "homeautomation" {
@@ -14,12 +14,10 @@ job "home-assistant" {
       driver = "docker"
       config {
         image = "homeassistant/home-assistant"
-        force_pull = true
         network_mode = "host"
         privileged = true
         volumes = [
           "[[ .dirs.shared ]]home-assistant:/config",
-          "/dev/ttyS4:/dev/zigbee",
         ]
       }
 

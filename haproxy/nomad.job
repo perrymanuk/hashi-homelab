@@ -72,7 +72,7 @@ defaults
   errorfile 503 local/etc/error503.http
 
 frontend http
-  bind 0.0.0.0:80
+  bind {{ env "NOMAD_ADDR_http" }}
   # options
   http-request add-header x-forwarded-proto http
   maxconn 50000
@@ -107,10 +107,10 @@ backend {{ .Name }}_net-internal
 {{ end -}}
 {{ end -}}
 
-listen 0.0.0.0
+listen {{ env "NOMAD_IP_http" }}
   mode http
 
-  bind :${NOMAD_PORT_metrics}
+  bind ${NOMAD_ADDR_metrics}
 
   timeout client 30s
   timeout connect 5s

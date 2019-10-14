@@ -5,7 +5,7 @@ job "adb" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "3"
+    version = "6"
   }
 
   group "downloaders" {
@@ -14,13 +14,17 @@ job "adb" {
       driver = "docker"
       config {
         image = "docker.service.home:5000/adb"
-        command = "/local/start.sh"
+        entrypoint = ["/local/start.sh"]
         network_mode = "host"
+        extra_hosts = ["hassio:127.0.0.1"]
         args = ["&", "adb", "-a", "-P", "5037", "server", "nodaemon"]
         volumes = [
           "[[ .dirs.shared ]][[ .region ]]-assistant/android:/root/.android",
-          "/dev/bus/usb:/dev/bus/usb",
         ]
+      }
+
+      env {
+        log_level = "warning"
       }
 
       service {
