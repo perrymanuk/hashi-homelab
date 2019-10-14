@@ -5,7 +5,7 @@
 
 The hashi-homelab was born of a desire to have a simple to maintain but very flexible homelab setup. The main goals were to keep the resources required to run the base lab setup small and to have all of the parts be easily exchangeable. For example I made the main ingress point to the service mesh a DNS round robin. While this isn't a setup I would ever use in production because it isn't the most dynamically flexible in terms of service discovery, it is however a very easy setup and if you want to launch a new mesh you just give it the Consul name `service-mesh` and run the job and then bam! Bob's your uncle.  
 
-`make base` will deploy coredns, docker-registry and haproxy these are needed for everything else to work but aside from these you can pick and choose what to deploy with `make deploy-job-$FOLDER_NAME`
+`make base` will deploy coredns, docker-registry and haproxy these are needed for everything else to work but aside from these you can pick and choose what to deploy with `make deploy-FOLDER_NAME` to deploy any of the jobs from the included subfolders. `make deploy-prometheus` for example.
 
 In the future I would like to provide a ready to boot image for a raspberry pi where you can run all of this as the resources needed are really minimal. With just the basics you can get away with one pi4 4gb model with plenty of room to spare.
 
