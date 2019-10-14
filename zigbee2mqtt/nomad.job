@@ -1,0 +1,38 @@
+job "zigbee2mqtt" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "15"
+  }
+
+  group "homeautomation" {
+    count = 1 
+    task "zigbee2mqtt" {
+      driver = "docker"
+      config {
+        image = "koenkk/zigbee2mqtt"
+        force_pull = true
+        network_mode = "host"
+        privileged = true
+        volumes = [
+          "[[ .dirs.shared ]]zigbee2mqtt:/app/data",
+          "[[ .dirs.shared ]]zigbee2mqtt/zigbee-shepherd-converters:/app/node_modules/zigbee-shepherd-converters",
+          "/dev/ttyACM0:/dev/ttyACM0",
+        ]
+      }
+
+      env {
+        TZ = "Europe/Amsterdam"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+      }
+    }
+  }
+}
+
