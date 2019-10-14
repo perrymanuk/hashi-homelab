@@ -1,0 +1,57 @@
+job "deconz" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "3"
+  }
+
+  group "homeautomation" {
+    count = 1 
+    task "deconz" {
+      driver = "docker"
+      config {
+        image = "marthoc/deconz"
+        #force_pull = true
+        network_mode = "host"
+        privileged = true
+        volumes = [
+          "[[ .dirs.shared ]]deconz:/root/.local/share/dresden-elektronik/deCONZ",
+          "/dev/ttyACM0:/dev/ttyACM0",
+        ]
+      }
+
+      service {
+        port = "web"
+	      name = "deconz"
+        tags = ["net-internal", "net-external", "deconz"]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      env {
+        TZ = "Europe/Amsterdam"
+        DECONZ_WEB_PORT = "${NOMAD_PORT_web}"
+        DECONZ_WS_PORT = "${NOMAD_PORT_ws}"
+        DECONZ_DEVICE = "/dev/ttyACM0"
+        DECONZ_VNC_MODE = "0"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+        network {
+          port "web" { static = "8182" }
+          port "ws" {}
+        }
+      }
+    }
+  }
+}
+
