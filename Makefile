@@ -1,7 +1,7 @@
 # Load .env files
 include .env 
 
-base_deployments = blackbox-exporter configs coredns docker-registry grafana prometheus telegraf haproxy
+base_deployments = coredns docker-registry haproxy
 
 help:
 	deploy-base					deploys all jobs to nomad
