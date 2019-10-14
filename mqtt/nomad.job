@@ -1,0 +1,45 @@
+job "mosquitto" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    service_owner = "@pmanuk"
+    version = "1"
+  }
+
+  group "homeautomation" {
+    count = 1 
+    task "mosquitto" {
+      driver = "docker"
+      config {
+        image = "docker.homelab/mosquitto:2"
+        force_pull = true
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]mosquitto:/mosquitto/",
+        ]
+      }
+
+      service {
+         tags = ["mqtt", "net-internal"]
+         name = "mqtt"
+         port = "1"
+      }
+
+      env {
+        TZ = "Europe/Amsterdam"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+        network {
+          port "0" { static = 9001 }
+          port "1" { static = 1883 }
+        }
+      }
+    }
+  }
+}
+
