@@ -24,7 +24,18 @@ job "couchpotato" {
       service {
         port = "http"
 	      name = "couch"
-        tags = ["net-internal", "net-external", "couchpotato", "net.frontend.entryPoints=https"]
+        tags = [
+          "traefik.enable=true", 
+          "traefik.http.routers.couch.entrypoints=web,websecure", 
+          "traefik.frontend.entryPoints=https", 
+          "net-internal", 
+          "net-external", 
+          "couchpotato", 
+          "net.frontend.entryPoints=https", 
+          "traefik.http.routers.couch.tls.domains[0].sans=couch.holab.io", 
+          "traefik.http.routers.couch.tls.domains[1].sans=couch.stuck-in-blue.com", 
+          "traefik.http.routers.couch.tls=true", 
+          "traefik.http.routers.couch.tls.certresolver=sample"]
         check {
           type     = "http"
           path     = "/"

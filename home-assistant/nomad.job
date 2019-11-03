@@ -24,7 +24,15 @@ job "home-assistant" {
       service {
         port = "http"
 	      name = "hass"
-        tags = ["net-internal", "net-external", "home-assistant", "metrics"]
+        tags = [
+          "traefik.enable=true", 
+          "traefik.frontend.entryPoints=https", 
+          "traefik.http.routers.hass.tls.domains[0].sans=hass.holab.io", 
+          "traefik.http.routers.hass.tls.domains[1].sans=hass.stuck-in-blue.com", 
+          "traefik.http.routers.hass.tls=true", 
+          "traefik.http.routers.hass.tls.certresolver=sample", 
+          "metrics"
+        ]
         check {
           type     = "tcp"
           interval = "10s"

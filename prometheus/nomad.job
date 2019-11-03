@@ -16,10 +16,6 @@ job "prometheus" {
 
     task "prometheus" {
       driver = "docker"
-      constraint {
-        attribute = "${attr.unique.hostname}"
-        value     = "videowald"
-      }
 
       service {
         tags = ["prometheus", "net-internal"]
@@ -177,7 +173,7 @@ EOH
       config {
         image = "prom/prometheus"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "${NOMAD_ADDR_http}"]
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "127.0.0.1:9090"]
         force_pull = true
         network_mode = "host"
         volumes = [

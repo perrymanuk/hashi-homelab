@@ -19,4 +19,8 @@ plan-base:
 
 .PHONY: deploy-%
 deploy-%:
-	docker run --rm -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant deploy -var-file=/workdir/levant/defaults.yml $*/nomad.job
+	docker run --rm -e NOMAD_CACERT -e NOMAD_CLIENT_CERT -e NOMAD_CLIENT_KEY -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant deploy -var-file=/workdir/levant/defaults.yml $*/nomad.job
+
+.PHONY: vault
+vault:
+	docker run -e VAULT_ADDR -e VAULT_TOKEN -v ~/git/github/hashi-homelab/levant/vault:/vault perrymanuk/vault-wrapper /usr/bin/vault-sync sync --sync-full -c /vault/test.yaml

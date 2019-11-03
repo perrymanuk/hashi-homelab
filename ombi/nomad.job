@@ -21,7 +21,7 @@ job "ombi" {
       service {
         port = "http"
 	      name = "ombi"
-        tags = ["net-internal", "ombi", "net-external", "net.frontend.entryPoints=https"]
+        tags = ["traefik.enable=true", "traefik.frontend.entryPoints=https", "traefik.http.routers.ombi.tls.domains[0].sans=ombi.holab.io", "traefik.http.routers.ombi.tls=true", "traefik.http.routers.ombi.tls.certresolver=sample"]
         check {
           type     = "tcp"
           interval = "10s"
@@ -33,7 +33,6 @@ job "ombi" {
         cpu    = 100
         memory = 128
         network {
-          mbits = 1
           port "http" { static = "3579" }
         }
       }

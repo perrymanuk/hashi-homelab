@@ -24,7 +24,7 @@ job "sonarr" {
       service {
         port = "http"
 	      name = "sonarr"
-        tags = ["net-internal", "net-external", "sonarr", "net.frontend.entryPoints=https"]
+        tags = ["traefik.enable=true", "traefik.frontend.entryPoints=https", "traefik.http.routers.sonarr.tls.domains[0].sans=sonarr.holab.io", "traefik.http.routers.sonarr.tls=true", "traefik.http.routers.sonarr.tls.certresolver=sample"]
         check {
           type     = "http"
           path     = "/"

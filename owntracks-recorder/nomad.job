@@ -5,7 +5,7 @@ job "owntracks-recorder" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "5"
+    version = "6"
   }
 
   group "homeautomation" {
@@ -28,7 +28,19 @@ job "owntracks-recorder" {
       service {
         port = "http"
 	      name = "owntracks"
-        tags = ["net-internal", "net-external", "owntracks", "traefik.frontend.auth.basic.users=trackme:$apr1$ocbwkhl8$yy2VFtq.TK4UBT6moLjXM1"]
+        tags = [
+          "traefik.enable=true",
+          "net-internal", 
+          "owntracks", 
+          "traefik.http.middlewares.owntracks.basicauth.users=trackme:$apr1$ocbwkhl8$yy2VFtq.TK4UBT6moLjXM1", 
+          "traefik.frontend.entryPoints=https", 
+          "traefik.http.routers.owntracks.tls=true", 
+          "traefik.http.routers.owntracks.tls.domains[0].main=holab.io", 
+          "traefik.http.routers.owntracks.tls.domains[0].sans=owntracks.holab.io", 
+          "traefik.http.routers.owntracks.tls=true", 
+          "traefik.http.routers.owntracks.tls.certresolver=sample", 
+          "traefik.http.middlewares.owntracks.basicauth.removeheader=true", 
+          "traefik.http.routers.owntracks.middlewares=owntracks"]
         check {
           type     = "http"
           path     = "/"

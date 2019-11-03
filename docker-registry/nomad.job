@@ -26,7 +26,7 @@ job "docker-registry" {
       service {
         port = "http"
 	      name = "docker"
-        tags = ["net-internal", "docker-registry"]
+        tags = ["net-internal", "docker-registry", "traefik.frontend.entryPoints=https"]
         check {
           type     = "http"
           path     = "/"

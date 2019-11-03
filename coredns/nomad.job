@@ -4,7 +4,7 @@ job "coredns" {
   type        = "service"
 
   meta {
-    version = "6"
+    version = "5"
   }
 
   group "infrastructure" {
@@ -54,6 +54,16 @@ home.:53 {
   prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
+nomad.:53 {
+  bind {{ env "NOMAD_IP_http" }}
+  errors
+  file /local/coredns/zones/nomad {
+    reload 60s
+  }
+  log
+  prometheus {{ env "NOMAD_IP_http" }}:9153
+}
+
 homelab.:53 {
   bind {{ env "NOMAD_IP_http" }}
   errors
@@ -64,8 +74,56 @@ homelab.:53 {
   prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
+consul.:53 {
+  bind {{ env "NOMAD_IP_http" }}
+  forward . 172.20.4.7:53
+  log
+  prometheus {{ env "NOMAD_IP_http" }}:9153
+}
+
+trv.cloud.:53 {
+  bind {{ env "NOMAD_IP_http" }}
+  forward . 172.20.4.7:53
+  log
+  prometheus {{ env "NOMAD_IP_http" }}:9153
+}
+
+trivago.trv.:53 {
+  bind {{ env "NOMAD_IP_http" }}
+  forward . 172.20.4.7:53
+  log
+  prometheus {{ env "NOMAD_IP_http" }}:9153
+}
 EOH
         destination = "local/coredns/corefile"
+        env         = false
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+
+      template {
+data = <<EOH
+$ORIGIN nomad.
+@       3600 IN SOA ns1.nomad. ns2.nomad. (
+          {{ timestamp "unix" }} ; serial
+          7200       ; refresh (2 hours)
+          3600       ; retry (1 hour)
+          1209600    ; expire (2 weeks)
+          3600       ; minimum (1 hour)
+          )
+
+        3600 IN NS ns1.nomad.
+        3600 IN NS ns2.nomad.
+
+ns1  		       IN  A  10.90.80.146
+ns2  		       IN  A  10.90.80.176
+
+*.nomad.       IN  A 88.99.163.75
+EOH
+        destination = "local/coredns/zones/nomad"
         env         = false
         change_mode = "signal"
         change_signal = "SIGHUP"
