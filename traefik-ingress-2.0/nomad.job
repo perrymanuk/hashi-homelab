@@ -1,0 +1,105 @@
+job "traefik" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type = "system"
+  meta {
+    version = "12"
+  }
+
+  group "lbs" {
+    count = 1
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+    task "traefik" {
+      driver = "docker"
+      service {
+        name = "traefik-secure"
+        port = "https"
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+      service {
+        name = "traefik"
+        port = "admin"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+        ]
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      config {
+        image = "perrymanuk/traefik:consul"
+        volumes = [
+          "local/traefik.toml:/etc/traefik/traefik.toml",
+          "[[ .dirs.shared ]]traefik-ingress/acme.json:/acme.json"
+        ]
+        network_mode = "host"
+        mounts = [
+          # bind mount
+          {
+            type = "bind"
+            target = "/etc/consul.d/"
+            source = "/etc/consul.d/"
+            readonly = true
+            bind_options {
+              propagation = "rprivate"
+            }
+          }
+        ]
+      }
+
+      env {
+      GCE_SERVICE_ACCOUNT_FILE = "/local/gke.json"
+      GCE_PROJECT = "nebula01"
+      }
+
+      template {
+data = <<EOH
+[[ fileContents "/workdir/traefik-ingress-2.0/config/traefik.toml" ]]
+EOH
+        destination = "local/traefik.toml"
+        env         = false
+        change_mode = "noop"
+        left_delimiter = "{{{"
+        right_delimiter = "}}}"
+      }
+
+      resources {
+        cpu = 100
+        memory = 64
+        network {
+          port "http" { 
+            static = "80" 
+          }
+          port "https" { 
+            static = "443" 
+          }
+          port "admin" { 
+            static = "9001" 
+          }
+        }
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,116 @@
+job "sonarr" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "sonarr" {
+      driver = "docker"
+      config {
+        image = "linuxserver/sonarr"
+        network_mode = "host"
+        volumes = [
+          "local/index.html:/usr/local/www/nginx-dist/index.html",
+          "local/nginx.conf:/usr/local/etc/nginx/nginx.conf",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "sonarr"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+      template {
+data = <<EOH
+worker_processes  1;
+
+#error_log  /var/log/nginx/error.log;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    access_log /dev/stdout;
+    error_log /dev/stderr;
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       {{ env "NOMAD_PORT_http}};
+        server_name  localhost;
+
+        location / {
+            root   /usr/local/www/nginx;
+            index  index.html index.htm;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/local/www/nginx-dist;
+        }
+    }
+}
+EOH
+        destination = "local/nginx.conf"
+        env         = false
+        perms       = 755
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+      template {
+data = <<EOH
+<html>
+<body>
+    <p align=center><img width="50%" src=images/main.png></p>
+</body>
+</html>
+EOH
+        destination = "local/nginx.conf"
+        env         = false
+        perms       = 755
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+
+
+      resources {
+        cpu    = 100
+        memory = 128
+        network {
+          port "http" {}
+        }
+      }
+    }
+  }
+}
+
