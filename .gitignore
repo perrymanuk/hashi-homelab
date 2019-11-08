@@ -1,3 +1,6 @@
 .envrc
 .env
 *-pub
+.passwords
+.envrc*
+vault
