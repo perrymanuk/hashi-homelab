@@ -88,7 +88,7 @@ EOH
 data = <<EOH
 <html>
 <body>
-    <p align=center><img width="50%" src=images/main.png></p>
+    <p align=center><img width="50%" src=images/main.jpg></p>
 </body>
 </html>
 EOH

@@ -1,0 +1,78 @@
+job "sabnzbd" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "sabnzbd" {
+      driver = "docker"
+      config {
+        image = "linuxserver/sabnzbd"
+        network_mode = "host"
+        mounts = [
+          {
+            type = "bind"
+            target = "/config"
+            source = "[[ .dirs.shared ]]sabnzbd",
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          },
+          {
+            type = "bind"
+            target = "/downloads"
+            source = "[[ .dirs.downloads ]]"
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          },
+          {
+            type = "bind"
+            target = "/media"
+            source = "[[ .dirs.media ]]"
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          }
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "${NOMAD_TASK_NAME}"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+        network {
+          port "http" { static = "8080" }
+        }
+      }
+    }
+  }
+}
+
