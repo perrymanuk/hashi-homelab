@@ -18,9 +18,18 @@ job "prometheus" {
       driver = "docker"
 
       service {
-        tags = ["prometheus", "net-internal"]
         name = "prometheus"
         port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+        ]
 
         check {
           type     = "http"
@@ -60,8 +69,13 @@ scrape_configs:
     scrape_interval: 5s
     metrics_path: /metrics
     consul_sd_configs:
-            - server: 'localhost:8500'
-              tags: ['metrics']
+      - server: 'localhost:8501'
+        tags: ['metrics']
+        scheme: https
+        tls_config:
+          ca_file: '/etc/consul.d/homelab-agent-ca.pem'
+          cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
+          key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
     relabel_configs:
       - source_labels: ['__meta_consul_dc']
         target_label:  'dc'
@@ -87,8 +101,13 @@ scrape_configs:
     params:
       format: ['prometheus']
     consul_sd_configs:
-      - server: 'localhost:8500'
+      - server: 'localhost:8501'
         services: ['consul-agent']
+        scheme: https
+        tls_config:
+          ca_file: '/etc/consul.d/homelab-agent-ca.pem'
+          cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
+          key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
     relabel_configs:
       - source_labels: ['__meta_consul_dc']
         target_label:  'dc'
@@ -103,9 +122,14 @@ scrape_configs:
 
   - job_name: 'nomad-client'
     consul_sd_configs:
-    - server: '{{ env "NOMAD_IP_http" }}:8500'
+    - server: 'localhost:8501'
       services: ['nomad-client']
       tags: ['http']
+      scheme: https
+      tls_config:
+        ca_file: '/etc/consul.d/homelab-agent-ca.pem'
+        cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
+        key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
     scrape_interval: 10s
     metrics_path: /v1/metrics
     params:
@@ -173,17 +197,32 @@ EOH
       config {
         image = "prom/prometheus"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "127.0.0.1:9090"]
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "0.0.0.0:9090"]
         force_pull = true
-        network_mode = "host"
+        #network_mode = "host"
+        port_map {
+          http = 9090
+        }
         volumes = [
           "/opt/prometheus:/data",
+        ]
+        mounts = [
+          # bind mount
+          {
+            type = "bind"
+            target = "/etc/consul.d/"
+            source = "/etc/consul.d/"
+            readonly = true
+            bind_options {
+              propagation = "rprivate"
+            }
+          }
         ]
       }
 
       resources {
         cpu    = 400
-        memory = 256
+        memory = 4096
 
         network {
           port "http" { static = "9090" }
