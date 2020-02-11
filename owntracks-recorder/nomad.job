@@ -5,12 +5,12 @@ job "owntracks-recorder" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "6"
+    version = "7"
   }
 
   group "homeautomation" {
     count = 1 
-    task "owntracks-recorder" {
+    task "owntracks" {
       driver = "docker"
       config {
         image = "owntracks/recorder"
@@ -30,17 +30,14 @@ job "owntracks-recorder" {
 	      name = "owntracks"
         tags = [
           "traefik.enable=true",
-          "net-internal", 
-          "owntracks", 
-          "traefik.http.middlewares.owntracks.basicauth.users=trackme:$apr1$ocbwkhl8$yy2VFtq.TK4UBT6moLjXM1", 
-          "traefik.frontend.entryPoints=https", 
-          "traefik.http.routers.owntracks.tls=true", 
-          "traefik.http.routers.owntracks.tls.domains[0].main=holab.io", 
-          "traefik.http.routers.owntracks.tls.domains[0].sans=owntracks.holab.io", 
-          "traefik.http.routers.owntracks.tls=true", 
-          "traefik.http.routers.owntracks.tls.certresolver=sample", 
-          "traefik.http.middlewares.owntracks.basicauth.removeheader=true", 
-          "traefik.http.routers.owntracks.middlewares=owntracks"]
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+        ]
         check {
           type     = "http"
           path     = "/"
@@ -53,7 +50,7 @@ job "owntracks-recorder" {
         TZ = "Europe/Amsterdam"
         OTR_HTTPHOST = "${NOMAD_ADDR_http}"
         #OTR_HTTPPORT = "${NOMAD_PORT_http}"
-        OTR_HOST = "mqtt.service.homelab"
+        OTR_HOST = "mqtt.service.home"
         OTR_STORAGEDIR = "/store"
         OTR_VIEWSDIR = "/store/views"
         #OTR_CAPATH = "/etc/ssl/certs"

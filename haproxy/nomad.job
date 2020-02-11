@@ -4,7 +4,7 @@ job "haproxy" {
   type = "system"
 
   meta {
-    version = "2"
+    version = "3"
   }
 
   group "lbs" {

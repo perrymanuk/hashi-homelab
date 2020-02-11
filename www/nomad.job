@@ -1,4 +1,4 @@
-job "sonarr" {
+job "www" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -9,20 +9,22 @@ job "sonarr" {
 
   group "downloaders" {
     count = 1 
-    task "sonarr" {
+    task "www" {
       driver = "docker"
       config {
-        image = "linuxserver/sonarr"
+        image = "docker-registry.demonsafe.com/www:2"
         network_mode = "host"
+        command = "nginx"
+        args = ["-c", "/usr/local/etc/nginx/nginx.conf", "-g", "daemon off;"]
         volumes = [
-          "local/index.html:/usr/local/www/nginx-dist/index.html",
+          "local/index.html:/usr/local/www/nginx/index.html",
           "local/nginx.conf:/usr/local/etc/nginx/nginx.conf",
         ]
       }
 
       service {
         port = "http"
-	      name = "sonarr"
+	      name = "www"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -53,14 +55,14 @@ events {
 http {
     access_log /dev/stdout;
     error_log /dev/stderr;
-    include       mime.types;
+    #include       mime.types;
     default_type  application/octet-stream;
 
     sendfile        on;
     keepalive_timeout  65;
 
     server {
-        listen       {{ env "NOMAD_PORT_http}};
+        listen       {{ env "NOMAD_PORT_http" }};
         server_name  localhost;
 
         location / {
@@ -87,12 +89,12 @@ EOH
       template {
 data = <<EOH
 <html>
-<body>
+<body bgcolor="#303030">
     <p align=center><img width="50%" src=images/main.jpg></p>
 </body>
 </html>
 EOH
-        destination = "local/nginx.conf"
+        destination = "local/index.html"
         env         = false
         perms       = 755
         change_mode = "signal"

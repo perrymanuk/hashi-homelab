@@ -15,7 +15,7 @@ job "grafana" {
         image = "grafana/grafana:6.4.3"
         volumes = [
           "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
+          "/opt/grafana/data:/var/lib/grafana",
         ]
 
         network_mode = "host"

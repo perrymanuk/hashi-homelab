@@ -5,7 +5,7 @@ job "deconz" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "3"
+    version = "5"
   }
 
   group "homeautomation" {
@@ -26,7 +26,20 @@ job "deconz" {
       service {
         port = "web"
 	      name = "deconz"
-        tags = ["net-internal", "net-external", "deconz"]
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT",
+          "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=origin-list-or-null",
+          "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
+          "traefik.http.middlewares.cors.headers.addvaryheader=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect,cors",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+        ]
         check {
           type     = "http"
           path     = "/"

@@ -120,6 +120,21 @@ scrape_configs:
         replacement: '${2}'
         target_label: '${1}'
 
+  - job_name: 'hass'
+    scrape_interval: 60s
+    metrics_path: /api/prometheus
+
+    # Legacy api password
+    #params:
+    #  api_password: ['PASSWORD']
+
+    # Long-Lived Access Token
+    bearer_token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIyNDMxOWVmNzVkNjc0MGY1OWQ1YmUwNTU4Y2EwNjAyYiIsImlhdCI6MTU4MTE3MzA3MywiZXhwIjoxODk2NTMzMDczfQ.EYdPb1eHHVcw6rd3JqyIOLDlaxSNaS2Om7gy-7zhfC0'
+
+    scheme: http
+    static_configs:
+      - targets: ['10.90.80.120:8123']
+
   - job_name: 'nomad-client'
     consul_sd_configs:
     - server: 'localhost:8501'
@@ -197,7 +212,7 @@ EOH
       config {
         image = "prom/prometheus"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "0.0.0.0:9090"]
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
         force_pull = true
         #network_mode = "host"
         port_map {

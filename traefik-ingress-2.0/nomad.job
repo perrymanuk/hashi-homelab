@@ -1,9 +1,14 @@
 job "traefik" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
-  type = "system"
+  type = "service"
   meta {
-    version = "12"
+    version = "16"
+  }
+
+  constraint {
+    attribute = "${attr.kernel.name}"
+    value     = "linux"
   }
 
   group "lbs" {
@@ -32,8 +37,8 @@ job "traefik" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.[[ .domain ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.[[ .domain ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
@@ -47,7 +52,8 @@ job "traefik" {
       }
 
       config {
-        image = "perrymanuk/traefik:consul"
+        #image = "perrymanuk/traefik:consul"
+        image = "traefik:v2.1.4"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "[[ .dirs.shared ]]traefik-ingress/acme.json:/acme.json"
@@ -67,14 +73,42 @@ job "traefik" {
         ]
       }
 
-      env {
-      GCE_SERVICE_ACCOUNT_FILE = "/local/gke.json"
-      GCE_PROJECT = "nebula01"
-      }
-
       template {
 data = <<EOH
-[[ fileContents "/workdir/traefik-ingress-2.0/config/traefik.toml" ]]
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+[entryPoints]
+  [entryPoints.web]
+    address = "[[ .address.public ]]:80"
+  [entryPoints.traefik]
+    address = "[[ .address.private ]]:9002"
+  [entryPoints.websecure]
+    address = "[[ .address.public ]]:443"
+  [entryPoints.mqtt]
+    address = "[[ .address.public ]]:8884"
+[http.middlewares]
+  [http.middlewares.https-redirect.redirectscheme]
+    scheme = "https"
+[certificatesResolvers.sample.acme]
+  email = "me@you.com"
+  storage = "acme.json"
+  [certificatesResolvers.sample.acme.httpChallenge]
+    entryPoint = "web"
+[log]
+[api]
+  dashboard = true
+  insecure = true
+[ping]
+[providers.consulcatalog]
+  exposedByDefault = false
+  prefix = "traefik"
+  defaultRule = "Host(`{{ .Name }}.[[ .domain ]]`)"
+  [providers.consulcatalog.endpoint]
+    address = "[[ .address.private ]]:8500"
+    scheme = "[[ .consul.scheme ]]"
+    datacenter = "[[ .consul.datacenter ]]"
+    endpointWaitTime = "15s"
 EOH
         destination = "local/traefik.toml"
         env         = false
@@ -88,13 +122,16 @@ EOH
         memory = 64
         network {
           port "http" { 
-            static = "80" 
+            static = "8880" 
+          }
+          port "mqtt" { 
+            static = "8884" 
           }
           port "https" { 
             static = "443" 
           }
           port "admin" { 
-            static = "9001" 
+            static = "9002" 
           }
         }
       }

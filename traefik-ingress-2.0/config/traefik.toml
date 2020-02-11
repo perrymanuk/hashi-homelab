@@ -179,7 +179,7 @@
   #refreshSeconds = 15
 
   # Defines default rule.
-  defaultRule = "Host(`{{ .Name }}.demonsafe.com`)"
+  defaultRule = "Host(`{{ .Name }}.stuck-in-blue.com`)"
 
   # Includes only containers having a label with key `a.label.name` and value `foo`
   #constraints = "Label(`a.label.name`, `foo`)"
@@ -187,13 +187,13 @@
   [providers.consulcatalog.endpoint]
 
     # Defines the consul address endpoint.
-    address = "127.0.0.1:8501"
+    address = "127.0.0.1:8500"
 
     # Defines the scheme used.
     scheme = "https"
 
     # Defines the DC.
-    datacenter = "hetzner"
+    datacenter = "home"
 
     # Defines the token.
     #token = "foobar"
@@ -201,10 +201,10 @@
     # Defines the expoint wait time.
     endpointWaitTime = "15s"
 
-    [providers.consulCatalog.endpoint.tls]
-      ca = "/etc/consul.d/homelab-agent-ca.pem"
-      cert = "/etc/consul.d/hetzner-server-homelab-0.pem"
-      key = "/etc/consul.d/hetzner-server-homelab-0-key.pem"
+#    [providers.consulCatalog.endpoint.tls]
+#      ca = "/etc/consul.d/homelab-agent-ca.pem"
+#      cert = "/etc/consul.d/hetzner-server-homelab-0.pem"
+#      key = "/etc/consul.d/hetzner-server-homelab-0-key.pem"
 
 #[file]
 #

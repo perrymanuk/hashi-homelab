@@ -21,7 +21,15 @@ job "ombi" {
       service {
         port = "http"
 	      name = "ombi"
-        tags = ["traefik.enable=true", "traefik.frontend.entryPoints=https", "traefik.http.routers.ombi.tls.domains[0].sans=ombi.holab.io", "traefik.http.routers.ombi.tls=true", "traefik.http.routers.ombi.tls.certresolver=sample"]
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
         check {
           type     = "tcp"
           interval = "10s"

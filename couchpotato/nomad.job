@@ -9,7 +9,7 @@ job "couchpotato" {
 
   group "downloaders" {
     count = 1 
-    task "couchpotato" {
+    task "couch" {
       driver = "docker"
       config {
         image = "linuxserver/couchpotato"
@@ -25,17 +25,14 @@ job "couchpotato" {
         port = "http"
 	      name = "couch"
         tags = [
-          "traefik.enable=true", 
-          "traefik.http.routers.couch.entrypoints=web,websecure", 
-          "traefik.frontend.entryPoints=https", 
-          "net-internal", 
-          "net-external", 
-          "couchpotato", 
-          "net.frontend.entryPoints=https", 
-          "traefik.http.routers.couch.tls.domains[0].sans=couch.holab.io", 
-          "traefik.http.routers.couch.tls.domains[1].sans=couch.stuck-in-blue.com", 
-          "traefik.http.routers.couch.tls=true", 
-          "traefik.http.routers.couch.tls.certresolver=sample"]
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
         check {
           type     = "http"
           path     = "/"
