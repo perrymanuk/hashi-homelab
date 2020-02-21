@@ -3,6 +3,7 @@
 *-pub
 .passwords
 .envrc*
-vault
+vault/secrets.yaml
+vault/*.hcl
 www/main.jpg
 ssl
