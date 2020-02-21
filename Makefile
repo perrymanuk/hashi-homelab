@@ -18,7 +18,7 @@ plan-base:##.......plans deployment of all jobs
 
 .PHONY: deploy-%
 deploy-%:##........deploy specific job from sub folder
-	docker run --rm --add-host=server.europe.nomad:88.99.163.75 -e VAULT_TOKEN -e NOMAD_CACERT -e NOMAD_CLIENT_CERT -e NOMAD_CLIENT_KEY -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant deploy -vault -var-file=/workdir/levant/defaults.yml $*/nomad.job
+	docker run --rm -e VAULT_TOKEN -e NOMAD_CACERT -e NOMAD_CLIENT_CERT -e NOMAD_CLIENT_KEY -e NOMAD_TOKEN -e NOMAD_REGION -e ENVIRONMENT -e NOMAD_ADDR -v ${PWD}:/workdir -w /workdir jrasell/levant deploy -vault -var-file=/workdir/levant/defaults.yml $*/nomad.job
 
 .PHONY: vault
 vault:

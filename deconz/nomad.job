@@ -54,7 +54,7 @@ job "deconz" {
         DECONZ_WS_PORT = "${NOMAD_PORT_ws}"
         DECONZ_DEVICE = "/dev/ttyACM0"
         DECONZ_VNC_MODE = "1"
-        DECONZ_VNC_PASSWORD = "booGAbooGABOO"
+        DECONZ_VNC_PASSWORD = "changeme"
       }
 
       resources {

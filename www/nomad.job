@@ -7,12 +7,12 @@ job "www" {
     version = "1"
   }
 
-  group "downloaders" {
+  group "web" {
     count = 1 
-    task "www" {
+    task "nginx" {
       driver = "docker"
       config {
-        image = "docker-registry.demonsafe.com/www:2"
+        image = "docker-registry.[[ .tld ]]/www:2"
         network_mode = "host"
         command = "nginx"
         args = ["-c", "/usr/local/etc/nginx/nginx.conf", "-g", "daemon off;"]
