@@ -1,1 +1,0 @@
-{{range $index, $service := services}}{{$service:=.Name}}{{range .Tags}}{{if eq . "letsencrypt" }}{{if gt $index 0}}, {{end}}"{{$service}}.holab.io"{{end}}{{end}}{{end}}
