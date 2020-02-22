@@ -1,4 +1,4 @@
-job "sonarr" {
+job "sabnzbd" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
@@ -9,21 +9,45 @@ job "sonarr" {
 
   group "downloaders" {
     count = 1 
-    task "sonarr" {
+    task "sabnzbd" {
       driver = "docker"
       config {
-        image = "linuxserver/sonarr"
+        image = "linuxserver/sabnzbd"
         network_mode = "host"
-        volumes = [
-          "[[ .dirs.shared ]]sonarr:/config",
-          "[[ .dirs.downloads ]]:/downloads",
-          "[[ .dirs.tv ]]:/media/TV",
+        mounts = [
+          {
+            type = "bind"
+            target = "/config"
+            source = "[[ .dirs.shared ]]sabnzbd",
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          },
+          {
+            type = "bind"
+            target = "/downloads"
+            source = "[[ .dirs.downloads ]]"
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          },
+          {
+            type = "bind"
+            target = "/media"
+            source = "[[ .dirs.media ]]"
+            readonly = false
+            bind_options {
+              propagation = "rshared"
+            }
+          }
         ]
       }
 
       service {
         port = "http"
-	      name = "sonarr"
+	      name = "${NOMAD_TASK_NAME}"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -45,7 +69,7 @@ job "sonarr" {
         cpu    = 100
         memory = 128
         network {
-          port "http" { static = "8989" }
+          port "http" { static = "8080" }
         }
       }
     }

@@ -1,3 +1,9 @@
 .envrc
 .env
 *-pub
+.passwords
+.envrc*
+vault/secrets.yaml
+vault/*.hcl
+www/main.jpg
+ssl

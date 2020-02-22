@@ -1,0 +1,118 @@
+job "www" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "web" {
+    count = 1 
+    task "nginx" {
+      driver = "docker"
+      config {
+        image = "docker-registry.[[ .tld ]]/www:2"
+        network_mode = "host"
+        command = "nginx"
+        args = ["-c", "/usr/local/etc/nginx/nginx.conf", "-g", "daemon off;"]
+        volumes = [
+          "local/index.html:/usr/local/www/nginx/index.html",
+          "local/nginx.conf:/usr/local/etc/nginx/nginx.conf",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "www"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+      template {
+data = <<EOH
+worker_processes  1;
+
+#error_log  /var/log/nginx/error.log;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    access_log /dev/stdout;
+    error_log /dev/stderr;
+    #include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    keepalive_timeout  65;
+
+    server {
+        listen       {{ env "NOMAD_PORT_http" }};
+        server_name  localhost;
+
+        location / {
+            root   /usr/local/www/nginx;
+            index  index.html index.htm;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   /usr/local/www/nginx-dist;
+        }
+    }
+}
+EOH
+        destination = "local/nginx.conf"
+        env         = false
+        perms       = 755
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+      template {
+data = <<EOH
+<html>
+<body bgcolor="#303030">
+    <p align=center><img width="50%" src=images/main.jpg></p>
+</body>
+</html>
+EOH
+        destination = "local/index.html"
+        env         = false
+        perms       = 755
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+        left_delimiter  = "{{"
+        right_delimiter = "}}"
+
+      }
+
+
+      resources {
+        cpu    = 100
+        memory = 128
+        network {
+          port "http" {}
+        }
+      }
+    }
+  }
+}
+

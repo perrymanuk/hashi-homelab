@@ -5,17 +5,17 @@ job "home-assistant" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "12"
+    version = "6"
   }
 
-  group "homeautomation" {
+  group "home-automation" {
     count = 1 
-    task "home-assistant" {
+    task "hass" {
       driver = "docker"
       config {
         image = "homeassistant/home-assistant"
+        force_pull = true
         network_mode = "host"
-        privileged = true
         volumes = [
           "[[ .dirs.shared ]]home-assistant:/config",
         ]
@@ -25,13 +25,13 @@ job "home-assistant" {
         port = "http"
 	      name = "hass"
         tags = [
-          "traefik.enable=true", 
-          "traefik.frontend.entryPoints=https", 
-          "traefik.http.routers.hass.tls.domains[0].sans=hass.holab.io", 
-          "traefik.http.routers.hass.tls.domains[1].sans=hass.stuck-in-blue.com", 
-          "traefik.http.routers.hass.tls=true", 
-          "traefik.http.routers.hass.tls.certresolver=sample", 
-          "metrics"
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.[[ .domain ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.[[ .domain ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
         check {
           type     = "tcp"

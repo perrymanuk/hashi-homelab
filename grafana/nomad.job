@@ -4,18 +4,18 @@ job "grafana" {
   type        = "service"
 
   meta {
-    version = "3"
+    version = "9"
   }
 
-  group "downloaders" {
+  group "monitoring" {
     count = 1 
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana"
+        image = "grafana/grafana:6.4.3"
         volumes = [
           "[[ .dirs.shared ]]grafana/config:/etc/grafana/",
-          "[[ .dirs.shared ]]/grafana/data:/var/lib/grafana",
+          "/opt/grafana/data:/var/lib/grafana",
         ]
 
         network_mode = "host"
@@ -23,12 +23,19 @@ job "grafana" {
       user = 1002
       env {
         GF_PATHS_DATA = "/var/lib/grafana"
+        GF_AUTH_BASIC_ENABLED = "false"
         GF_INSTALL_PLUGINS = "grafana-piechart-panel"
       }
       service {
         port = "http"
 	      name = "grafana"
-        tags = ["net-internal", "grafana"]
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+        ] 
         check {
           type     = "http"
           path     = "/"

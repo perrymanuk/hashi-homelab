@@ -1,29 +1,23 @@
-job "sonarr" {
+job "uploader" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
-  type        = "service"
-
+  type = "service"
   meta {
-    version = "1"
+    version = "3"
   }
 
-  group "downloaders" {
-    count = 1 
-    task "sonarr" {
+  group "webserver" {
+    count = 1
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+    task "uploader" {
       driver = "docker"
-      config {
-        image = "linuxserver/sonarr"
-        network_mode = "host"
-        volumes = [
-          "[[ .dirs.shared ]]sonarr:/config",
-          "[[ .dirs.downloads ]]:/downloads",
-          "[[ .dirs.tv ]]:/media/TV",
-        ]
-      }
 
       service {
-        port = "http"
-	      name = "sonarr"
+        name = "uploader"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -33,22 +27,40 @@ job "sonarr" {
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
+        port = "http"
+
         check {
-          type     = "http"
-          path     = "/"
+          type     = "tcp"
           interval = "10s"
           timeout  = "2s"
         }
       }
 
+      config {
+        image = "docker-registry[[ .tld ]]/uploader:latest"
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]uploader:/data",
+        ]
+      }
+      template {
+data = <<EOH
+UPLOADER_RS_FILES_DIR=/data
+UPLOADER_RS_BINDING={{env "NOMAD_ADDR_http" }}
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
       resources {
-        cpu    = 100
-        memory = 128
+        cpu = 100
+        memory = 16
         network {
-          port "http" { static = "8989" }
+          port "http" {} 
         }
       }
     }
   }
 }
+
 
