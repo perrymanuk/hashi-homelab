@@ -1,0 +1,56 @@
+job "plex" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "plex" {
+      driver = "docker"
+      config {
+        image = "plexinc/pms-docker"
+        network_mode = "host"
+        privileged = "true"
+        force_pull = "true"
+        volumes = [
+          "[[ .dirs.shared ]]plex:/config",
+          "/tmp:/transcode",
+          "[[ .dirs.media ]]:/data",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "plex"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 16284
+        network {
+          port "http" { static = "32400" }
+        }
+      }
+    }
+  }
+}
+
