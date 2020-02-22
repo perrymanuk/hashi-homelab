@@ -1,6 +1,6 @@
 region: 'europe'
 datacenter: 'hetzner'
-tld: '.demonsafe.com'
+tld: '.domain.com'
 dirs:
   media: '/home/media'
   shared: '/home/shared/'

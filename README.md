@@ -47,4 +47,4 @@ http://nomad-ui.homelab to view the Nomad UI and explore the jobs.
 http://consul-agent.homelab import some of the dashboards to explore around more.  
 http://grafana.homelab and import some of the dashboards from the repo to view your metrics.  
 
-Consul domain is switched to .home to provide separation from the mesh setup. 
+Consul domain is switched to .home to provide separation from the mesh setup. As well as to avoid conflicts with other clusters you may already potentially interact with using the .consul default.
