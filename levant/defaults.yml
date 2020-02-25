@@ -1,5 +1,6 @@
+auth: 'user:hash' #in htaccess format
 region: 'europe'
-datacenter: 'hetzner'
+datacenter: 'nomad_datacenter'
 tld: '.domain.com'
 dirs:
   media: '/home/media'
@@ -11,4 +12,4 @@ dirs:
   books: '/home/media/Books'
   plexlogs: '/home/shared/plex/Library/Application Support/Plex Media Server/Logs'
 adb:
-  devices: '10.90.80.42'
+  devices: '127.0.0.1'

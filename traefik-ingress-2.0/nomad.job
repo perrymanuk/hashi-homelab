@@ -1,7 +1,7 @@
 job "traefik" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
-  type = "service"
+  type = "system"
   meta {
     version = "16"
   }
@@ -37,10 +37,10 @@ job "traefik" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.[[ .domain ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.[[ .domain ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:$apr1$tyQs2yN2$7uE1yLZ.m6d4ltojAOBJc1",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
         ]
 
@@ -103,12 +103,15 @@ data = <<EOH
 [providers.consulcatalog]
   exposedByDefault = false
   prefix = "traefik"
-  defaultRule = "Host(`{{ .Name }}.[[ .domain ]]`)"
+  defaultRule = "Host(`{{ .Name }}[[ .tld ]]`)"
   [providers.consulcatalog.endpoint]
-    address = "[[ .address.private ]]:8500"
+    address = "[[ .consul.address]]"
     scheme = "[[ .consul.scheme ]]"
     datacenter = "[[ .consul.datacenter ]]"
     endpointWaitTime = "15s"
+    
+    [[ .consul.ssl ]]
+
 EOH
         destination = "local/traefik.toml"
         env         = false

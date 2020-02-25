@@ -1,0 +1,215 @@
+job "nextcloud" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  vault {
+    policies      = ["admin"]
+    change_mode   = "signal"
+    change_signal = "SIGUSR1"
+  }
+
+  group "nextcloud" {
+    task "web" {
+      driver = "docker"
+
+      config {
+        image = "nextcloud"
+        volumes = [
+          "[[ .dirs.shared ]]nextcloud:/var/www/html",
+          "[[ .dirs.shared ]]nextcloud_data:/data",
+          "local/default:/config/nginx/site-confs/default"
+        ]
+        port_map {
+          http = 80
+        }
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}"
+        port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_JOB_NAME}.middlewares=httpsRedirect"
+        ]
+
+        check {
+          type     = "tcp"
+          port     = "http"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      template {
+data = <<EOH
+POSTGRES_DB="nextcloud"
+POSTGRES_USER="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.user}}{{end}}"
+POSTGRES_PASSWORD="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.password}}{{end}}"
+NEXTCLOUD_ADMIN_USER="{{with secret "secret/demonsafe/nextcloud/admin"}}{{.Data.user}}{{end}}"
+NEXTCLOUD_ADMIN_PASSWORD="{{with secret "secret/demonsafe/nextcloud/admin"}}{{.Data.password}}{{end}}"
+NEXTCLOUD_TRUSTED_DOMAINS="nextcloud.demonsafe.com"
+POSTGRES_HOST="{{ env "NOMAD_ADDR_postgres_db" }}"
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
+      template {
+data = <<EOH
+upstream php-handler {
+    server 127.0.0.1:9000;
+}
+#server {
+#    listen 80;
+#    listen [::]:80;
+#    server_name _;
+#    return 301 https://$host$request_uri;
+#}
+server {
+    listen 80;
+    listen [::]:80;
+    server_name _;
+    ssl_certificate /config/keys/cert.crt;
+    ssl_certificate_key /config/keys/cert.key;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Robots-Tag none;
+    add_header X-Download-Options noopen;
+    add_header X-Permitted-Cross-Domain-Policies none;
+    add_header Referrer-Policy no-referrer;
+    fastcgi_hide_header X-Powered-By;
+    root /config/www/nextcloud/;
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+    location = /.well-known/carddav {
+      return 301 $scheme://$host/remote.php/dav;
+    }
+    location = /.well-known/caldav {
+      return 301 $scheme://$host/remote.php/dav;
+    }
+    client_max_body_size 10G;
+    fastcgi_buffers 64 4K;
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 4;
+    gzip_min_length 256;
+    gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+    gzip_types application/atom+xml application/javascript application/json application/ld+json application/manifest+json application/rss+xml application/vnd.geo+json application/vnd.ms-fontobject application/x-font-ttf application/x-web-app-manifest+json application/xhtml+xml application/xml font/opentype image/bmp image/svg+xml image/x-icon text/cache-manifest text/css text/plain text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
+    location / {
+        rewrite ^ /index.php;
+    }
+    location ~ ^\/(?:build|tests|config|lib|3rdparty|templates|data)\/ {
+        deny all;
+    }
+    location ~ ^\/(?:\.|autotest|occ|issue|indie|db_|console) {
+        deny all;
+    }
+    location ~ ^\/(?:index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|ocs-provider\/.+|ocm-provider\/.+)\.php(?:$|\/) {
+        fastcgi_split_path_info ^(.+?\.php)(\/.*|)$;
+        try_files $fastcgi_script_name =404;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        fastcgi_param HTTPS on;
+        fastcgi_param modHeadersAvailable true;
+        fastcgi_param front_controller_active true;
+        fastcgi_pass php-handler;
+        fastcgi_intercept_errors on;
+        fastcgi_request_buffering off;
+    }
+
+    location ~ ^\/(?:updater|ocs-provider|ocm-provider)(?:$|\/) {
+        try_files $uri/ =404;
+        index index.php;
+    }
+    location ~ \.(?:css|js|woff2?|svg|gif)$ {
+        try_files $uri /index.php$request_uri;
+        add_header Cache-Control "public, max-age=15778463";
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header X-Robots-Tag none;
+        add_header X-Download-Options noopen;
+        add_header X-Permitted-Cross-Domain-Policies none;
+        add_header Referrer-Policy no-referrer;
+        access_log off;
+    }
+    location ~ \.(?:png|html|ttf|ico|jpg|jpeg)$ {
+        try_files $uri /index.php$request_uri;
+        access_log off;
+    }
+}
+EOH
+        destination = "local/default"
+        env         = false
+      }
+
+      resources {
+        cpu = 500
+        memory = 2048
+        network {
+          port "http" {}
+        }
+      }
+    }
+    task "postgres" {
+      driver = "docker"
+
+      config {
+        image = "postgres:9.6.14"
+        volumes = [
+          "[[ .dirs.shared ]]nextcloud-postgres:/appdata/postgres",
+        ]
+        port_map {
+          db = 5432
+        }
+      }
+      template {
+data = <<EOH
+POSTGRES_DB=nextcloud
+POSTGRES_USER="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.user}}{{end}}"
+POSTGRES_PASSWORD="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.password}}{{end}}"
+PGDATA="/appdata/postgres"
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}-postgres"
+        tags = ["postgres"]
+
+        port = "db"
+
+        check {
+          type     = "tcp"
+          port     = "db"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu = 100
+        memory = 512
+        network {
+          port  "db"  {
+            static = "25432"
+          }
+        }
+      }
+    }
+  }
+}
