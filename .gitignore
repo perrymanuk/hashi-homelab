@@ -7,3 +7,5 @@ vault/secrets.yaml
 vault/*.hcl
 www/main.jpg
 ssl
+levant/*
+!levant/defaults.yml
