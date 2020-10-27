@@ -5,7 +5,7 @@ job "mosquitto" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "2"
+    version = "6"
   }
 
   group "homeautomation" {
@@ -13,7 +13,7 @@ job "mosquitto" {
     task "mosquitto" {
       driver = "docker"
       config {
-        image = "docker.service.home:5000/mosquitto:2"
+        image = "docker-registry.service.home:5000/mosquitto:2"
         force_pull = true
         network_mode = "host"
         volumes = [

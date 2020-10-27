@@ -5,7 +5,7 @@ job "home-assistant" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "6"
+    version = "13"
   }
 
   group "home-automation" {

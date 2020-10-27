@@ -5,7 +5,7 @@ job "owntracks-recorder" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "7"
+    version = "8"
   }
 
   group "homeautomation" {

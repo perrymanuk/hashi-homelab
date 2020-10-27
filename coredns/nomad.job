@@ -4,7 +4,7 @@ job "coredns" {
   type        = "service"
 
   meta {
-    version = "5"
+    version = "11"
   }
 
   group "infrastructure" {
@@ -149,7 +149,7 @@ $ORIGIN homelab.
 ns1  		       IN  A  10.90.80.146
 ns2  		       IN  A  10.90.80.176
 
-*.homelab.       IN  CNAME service-mesh.service.[[ .region ]].
+*.homelab.       IN  A 10.90.80.120
 EOH
         destination = "local/coredns/zones/homelab"
         env         = false

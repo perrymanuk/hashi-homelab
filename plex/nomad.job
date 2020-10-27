@@ -4,7 +4,7 @@ job "plex" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "3"
   }
 
   group "downloaders" {
@@ -44,7 +44,7 @@ job "plex" {
       }
 
       resources {
-        cpu    = 500
+        cpu    = 5000
         memory = 16284
         network {
           port "http" { static = "32400" }

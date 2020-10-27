@@ -80,13 +80,13 @@ data = <<EOH
   sendAnonymousUsage = false
 [entryPoints]
   [entryPoints.web]
-    address = "[[ .address.public ]]:80"
+    address = "[[ .address.private ]]:80"
   [entryPoints.traefik]
     address = "[[ .address.private ]]:9002"
   [entryPoints.websecure]
-    address = "[[ .address.public ]]:443"
+    address = "[[ .address.private ]]:443"
   [entryPoints.mqtt]
-    address = "[[ .address.public ]]:8884"
+    address = "[[ .address.private ]]:8884"
 [http.middlewares]
   [http.middlewares.https-redirect.redirectscheme]
     scheme = "https"
@@ -109,8 +109,6 @@ data = <<EOH
     scheme = "[[ .consul.scheme ]]"
     datacenter = "[[ .consul.datacenter ]]"
     endpointWaitTime = "15s"
-    
-    [[ .consul.ssl ]]
 
 EOH
         destination = "local/traefik.toml"

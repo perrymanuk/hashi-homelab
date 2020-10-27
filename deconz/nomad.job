@@ -5,7 +5,7 @@ job "deconz" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "5"
+    version = "9"
   }
 
   group "homeautomation" {
@@ -14,7 +14,7 @@ job "deconz" {
       driver = "docker"
       config {
         image = "marthoc/deconz"
-        #force_pull = true
+        force_pull = true
         network_mode = "host"
         privileged = true
         volumes = [
@@ -55,6 +55,7 @@ job "deconz" {
         DECONZ_DEVICE = "/dev/ttyACM0"
         DECONZ_VNC_MODE = "1"
         DECONZ_VNC_PASSWORD = "changeme"
+        DECONZ_VNC_PORT = "5901"
       }
 
       resources {

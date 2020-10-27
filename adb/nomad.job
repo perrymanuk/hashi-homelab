@@ -5,7 +5,7 @@ job "adb" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "6"
+    version = "8"
   }
 
   group "downloaders" {
