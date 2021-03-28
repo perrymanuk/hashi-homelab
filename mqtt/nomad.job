@@ -5,7 +5,7 @@ job "mosquitto" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "2"
+    version = "11"
   }
 
   group "homeautomation" {

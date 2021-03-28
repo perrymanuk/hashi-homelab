@@ -109,8 +109,6 @@ data = <<EOH
     scheme = "[[ .consul.scheme ]]"
     datacenter = "[[ .consul.datacenter ]]"
     endpointWaitTime = "15s"
-    
-    [[ .consul.ssl ]]
 
 EOH
         destination = "local/traefik.toml"

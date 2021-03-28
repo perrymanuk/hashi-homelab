@@ -4,7 +4,7 @@ job "ombi" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "4"
   }
 
   group "downloaders" {
@@ -13,6 +13,7 @@ job "ombi" {
       driver = "docker"
       config {
         image = "linuxserver/ombi"
+        force_pull = "true"
         volumes = [
           "[[ .dirs.shared ]]ombi:/config",
         ]
@@ -30,6 +31,7 @@ job "ombi" {
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
+
         check {
           type     = "tcp"
           interval = "10s"
