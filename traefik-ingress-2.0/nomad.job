@@ -52,8 +52,7 @@ job "traefik" {
       }
 
       config {
-        #image = "perrymanuk/traefik:consul"
-        image = "traefik:v2.3.7"
+        image = "traefik:v2.4.8"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "[[ .dirs.shared ]]traefik-ingress/acme.json:/acme.json"
@@ -89,6 +88,8 @@ data = <<EOH
     address = "[[ .address.public ]]:8884"
   [entryPoints.mumble]
     address = "[[ .address.public ]]:64738"
+  [entryPoints.mumble-udp]
+    address = "[[ .address.public ]]:64738/udp"
 [http.middlewares]
   [http.middlewares.https-redirect.redirectscheme]
     scheme = "https"

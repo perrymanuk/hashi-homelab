@@ -5,7 +5,7 @@ job "murmur" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "1"
+    version = "2"
   }
 
   group "chat" {
@@ -17,6 +17,8 @@ job "murmur" {
         force_pull = true
         network_mode = "host"
         volumes = [
+          "[[ .dirs.shared ]]murmur-data:/opt/murmur/data",
+          "[[ .dirs.shared ]]murmur-cert:/opt/murmur/cert",
           "local/murmur-config:/etc/murmur/murmur.ini",
         ]
       }
@@ -24,12 +26,13 @@ job "murmur" {
       service {
          tags = [
           "traefik.enable=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`mumble-server[[ .tld ]]`)",
           "traefik.tcp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=${NOMAD_PORT_0}",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=mumble",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.passthrough=true",
+          "traefik.udp.routers.${NOMAD_TASK_NAME}.service=mumble-server",
+          "traefik.udp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=${NOMAD_PORT_0}",
+          "traefik.udp.routers.${NOMAD_TASK_NAME}.entrypoints=mumble-udp",
          ]
          name = "mumble-server"
          port = "0"
