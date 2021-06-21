@@ -1,0 +1,75 @@
+job "synclounge" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "synclounge" {
+    count = 1 
+    task "plexlounge" {
+      driver = "docker"
+      config {
+        image = "starbix/synclounge"
+        network_mode = "host"
+        force_pull = "true"
+      }
+
+      env {
+        DOMAIN = "${NOMAD_TASK_NAME}[[ .tld ]]"
+      }
+
+      service {
+        port = "http"
+	      name = "plexlounge"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      service {
+        port = "server"
+	      name = "syncserver"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.syncserver_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.syncserver_insecure.rule=Host(`syncserver[[ .tld ]]`)",
+          "traefik.http.routers.syncserver.tls.domains[0].sans=syncserver[[ .tld ]]",
+          "traefik.http.routers.syncserver.tls.certresolver=sample",
+          "traefik.http.routers.syncserver.middlewares=httpsRedirect"
+        ]
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 3500
+        memory = 16284
+        network {
+          port "http" { static = "8088" }
+          port "server" { static = "8089" }
+        }
+      }
+    }
+  }
+}
+
