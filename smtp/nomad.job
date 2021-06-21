@@ -20,7 +20,7 @@ job "smtp" {
       template {
 data = <<EOH
 MAILNAME=[[ .smtp.domain ]]
-BIND_IP=127.0.0.1
+RELAY_NETWORKS=:172.0.0.0/8:127.0.0.1/32:10.0.0.0/8
 EOH
         destination = "local/env"
         env         = true
