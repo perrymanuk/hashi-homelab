@@ -1,30 +1,36 @@
-job "lidarr" {
+job "bitwarden" {
   region = "[[ .region ]]"
   datacenters = ["[[ .datacenter ]]"]
   type        = "service"
 
   meta {
-    version = "1"
+    version = "3"
   }
 
-  group "downloaders" {
+  vault {
+    policies      = ["admin"]
+    change_mode   = "signal"
+    change_signal = "SIGUSR1"
+  }
+
+  group "password" {
     count = 1 
-    task "lidarr" {
+    task "bitwarden" {
       driver = "docker"
       config {
-        image = "linuxserver/lidarr"
-        network_mode = "host"
+        image = "bitwardenrs/server:latest"
+        force_pull = "true"
+        port_map = {
+          http = 80 
+        }
         volumes = [
-          "[[ .dirs.shared ]]lidarr:/config",
-          "[[ .dirs.downloads ]]:/downloads",
-          "[[ .dirs.music ]]:/music",
-          "[[ .dirs.music ]]:/home/media/Music",
+          "[[ .dirs.shared ]]bitwarden:/data",
         ]
       }
 
       service {
         port = "http"
-	      name = "lidarr"
+	      name = "bitwarden"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -34,6 +40,7 @@ job "lidarr" {
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
+
         check {
           type     = "tcp"
           interval = "10s"
@@ -41,11 +48,19 @@ job "lidarr" {
         }
       }
 
+      template {
+data = <<EOH
+ADMIN_TOKEN="{{with secret "secret/demonsafe/bitwarden/admin"}}{{.Data.TOKEN}}{{end}}"
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
       resources {
-        cpu    = 100
-        memory = 512
+        cpu    = 1000
+        memory = 2048
         network {
-          port "http" { static = "8686" }
+          port "http" {}
         }
       }
     }

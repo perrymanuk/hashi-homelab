@@ -42,8 +42,8 @@ job "couchpotato" {
       }
 
       resources {
-        cpu    = 50
-        memory = 128
+        cpu    = 500
+        memory = 256
         network {
           port "http" { static = "5050" }
         }

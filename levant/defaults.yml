@@ -1,6 +1,7 @@
 auth: 'malpot:$apr1$kdg7bha3$r7RKavFwgw0YveAABfClD/'
 region: 'home'
 datacenter: 'dc1'
+tld: '.homelab'
 dirs:
   shared: '/mnt/cucumber/nomad/'
   downloads: '/mnt/cucumber/downloads'
@@ -11,11 +12,17 @@ dirs:
   plexlogs: '/mnt/plexdata/Plex Media Server/Logs'
 adb:
   devices: '10.90.80.42'
-tld: '.homelab'
 address:
-  public: '78.94.59.116'
-  private: '10.90.80.120'
+  public: '88.99.163.75'
+  private: '127.0.0.1'
 consul:
-  scheme: 'http'
-  datacenter: 'home'
-  address: '10.90.80.120:8500'
+  scheme: 'https'
+  datacenter: 'dc1'
+  address: '127.0.0.1:8501'
+  ssl: >
+       [providers.consulCatalog.endpoint.tls]
+             ca = "/etc/consul.d/ssl/homelab-agent-ca.pem"
+             cert = "/etc/consul.d/ssl/home-server-homelab-0.pem"
+             key = "/etc/consul.d/ssl/home-server-homelab-0-key.pem"
+smtp:
+  domain: 'your-email-domain.com'

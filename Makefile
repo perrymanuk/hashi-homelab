@@ -36,3 +36,7 @@ vault:##...........Sync vault secrets from repo
 sslkeys:##.........Generate certs if you have SSL enabled
 	consul-template -config ssl/consul-template.hcl -once -vault-renew-token=false
 
+.PHONY: ssl-browser-cert
+ssl-browser-cert:##.........Generate certs if you have SSL enabled
+	sudo openssl pkcs12 -export -out browser_cert.p12 -inkey ssl/hetzner/server-key.pem -in ssl/hetzner/server.pem -certfile ssl/hetzner/nomad-ca.pem
+

@@ -4,7 +4,7 @@ job "sonarr" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"
   }
 
   group "downloaders" {
@@ -43,7 +43,7 @@ job "sonarr" {
 
       resources {
         cpu    = 100
-        memory = 128
+        memory = 512
         network {
           port "http" { static = "8989" }
         }

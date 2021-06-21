@@ -42,7 +42,7 @@ job "home-assistant" {
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 2048
         network {
           port "http" { static = "8123" }
         }
