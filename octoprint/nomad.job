@@ -1,0 +1,64 @@
+job "octoprint" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "4"
+  }
+
+  group "3dprinter" {
+    count = 1 
+    task "octoprint" {
+      driver = "docker"
+      config {
+        image = "octoprint/octoprint"
+        force_pull = true
+        #network_mode = "host"
+        privileged = true
+        volumes = [
+          "[[ .dirs.shared ]]octoprint:/home/octoprint/.octoprint",
+          "/dev/ttyUSB0:/dev/ttyUSB0",
+        ]
+        port_map {
+          web = 5000
+        }
+      }
+
+      service {
+        port = "web"
+	name = "octoprint"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT",
+          "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=origin-list-or-null",
+          "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
+          "traefik.http.middlewares.cors.headers.addvaryheader=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=cors",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=malpotAuth"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      env {
+        TZ = "Europe/Amsterdam"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1024
+        network {
+          port "web" {}
+        }
+      }
+    }
+  }
+}
+
