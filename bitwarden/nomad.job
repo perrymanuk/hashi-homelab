@@ -1,0 +1,69 @@
+job "bitwarden" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "3"
+  }
+
+  vault {
+    policies      = ["admin"]
+    change_mode   = "signal"
+    change_signal = "SIGUSR1"
+  }
+
+  group "password" {
+    count = 1 
+    task "bitwarden" {
+      driver = "docker"
+      config {
+        image = "bitwardenrs/server:latest"
+        force_pull = "true"
+        port_map = {
+          http = 80 
+        }
+        volumes = [
+          "[[ .dirs.shared ]]bitwarden:/data",
+        ]
+      }
+
+      service {
+        port = "http"
+	      name = "bitwarden"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      template {
+data = <<EOH
+ADMIN_TOKEN="{{with secret "secret/demonsafe/bitwarden/admin"}}{{.Data.TOKEN}}{{end}}"
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+        network {
+          port "http" {}
+        }
+      }
+    }
+  }
+}
+
