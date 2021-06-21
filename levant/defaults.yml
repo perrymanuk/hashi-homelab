@@ -13,3 +13,5 @@ dirs:
   plexlogs: '/home/shared/plex/Library/Application Support/Plex Media Server/Logs'
 adb:
   devices: '127.0.0.1'
+smtp:
+  domain: 'your-email-domain.com'

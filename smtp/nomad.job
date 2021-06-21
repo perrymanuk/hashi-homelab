@@ -1,0 +1,49 @@
+job "smtp" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "password" {
+    count = 1 
+    task "smtp" {
+      driver = "docker"
+      config {
+        image = "namshi/smtp"
+        network_mode = "host"
+        force_pull = "true"
+      }
+
+      template {
+data = <<EOH
+MAILNAME=[[ .smtp.domain ]]
+BIND_IP=127.0.0.1
+EOH
+        destination = "local/env"
+        env         = true
+      }
+
+      service {
+        port = "smtp"
+	      name = "smtp"
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+        network {
+          port "smtp" { static = "25" }
+        }
+      }
+    }
+  }
+}
+
