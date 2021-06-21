@@ -37,10 +37,10 @@ job "traefik" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.[[ .tld ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=malpot:[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
         ]
 
@@ -53,7 +53,7 @@ job "traefik" {
 
       config {
         #image = "perrymanuk/traefik:consul"
-        image = "traefik:v2.1.4"
+        image = "traefik:v2.3.7"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "[[ .dirs.shared ]]traefik-ingress/acme.json:/acme.json"
@@ -80,13 +80,15 @@ data = <<EOH
   sendAnonymousUsage = false
 [entryPoints]
   [entryPoints.web]
-    address = "[[ .address.private ]]:80"
+    address = "[[ .address.public ]]:80"
   [entryPoints.traefik]
     address = "[[ .address.private ]]:9002"
   [entryPoints.websecure]
-    address = "[[ .address.private ]]:443"
+    address = "[[ .address.public ]]:443"
   [entryPoints.mqtt]
-    address = "[[ .address.private ]]:8884"
+    address = "[[ .address.public ]]:8884"
+  [entryPoints.mumble]
+    address = "[[ .address.public ]]:64738"
 [http.middlewares]
   [http.middlewares.https-redirect.redirectscheme]
     scheme = "https"
@@ -105,11 +107,15 @@ data = <<EOH
   prefix = "traefik"
   defaultRule = "Host(`{{ .Name }}[[ .tld ]]`)"
   [providers.consulcatalog.endpoint]
-    address = "[[ .consul.address]]"
+    address = "[[ .consul.address ]]"
     scheme = "[[ .consul.scheme ]]"
     datacenter = "[[ .consul.datacenter ]]"
     endpointWaitTime = "15s"
-
+    [providers.consulCatalog.endpoint.tls]
+      ca = "/etc/consul.d/ssl/homelab-agent-ca.pem"
+      cert = "/etc/consul.d/ssl/hetzner-server-homelab-0.pem"
+      key = "/etc/consul.d/ssl/hetzner-server-homelab-0-key.pem"
+      insecureSkipVerify = true
 EOH
         destination = "local/traefik.toml"
         env         = false
@@ -122,22 +128,20 @@ EOH
         cpu = 100
         memory = 64
         network {
-          port "http" { 
-            static = "8880" 
+          port "http" {
+            static = "8880"
           }
-          port "mqtt" { 
-            static = "8884" 
+          port "mqtt" {
+            static = "8884"
           }
-          port "https" { 
-            static = "443" 
+          port "https" {
+            static = "443"
           }
-          port "admin" { 
-            static = "9002" 
+          port "admin" {
+            static = "9002"
           }
         }
       }
     }
   }
 }
-
-
