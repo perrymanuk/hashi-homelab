@@ -1,28 +1,17 @@
-auth: 'malpot:$apr1$kdg7bha3$r7RKavFwgw0YveAABfClD/'
-region: 'home'
-datacenter: 'dc1'
-tld: '.homelab'
+auth: 'user:hash' #in htaccess format
+region: 'europe'
+datacenter: 'nomad_datacenter'
+tld: '.domain.com'
 dirs:
-  shared: '/mnt/cucumber/nomad/'
-  downloads: '/mnt/cucumber/downloads'
-  music: '/mnt/cucumber/Music'
-  tv: '/mnt/cucumber/TV'
-  movies: '/mnt/cucumber/Movies'
-  books: '/mnt/cucumber/Books'
-  plexlogs: '/mnt/plexdata/Plex Media Server/Logs'
+  media: '/home/media'
+  shared: '/home/shared/'
+  downloads: '/home/sabnzbd/downloads'
+  music: '/home/media/Music'
+  tv: '/home/media/TV'
+  movies: '/home/media/Movies'
+  books: '/home/media/Books'
+  plexlogs: '/home/shared/plex/Library/Application Support/Plex Media Server/Logs'
 adb:
-  devices: '10.90.80.42'
-address:
-  public: '88.99.163.75'
-  private: '127.0.0.1'
-consul:
-  scheme: 'https'
-  datacenter: 'dc1'
-  address: '127.0.0.1:8501'
-  ssl: >
-       [providers.consulCatalog.endpoint.tls]
-             ca = "/etc/consul.d/ssl/homelab-agent-ca.pem"
-             cert = "/etc/consul.d/ssl/home-server-homelab-0.pem"
-             key = "/etc/consul.d/ssl/home-server-homelab-0-key.pem"
+  devices: '127.0.0.1'
 smtp:
   domain: 'your-email-domain.com'

@@ -3,7 +3,7 @@ job "traefik" {
   datacenters = ["[[ .datacenter ]]"]
   type = "system"
   meta {
-    version = "16"
+    version = "17"
   }
 
   constraint {
@@ -133,6 +133,9 @@ EOH
           }
           port "mqtt" {
             static = "8884"
+          }
+          port "mumble" {
+            static = "64738"
           }
           port "https" {
             static = "443"

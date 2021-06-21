@@ -24,10 +24,10 @@ job "murmur" {
       service {
          tags = [
           "traefik.enable=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.[[ .tld ]]",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`${NOMAD_TASK_NAME}.[[ .tld ]]`)",
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.tcp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=64738",
+          "traefik.tcp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=${NOMAD_PORT_0}",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=mumble",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
          ]
@@ -165,7 +165,7 @@ welcometext="<br />Welcome to this server running <b>Murmur</b>.<br />Enjoy your
 ;welcometextfile=
 
 ; Port to bind TCP and UDP sockets to.
-port=64738
+port={{ env "NOMAD_PORT_0" }}
 
 ; Specific IP or hostname to bind to.
 ; If this is left blank (default), Murmur will bind to all available addresses.
@@ -465,7 +465,7 @@ EOH
         cpu    = 100
         memory = 128
         network {
-          port "0" { static = 64738 }
+          port "0" {}
         }
       }
     }
