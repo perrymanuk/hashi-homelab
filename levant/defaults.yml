@@ -1,7 +1,7 @@
-auth: 'user:hash' #in htaccess format
+auth: 'malpot:$apr1$kdg7bha3$r7RKavFwgw0YveAABfClD/'
 region: 'europe'
-datacenter: 'nomad_datacenter'
-tld: '.domain.com'
+datacenter: 'hetzner'
+tld: '.demonsafe.com'
 dirs:
   media: '/home/media'
   shared: '/home/shared/'
@@ -12,6 +12,18 @@ dirs:
   books: '/home/media/Books'
   plexlogs: '/home/shared/plex/Library/Application Support/Plex Media Server/Logs'
 adb:
-  devices: '127.0.0.1'
+  devices: '10.90.80.42'
+address:
+  public: '88.99.163.75'
+  private: '127.0.0.1'
+consul:
+  scheme: 'https'
+  datacenter: 'hetzner'
+  address: '127.0.0.1:8501'
+  ssl: >
+       [providers.consulCatalog.endpoint.tls]
+             ca = "/etc/consul.d/ssl/homelab-agent-ca.pem"
+             cert = "/etc/consul.d/ssl/hetzner-server-homelab-0.pem"
+             key = "/etc/consul.d/ssl/hetzner-server-homelab-0-key.pem"
 smtp:
-  domain: 'your-email-domain.com'
+  domain: 'demonsafe.com'
