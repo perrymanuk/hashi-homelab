@@ -14,7 +14,6 @@ job "home-assistant" {
       driver = "docker"
       config {
         image = "homeassistant/home-assistant"
-        force_pull = true
         network_mode = "host"
         volumes = [
           "[[ .dirs.shared ]]home-assistant:/config",

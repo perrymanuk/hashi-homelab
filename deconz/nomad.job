@@ -5,7 +5,7 @@ job "deconz" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "9"
+    version = "10"
   }
 
   group "homeautomation" {

@@ -4,7 +4,7 @@ job "coredns" {
   type        = "service"
 
   meta {
-    version = "11"
+    version = "10"
   }
 
   group "infrastructure" {
@@ -81,19 +81,6 @@ consul.:53 {
   prometheus {{ env "NOMAD_IP_http" }}:9153
 }
 
-trv.cloud.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  forward . 172.20.4.7:53
-  log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
-}
-
-trivago.trv.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  forward . 172.20.4.7:53
-  log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
-}
 EOH
         destination = "local/coredns/corefile"
         env         = false
@@ -149,7 +136,7 @@ $ORIGIN homelab.
 ns1  		       IN  A  10.90.80.146
 ns2  		       IN  A  10.90.80.176
 
-*.homelab.       IN  A 10.90.80.120
+*.homelab.       IN  A 192.168.50.120
 EOH
         destination = "local/coredns/zones/homelab"
         env         = false

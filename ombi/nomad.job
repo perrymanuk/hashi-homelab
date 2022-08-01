@@ -41,7 +41,7 @@ job "ombi" {
 
       resources {
         cpu    = 100
-        memory = 128
+        memory = 512
         network {
           port "http" { static = "3579" }
         }

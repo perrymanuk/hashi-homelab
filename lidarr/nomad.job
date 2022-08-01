@@ -43,7 +43,7 @@ job "lidarr" {
 
       resources {
         cpu    = 100
-        memory = 512
+        memory = 1024
         network {
           port "http" { static = "8686" }
         }
