@@ -1,0 +1,48 @@
+job "qbittorrent" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "qbittorrent" {
+      driver = "docker"
+      config {
+        image = "wernight/qbittorrent"
+        port_map = { http = 8080 }
+        volumes = [
+          "[[ .dirs.shared ]]qbittorrent/config:/config",
+          "[[ .dirs.shared ]]qbittorrent/torrents:/torrents",
+          "[[ .dirs.downloads ]]:/downloads",
+        ]
+      }
+
+      service {
+        port = "http"
+	name = "qbittorrent"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 256
+        network {
+          port "http" {}
+        }
+      }
+    }
+  }
+}
+
