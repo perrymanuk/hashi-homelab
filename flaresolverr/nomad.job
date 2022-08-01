@@ -1,0 +1,39 @@
+job "flaresolverr" {
+  region = "[[ .region ]]"
+  datacenters = ["[[ .datacenter ]]"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "downloaders" {
+    count = 1 
+    task "flaresolverr" {
+      driver = "docker"
+      config {
+        image = "ghcr.io/flaresolverr/flaresolverr:latest"
+        network_mode = "host"
+        volumes = [
+          "[[ .dirs.shared ]]flaresolverr/config:/config",
+          "[[ .dirs.shared ]]flaresolverr/torrents:/torrents",
+          "[[ .dirs.downloads ]]:/downloads",
+        ]
+      }
+
+      service {
+        port = "http"
+	name = "flaresolverr"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 256
+        network {
+          port "http" { static = "8191" }
+        }
+      }
+    }
+  }
+}
+
