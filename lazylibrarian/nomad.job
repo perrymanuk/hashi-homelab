@@ -1,6 +1,6 @@
 job "lazylibrarian" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -14,15 +14,15 @@ job "lazylibrarian" {
       config {
         image = "linuxserver/lazylibrarian"
         volumes = [
-          "[[ dirs.shared ]]lazylibrarian:/config",
-          "[[ dirs.books ]]:/books",
-          "[[ dirs.downloads ]]:/downloads",
+          "${var.shared_dir}lazylibrarian:/config",
+          "${var.books_dir}:/books",
+          "${var.downloads_dir}:/downloads",
         ]
       }
 
       service {
         port = "http"
-	      name = "lazylibrarian"
+	name = "lazylibrarian"
         tags = ["net-internal", "net-external", "lazylibrarian", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
@@ -43,3 +43,26 @@ job "lazylibrarian" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}
+
+variable "books_dir" {
+    type = string
+}

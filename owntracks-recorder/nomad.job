@@ -1,6 +1,6 @@
 job "owntracks-recorder" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -20,8 +20,8 @@ job "owntracks-recorder" {
         force_pull = true
         network_mode = "host"
         volumes = [
-          "[[ .dirs.shared ]]owntracks-recorder:/store/",
-          "[[ .dirs.shared ]]owntracks-recorder/views:/htdocs/views/",
+          "${var.shared_dir}owntracks-recorder:/store/",
+          "${var.shared_dir}owntracks-recorder/views:/htdocs/views/",
         ]
       }
 
@@ -32,8 +32,8 @@ job "owntracks-recorder" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
@@ -67,3 +67,18 @@ job "owntracks-recorder" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

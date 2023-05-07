@@ -1,6 +1,6 @@
 job "jackett" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -16,7 +16,7 @@ job "jackett" {
         network_mode = "host"
         port_map = { http = 9117 }
         volumes = [
-          "[[ .dirs.shared ]]jackett:/config",
+          "${var.shared_dir}jackett:/config",
           "/tmp:/downloads",
         ]
       }
@@ -28,8 +28,8 @@ job "jackett" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
@@ -46,3 +46,18 @@ job "jackett" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

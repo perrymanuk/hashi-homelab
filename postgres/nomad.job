@@ -1,6 +1,6 @@
 job "postgres" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -14,7 +14,7 @@ job "postgres" {
       config {
         image = "postgres:9.6.14"
         volumes = [
-          "[[ .dirs.shared ]]postgres:/appdata/postgres",
+          "${var.shared_dir}postgres:/appdata/postgres",
         ]
         port_map {
           db = 5432
@@ -51,4 +51,16 @@ job "postgres" {
       }
     }
   }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "shared_dir" {
+    type = string
 }

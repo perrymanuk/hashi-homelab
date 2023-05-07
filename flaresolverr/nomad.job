@@ -1,6 +1,6 @@
 job "flaresolverr" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -15,9 +15,9 @@ job "flaresolverr" {
         image = "ghcr.io/flaresolverr/flaresolverr:latest"
         network_mode = "host"
         volumes = [
-          "[[ .dirs.shared ]]flaresolverr/config:/config",
-          "[[ .dirs.shared ]]flaresolverr/torrents:/torrents",
-          "[[ .dirs.downloads ]]:/downloads",
+          "${var.shared_dir}flaresolverr/config:/config",
+          "${var.shared_dir}flaresolverr/torrents:/torrents",
+          "${var.downloads_dir}:/downloads",
         ]
       }
 
@@ -37,3 +37,18 @@ job "flaresolverr" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}

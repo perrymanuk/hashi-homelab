@@ -1,6 +1,6 @@
 job "sabnzbd" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -18,7 +18,7 @@ job "sabnzbd" {
           {
             type = "bind"
             target = "/config"
-            source = "[[ .dirs.shared ]]sabnzbd",
+            source = "${var.shared_dir}sabnzbd",
             readonly = false
             bind_options {
               propagation = "rshared"
@@ -27,7 +27,7 @@ job "sabnzbd" {
           {
             type = "bind"
             target = "/downloads"
-            source = "[[ .dirs.downloads ]]"
+            source = "${var.downloads_dir}"
             readonly = false
             bind_options {
               propagation = "rshared"
@@ -52,8 +52,8 @@ job "sabnzbd" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
@@ -76,3 +76,22 @@ job "sabnzbd" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}

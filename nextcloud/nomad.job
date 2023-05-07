@@ -1,6 +1,6 @@
 job "nextcloud" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -20,8 +20,8 @@ job "nextcloud" {
       config {
         image = "nextcloud"
         volumes = [
-          "[[ .dirs.shared ]]nextcloud:/var/www/html",
-          "[[ .dirs.shared ]]nextcloud_data:/data",
+          "${var.shared_dir}nextcloud:/var/www/html",
+          "${var.shared_dir}nextcloud_data:/data",
           "local/default:/config/nginx/site-confs/default"
         ]
         port_map {
@@ -36,8 +36,8 @@ job "nextcloud" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_JOB_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_JOB_NAME}.middlewares=httpsRedirect"
         ]
@@ -170,7 +170,7 @@ EOH
       config {
         image = "postgres:9.6.14"
         volumes = [
-          "[[ .dirs.shared ]]nextcloud-postgres:/appdata/postgres",
+          "${var.shared_dir}nextcloud-postgres:/appdata/postgres",
         ]
         port_map {
           db = 5432
@@ -212,4 +212,20 @@ EOH
       }
     }
   }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
 }

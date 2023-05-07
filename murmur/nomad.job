@@ -1,6 +1,6 @@
 job "murmur" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -17,8 +17,8 @@ job "murmur" {
         force_pull = true
         network_mode = "host"
         volumes = [
-          "[[ .dirs.shared ]]murmur-data:/opt/murmur/data",
-          "[[ .dirs.shared ]]murmur-cert:/opt/murmur/cert",
+          "${var.shared_dir}murmur-data:/opt/murmur/data",
+          "${var.shared_dir}murmur-cert:/opt/murmur/cert",
           "local/murmur-config:/etc/murmur/murmur.ini",
         ]
       }
@@ -26,7 +26,7 @@ job "murmur" {
       service {
          tags = [
           "traefik.enable=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`mumble-server[[ .tld ]]`)",
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`mumble-server${var.tld}`)",
           "traefik.tcp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=${NOMAD_PORT_0}",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=mumble",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.passthrough=true",
@@ -475,3 +475,18 @@ EOH
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

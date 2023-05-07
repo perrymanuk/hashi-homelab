@@ -1,6 +1,6 @@
 job "mosquitto" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -17,7 +17,7 @@ job "mosquitto" {
         force_pull = true
         network_mode = "host"
         volumes = [
-          "[[ .dirs.shared ]]mosquitto:/mosquitto/",
+          "${var.shared_dir}mosquitto:/mosquitto/",
         ]
       }
 
@@ -43,3 +43,14 @@ job "mosquitto" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "shared_dir" {
+    type = string
+}

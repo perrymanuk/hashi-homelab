@@ -1,0 +1,17 @@
+export CONSUL_HTTP_ADDR=http://FILL_IN_IP:8500
+export CONSUL_CACERT=/etc/consul.d/ssl/ca.cert
+export CONSUL_CLIENT_CERT=/etc/consul.d/ssl/consul.cert
+export CONSUL_CLIENT_KEY=/etc/consul.d/ssl/consul.key
+export VAULT_ADDR=http://FILL_IN_IP:8200
+export VAULT_TOKEN=FILL_IN_TOKEN
+export NOMAD_ADDR=http://FILL_IN_IP:4646
+export NOMAD_VAR_region='home'
+export NOMAD_VAR_tld='home'
+export NOMAD_VAR_shared_dir='/home/shared/'
+export NOMAD_VAR_downloads_dir='/home/sabnzbd/downloads'
+export NOMAD_VAR_music_dir='/home/media/Music'
+export NOMAD_VAR_movies_dir='/home/media/Movies'
+export NOMAD_VAR_tv_dir='/home/media/TV'
+export NOMAD_VAR_media_dir='/home/media'
+export NOMAD_VAR_tailscale_ip='FILL_IN_TAILSCALE_IP'
+export NOMAD_VAR_public_ip='FILL_IN_PUBLIC_IP'

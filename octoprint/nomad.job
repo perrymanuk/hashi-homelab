@@ -1,6 +1,6 @@
 job "octoprint" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -17,7 +17,7 @@ job "octoprint" {
         #network_mode = "host"
         privileged = true
         volumes = [
-          "[[ .dirs.shared ]]octoprint:/home/octoprint/.octoprint",
+          "${var.shared_dir}octoprint:/home/octoprint/.octoprint",
           "/dev/ttyUSB0:/dev/ttyUSB0",
         ]
         port_map {
@@ -35,7 +35,7 @@ job "octoprint" {
           "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
           "traefik.http.middlewares.cors.headers.addvaryheader=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=cors",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=malpotAuth"
         ]
@@ -62,3 +62,18 @@ job "octoprint" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

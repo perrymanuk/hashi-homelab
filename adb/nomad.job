@@ -1,6 +1,6 @@
 job "adb" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -19,7 +19,7 @@ job "adb" {
         extra_hosts = ["hassio:127.0.0.1"]
         args = ["&", "adb", "-a", "-P", "5037", "server", "nodaemon"]
         volumes = [
-          "[[ .dirs.shared ]][[ .region ]]-assistant/android:/root/.android",
+          "${var.shared_dir}home-assistant/android:/root/.android",
         ]
       }
 
@@ -29,7 +29,7 @@ job "adb" {
 
       service {
         port = "tcp"
-	      name = "adb"
+	name = "adb"
         tags = ["net-internal", "adb"]
         check {
           type     = "tcp"

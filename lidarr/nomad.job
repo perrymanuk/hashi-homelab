@@ -1,6 +1,6 @@
 job "lidarr" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -15,22 +15,22 @@ job "lidarr" {
         image = "linuxserver/lidarr"
         network_mode = "host"
         volumes = [
-          "[[ .dirs.shared ]]lidarr:/config",
-          "[[ .dirs.downloads ]]:/downloads",
-          "[[ .dirs.music ]]:/music",
-          "[[ .dirs.music ]]:/home/media/Music",
+          "${var.shared_dir}lidarr:/config",
+          "${var.downloads_dir}:/downloads",
+          "${var.music_dir}:/music",
+          "${var.music_dir}:/home/media/Music",
         ]
       }
 
       service {
         port = "http"
-	      name = "lidarr"
+	name = "lidarr"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
@@ -52,3 +52,26 @@ job "lidarr" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}
+
+variable "music_dir" {
+    type = string
+}

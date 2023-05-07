@@ -1,6 +1,6 @@
 job "prometheus" {
-  region      = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region      = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -24,8 +24,8 @@ job "prometheus" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
@@ -69,13 +69,9 @@ scrape_configs:
     scrape_interval: 5s
     metrics_path: /metrics
     consul_sd_configs:
-      - server: 'localhost:8501'
+      - server: 'localhost:8500'
         tags: ['metrics']
-        scheme: https
-        tls_config:
-          ca_file: '/etc/consul.d/homelab-agent-ca.pem'
-          cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
-          key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
+        scheme: http
     relabel_configs:
       - source_labels: ['__meta_consul_dc']
         target_label:  'dc'
@@ -85,10 +81,6 @@ scrape_configs:
         target_label:  'host'
       - source_labels: ['__meta_consul_tags']
         target_label: 'tags'
-      - source_labels: ['__meta_consul_tags']
-        regex: '.*,([^=]+)=([^,]+),.*'
-        replacement: '${2}'
-        target_label: '${1}'
       - source_labels: ['__meta_consul_tags']
         regex: '.*job-(.*?)(,.*)'
         replacement: '${1}'
@@ -101,13 +93,9 @@ scrape_configs:
     params:
       format: ['prometheus']
     consul_sd_configs:
-      - server: 'localhost:8501'
+      - server: 'localhost:8500'
         services: ['consul-agent']
-        scheme: https
-        tls_config:
-          ca_file: '/etc/consul.d/homelab-agent-ca.pem'
-          cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
-          key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
+        scheme: http
     relabel_configs:
       - source_labels: ['__meta_consul_dc']
         target_label:  'dc'
@@ -115,10 +103,6 @@ scrape_configs:
         target_label:  'host'
       - source_labels: ['__meta_consul_tags']
         target_label: 'tags'
-      - source_labels: ['__meta_consul_tags']
-        regex: '.*,([^=]+)=([^,]+),.*'
-        replacement: '${2}'
-        target_label: '${1}'
 
   - job_name: 'hass'
     scrape_interval: 60s
@@ -126,7 +110,7 @@ scrape_configs:
 
     # Long-Lived Access Token
     authorization:
-      credentials: {{with secret "secret/demonsafe/homeassistant/api"}}{{.Data.user}}{{end}}
+      credentials: {{with secret "secret/data/homelab/homeassistant/api"}}{{.Data.data.KEY}}{{end}}
 
     scheme: http
     static_configs:
@@ -134,14 +118,10 @@ scrape_configs:
 
   - job_name: 'nomad-client'
     consul_sd_configs:
-    - server: 'localhost:8501'
+    - server: 'localhost:8500'
       services: ['nomad-client']
       tags: ['http']
-      scheme: https
-      tls_config:
-        ca_file: '/etc/consul.d/homelab-agent-ca.pem'
-        cert_file: '/etc/consul.d/hetzner-server-homelab-0.pem'
-        key_file: '/etc/consul.d/hetzner-server-homelab-0-key.pem'
+      scheme: http
     scrape_interval: 10s
     metrics_path: /v1/metrics
     params:
@@ -218,18 +198,6 @@ EOH
         volumes = [
           "/opt/prometheus:/data",
         ]
-        mounts = [
-          # bind mount
-          {
-            type = "bind"
-            target = "/etc/consul.d/"
-            source = "/etc/consul.d/"
-            readonly = true
-            bind_options {
-              propagation = "rprivate"
-            }
-          }
-        ]
       }
 
       resources {
@@ -244,3 +212,18 @@ EOH
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

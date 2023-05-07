@@ -1,5 +1,5 @@
 data_dir = "/appdata/nomad/"
-datacenter = "[[ .datacenter ]]"
+datacenter = var.datacenter
 log_level = "warn"
 region = "home"
 bind_addr = "0.0.0.0"

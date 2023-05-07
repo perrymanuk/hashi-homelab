@@ -29,13 +29,7 @@ https://learn.hashicorp.com/consul/datacenter-deploy/deployment-guide
 There are also some files in the `config` folder to help you get started and also one with some services to announce so the Consul and Nomad UI are available over the service mesh.
 
 This repo relies on a `.envrc` file and direnv installed or setting the environment variables manually.
-Here is an `.envrc` example
-
-```
-export NOMAD_ADDR=''
-export NOMAD_TOKEN=''
-export VAULT_TOKEN=''
-```
+There is an `envrc` example file located in the repo that you can fill in and move to `.envrc`
 
 Once this is done, you simply run a `make deploy-base` and point your DNS to resolve via one of the Nomad nodes' IP address.  
 

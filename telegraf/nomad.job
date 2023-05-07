@@ -1,6 +1,6 @@
 job "telegraf" {
-  region = "[[ .region ]]"
-  datacenters = [[ .datacenters ]]
+  region = var.region
+  datacenters = var.datacenters
   type = "system"
 
   group "telegraf-exporter" {
@@ -13,7 +13,6 @@ job "telegraf" {
     task "telegraf" {
       driver = "docker"
       service {
-        tags = ["trv-net-[[ .environment ]]-internal", "tcs-telegraf-exporter", "trv-env-[[ .environment ]]", "trv-metrics"]
         name = "telegraf"
         port = "http"
 
@@ -66,5 +65,13 @@ EOH
       }
     }
   }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
 }
 

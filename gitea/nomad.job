@@ -1,6 +1,6 @@
 job "gitea" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type = "service"
     group "svc" {
       count = 1
@@ -35,9 +35,9 @@ job "gitea" {
         env = {
           "APP_NAME"   = "Gitea: Git with a cup of tea"
           "RUN_MODE"   = "prod"
-          "SSH_DOMAIN" = "git[[ .tld ]]"
+          "SSH_DOMAIN" = "git${var.tld}"
           "SSH_PORT"   = "22"
-          "ROOT_URL"   = "http://git[[ .tld ]]/"
+          "ROOT_URL"   = "http://git${var.tld}/"
           "USER_UID"   = "1002"
           "USER_GID"   = "1002"
           "DB_TYPE"    = "postgres"
@@ -70,8 +70,8 @@ EOH
             "traefik.enable=true",
             "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
             "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-            "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`git[[ .tld ]]`)",
-            "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=git[[ .tld ]]",
+            "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`git${var.tld}`)",
+            "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=git${var.tld}",
             "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
             "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
           ]
@@ -109,3 +109,15 @@ EOH
       }
     }
 }
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+

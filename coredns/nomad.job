@@ -1,6 +1,6 @@
 job "coredns" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -19,7 +19,7 @@ job "coredns" {
 
       service {
         port = "http"
-	      name = "coredns"
+	name = "coredns"
         tags = ["coredns"]
         check {
           type     = "tcp"
@@ -160,3 +160,10 @@ EOH
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}

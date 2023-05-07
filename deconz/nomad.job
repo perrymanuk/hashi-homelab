@@ -1,6 +1,6 @@
 job "deconz" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -18,7 +18,7 @@ job "deconz" {
         network_mode = "host"
         privileged = true
         volumes = [
-          "[[ .dirs.shared ]]deconz:/root/.local/share/dresden-elektronik/deCONZ",
+          "${var.shared_dir}deconz:/root/.local/share/dresden-elektronik/deCONZ",
           "/dev/ttyACM0:/dev/ttyACM0",
         ]
       }
@@ -34,8 +34,8 @@ job "deconz" {
           "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
           "traefik.http.middlewares.cors.headers.addvaryheader=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect,cors",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
@@ -70,3 +70,18 @@ job "deconz" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

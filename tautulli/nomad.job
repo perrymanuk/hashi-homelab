@@ -1,6 +1,6 @@
 job "tautulli" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type        = "service"
 
   meta {
@@ -14,7 +14,7 @@ job "tautulli" {
       config {
         image = "tautulli/tautulli"
         volumes = [
-          "[[ .dirs.shared ]]tautulli:/config",
+          "${var.shared_dir}tautulli:/config",
           "[[ .dirs.plexlogs ]]:/media/TV",
         ]
         port_map = {
@@ -24,7 +24,7 @@ job "tautulli" {
 
       service {
         port = "http"
-	      name = "tautulli"
+	name = "tautulli"
         tags = ["net-internal", "net-external", "tautulli", "net.frontend.entryPoints=https"]
         check {
           type     = "http"
@@ -45,3 +45,18 @@ job "tautulli" {
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

@@ -1,6 +1,6 @@
 job "traefik" {
-  region = "[[ .region ]]"
-  datacenters = ["[[ .datacenter ]]"]
+  region = var.region
+  datacenters = var.datacenters
   type = "system"
   meta {
     version = "17"
@@ -37,8 +37,8 @@ job "traefik" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}[[ .tld ]]`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}[[ .tld ]]",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, ${NOMAD_TASK_NAME}-malpotAuth"
         ]
@@ -48,21 +48,9 @@ job "traefik" {
         image = "traefik:v2.4.8"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
-          "[[ .dirs.shared ]]traefik-ingress/acme.json:/acme.json"
+          "${var.shared_dir}traefik-ingress/acme.json:/acme.json"
         ]
         network_mode = "host"
-        mounts = [
-          # bind mount
-          {
-            type = "bind"
-            target = "/etc/consul.d/"
-            source = "/etc/consul.d/"
-            readonly = true
-            bind_options {
-              propagation = "rprivate"
-            }
-          }
-        ]
       }
 
       template {
@@ -72,17 +60,17 @@ data = <<EOH
   sendAnonymousUsage = false
 [entryPoints]
   [entryPoints.web]
-    address = "[[ .address.public ]]:80"
+    address = "${var.public_ip}:80"
   [entryPoints.traefik]
-    address = "[[ .address.private ]]:9002"
+    address = "${var.tailscale_ip}:9002"
   [entryPoints.websecure]
-    address = "[[ .address.public ]]:443"
+    address = "${var.public_ip}:443"
   [entryPoints.mqtt]
-    address = "[[ .address.public ]]:8884"
+    address = "${var.public_ip}:8884"
   [entryPoints.mumble]
-    address = "[[ .address.public ]]:64738"
+    address = "${var.public_ip}:64738"
   [entryPoints.mumble-udp]
-    address = "[[ .address.public ]]:64738/udp"
+    address = "${var.public_ip}:64738/udp"
 [http.middlewares]
   [http.middlewares.https-redirect.redirectscheme]
     scheme = "https"
@@ -99,17 +87,12 @@ data = <<EOH
 [providers.consulcatalog]
   exposedByDefault = false
   prefix = "traefik"
-  defaultRule = "Host(`{{ .Name }}[[ .tld ]]`)"
+  defaultRule = "Host(`{{ .Name }}${var.tld}`)"
   [providers.consulcatalog.endpoint]
-    address = "[[ .consul.address ]]"
-    scheme = "[[ .consul.scheme ]]"
-    datacenter = "[[ .consul.datacenter ]]"
+    address = "${var.tailscale_ip}:8500"
+    scheme = "http"
+    datacenter = "homelab"
     endpointWaitTime = "15s"
-    [providers.consulCatalog.endpoint.tls]
-      ca = "/etc/consul.d/ssl/homelab-agent-ca.pem"
-      cert = "/etc/consul.d/ssl/hetzner-server-homelab-0.pem"
-      key = "/etc/consul.d/ssl/hetzner-server-homelab-0-key.pem"
-      insecureSkipVerify = true
 EOH
         destination = "local/traefik.toml"
         env         = false
@@ -141,4 +124,28 @@ EOH
       }
     }
   }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "public_ip" {
+    type = string
+}
+
+variable "tailscale_ip" {
+    type = string
 }
