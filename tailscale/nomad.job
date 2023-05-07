@@ -1,0 +1,68 @@
+job "tailscale" {
+  region = var.region
+  datacenters = var.datacenters
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "networking" {
+    count = 1 
+    task "tailscale" {
+      driver = "docker"
+      config {
+        image = "tailscale/tailscale"
+        entrypoint = ["/local/start.sh"]
+        network_mode = "host"
+        force_pull = "true"
+	volumes = [
+          "${var.shared_dir}tailscale:/var/lib/tailscale",
+	]
+      }
+
+      template {
+data = <<EOH
+#!/bin/sh
+
+function up() {
+    until /usr/local/bin/tailscale up --auth-key="AUTH_KEY_FROM_TAILSCALE" --advertise-routes="192.168.50.0/24" --hostname="HOSTNAME_TO_REGISTER_IN_TAILSCALE"
+    do
+        sleep 0.1
+    done
+
+}
+
+# send this function into the background
+up &
+
+exec tailscaled --tun=userspace-networking --statedir="/var/lib/tailscale/tailscaled.state"
+EOH
+        destination = "local/start.sh"
+        env         = false
+        perms       = 755
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
