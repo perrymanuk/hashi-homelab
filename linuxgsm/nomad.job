@@ -1,0 +1,64 @@
+job "linuxgsm" {
+  region = var.region
+  datacenters = var.datacenters
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "gaming" {
+    count = 1 
+    task "linuxgsm" {
+      driver = "docker"
+      config {
+        image = "gameservermanagers/linuxgsm-docker"
+        network_mode = "host"
+        command = "/home/linuxgsm/rustserver"
+        args = ["start"]
+        volumes = [
+          "${var.shared_dir}linuxgsm:/home/linuxgsm",
+        ]
+      }
+
+      service {
+        port = "port0"
+	name = "linuxgsm"
+      }
+
+      env {
+        GAMESERVER = "rustserver"
+        LGSM_GITHUBUSER = "GameServerManagers"
+        LGSM_GITHUBREPO = "LinuxGSM"
+        LGSM_GITHUBBRANCH = "master"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 8000
+        network {
+          port "port0" { static = "27015" }
+          port "port1" { static = "27020" }
+          port "port2" { static = "27005" }
+        }
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
