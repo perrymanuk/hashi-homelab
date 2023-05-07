@@ -1,0 +1,124 @@
+job "wordpress" {
+  region = var.region
+  datacenters = var.datacenters
+
+  group "database" {
+    network {
+      port "db" {
+        to = 3306
+      }
+    }
+
+    service {
+      name = "wordpress-db"
+      port = "db"
+
+      check {
+        type     = "tcp"
+        port     = "db"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "mysql" {
+      driver = "docker"
+
+      env {
+        MYSQL_ROOT_PASSWORD="somewordpress"
+        MYSQL_DATABASE="wordpress"
+        MYSQL_USER="wordpress"
+        MYSQL_PASSWORD="wordpress"
+      }
+
+      volume_mount {
+        volume      = "wordpress-db"
+        destination = "/var/lib/mysql"
+      }
+
+      config {
+        image = "mysql:5.7"
+        volumes = [
+          "${var.shared_dir}wordpress-db:/var/lib/mysql",
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 256
+      }
+    }
+  }
+
+  group "wordpress" {
+    network {
+      port "http" {
+        to = 80
+      }
+    }
+
+    service {
+      name = "wordpress"
+      tags = ["www"]
+      port = "http"
+
+      check {
+        type     = "tcp"
+        port     = "http"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "await-wordpress" {
+      driver = "docker"
+
+      config {
+        image        = "alpine:latest"
+        command      = "sh"
+        args         = ["-c", "echo -n 'Waiting for service'; until nslookup -port=8600 wordpress-db.service.consul ${NOMAD_IP_http} 2>&1 >/dev/null; do echo '.'; sleep 2; done"]
+        network_mode = "host"
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "wordpress" {
+      driver = "docker"
+
+      template {
+        data = <<EOH
+{{- if service "wordpress-db" -}}
+{{- with index (service "wordpress-db") 0 -}}
+WORDPRESS_DB_HOST={{ .Address }}:{{ .Port }}
+{{- end -}}
+{{- end }}
+WORDPRESS_DB_USER=wordpress
+WORDPRESS_DB_PASSWORD=wordpress
+WORDPRESS_DB_NAME=wordpress
+  EOH
+
+        destination = "local/envvars.txt"
+        env = true
+      }
+
+      config {
+        image = "wordpress:latest"
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 256
+      }
+    }
+  }
+}
