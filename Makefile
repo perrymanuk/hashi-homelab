@@ -11,6 +11,10 @@ base_deployments = coredns docker-registry haproxy
 dc1-%:##........Deploy specific job from sub folder
 	nomad job run -var datacenters='["dc1"]' $*/nomad.job
 
+.PHONY: dc1-traefik
+dc1-%:##........Deploy specific job from sub folder
+	nomad job run -var datacenters='["dc1"]' $*/nomad.job
+
 .PHONY: hz-%
 hz-%:##........Deploy specific job from sub folder
 	nomad job run -var datacenters='["hetzner"]' $*/nomad.job

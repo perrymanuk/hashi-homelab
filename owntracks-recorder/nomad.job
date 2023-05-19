@@ -35,22 +35,25 @@ job "owntracks-recorder" {
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
         ]
         check {
           type     = "http"
           path     = "/"
           interval = "10s"
-          timeout  = "2s"
+          timeout  = "10s"
         }
       }
 
       env {
         TZ = "Europe/Amsterdam"
-        OTR_HTTPHOST = "${NOMAD_ADDR_http}"
+        #OTR_HTTPHOST = "${NOMAD_ADDR_http}"
         #OTR_HTTPPORT = "${NOMAD_PORT_http}"
-        OTR_HOST = "mqtt.service.home"
+        OTR_HOST = "100.82.104.95"
+        OTR_PORT = var.otr_pass
+        OTR_USER = "mqtt"
+        OTR_PASS = "Zee1tuiGha9h"
         OTR_STORAGEDIR = "/store"
         OTR_VIEWSDIR = "/store/views"
         #OTR_CAPATH = "/etc/ssl/certs"
@@ -82,3 +85,7 @@ variable "tld" {
 variable "shared_dir" {
     type = string
 }
+
+variable "auth" {}
+
+variable "otr_pass" {}

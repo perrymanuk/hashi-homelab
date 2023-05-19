@@ -5,11 +5,19 @@ job "home-assistant" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "13"
+    version = "1"
   }
 
   group "home-automation" {
     count = 1 
+
+    network {
+      port "http" {
+        static = "8123"
+        host_network = "lan"
+      }
+    }
+
     task "hass" {
       driver = "docker"
       config {
@@ -22,7 +30,7 @@ job "home-assistant" {
 
       service {
         port = "http"
-	      name = "hass"
+        name = "hass"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -42,9 +50,6 @@ job "home-assistant" {
       resources {
         cpu    = 100
         memory = 2048
-        network {
-          port "http" { static = "8123" }
-        }
       }
     }
   }

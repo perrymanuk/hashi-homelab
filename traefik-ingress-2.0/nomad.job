@@ -39,13 +39,12 @@ job "traefik" {
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, ${NOMAD_TASK_NAME}-malpotAuth"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
         ]
       }
 
       config {
-        image = "traefik:v2.4.8"
+        image = "traefik:v3.0"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "${var.shared_dir}traefik-ingress/acme.json:/acme.json"
@@ -103,7 +102,7 @@ EOH
 
       resources {
         cpu = 100
-        memory = 64
+        memory = 256
         network {
           port "http" {
             static = "8880"

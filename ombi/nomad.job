@@ -4,7 +4,7 @@ job "ombi" {
   type        = "service"
 
   meta {
-    version = "4"
+    version = "1"
   }
 
   group "downloaders" {
@@ -41,7 +41,7 @@ job "ombi" {
 
       resources {
         cpu    = 100
-        memory = 512
+        memory = 1024
         network {
           port "http" { static = "3579" }
         }

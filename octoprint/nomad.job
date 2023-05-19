@@ -9,6 +9,14 @@ job "octoprint" {
 
   group "3dprinter" {
     count = 1 
+
+    network {
+      port "web" {
+        host_network = "tailscale"
+        to = "5000"
+      }
+    }
+
     task "octoprint" {
       driver = "docker"
       config {
@@ -16,13 +24,11 @@ job "octoprint" {
         force_pull = true
         #network_mode = "host"
         privileged = true
+        ports = ["web"]
         volumes = [
           "${var.shared_dir}octoprint:/home/octoprint/.octoprint",
           "/dev/ttyUSB0:/dev/ttyUSB0",
         ]
-        port_map {
-          web = 5000
-        }
       }
 
       service {
@@ -36,7 +42,7 @@ job "octoprint" {
           "traefik.http.middlewares.cors.headers.addvaryheader=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=cors",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=malpotAuth"
         ]
         check {
@@ -54,9 +60,6 @@ job "octoprint" {
       resources {
         cpu    = 100
         memory = 1024
-        network {
-          port "web" {}
-        }
       }
     }
   }

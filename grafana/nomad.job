@@ -9,6 +9,14 @@ job "grafana" {
 
   group "monitoring" {
     count = 1 
+
+    network {
+      port "http" {
+        static = "3000"
+        host_network = "tailscale"
+      }
+    }
+
     task "grafana" {
       driver = "docker"
       config {
@@ -47,9 +55,6 @@ job "grafana" {
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" { static = "3000" }
-        }
       }
     }
   }

@@ -9,16 +9,28 @@ job "coredns" {
 
   group "infrastructure" {
     count = 1 
+
+    network {
+      port "dns" {
+        static = "53"
+        host_network = "lan"
+      }
+      port "metrics" {
+        static = "7878"
+        host_network = "tailscale"
+      }
+    }
+
     task "coredns" {
       driver = "docker"
       config {
         image = "coredns/coredns"
+        ports = ["dns", "metrics"]
         args = ["-conf", "local/coredns/corefile"]
-        network_mode = "host"
       }
 
       service {
-        port = "http"
+        port = "dns"
 	name = "coredns"
         tags = ["coredns"]
         check {
@@ -29,58 +41,23 @@ job "coredns" {
       }
       service {
         port = "metrics"
-	      name = "coredns"
+	name = "coredns"
         tags = ["metrics", "coredns"]
-        check {
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
-        }
       }
 
       template {
 data = <<EOH
 . {
-  bind {{ env "NOMAD_IP_http" }}
-  forward . 8.8.8.8
+  forward . {{ env "NOMAD_IP_dns" }}:8053
   log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
+  prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
 
 home.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  forward . {{ env "NOMAD_IP_http" }}:8600
+  forward . {{ env "NOMAD_IP_metrics" }}:8600
   log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
+  prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
-
-nomad.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  errors
-  file /local/coredns/zones/nomad {
-    reload 60s
-  }
-  log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
-}
-
-homelab.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  errors
-  file /local/coredns/zones/homelab {
-    reload 60s
-  }
-  log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
-}
-
-consul.:53 {
-  bind {{ env "NOMAD_IP_http" }}
-  forward . 172.20.4.7:53
-  log
-  prometheus {{ env "NOMAD_IP_http" }}:9153
-}
-
 EOH
         destination = "local/coredns/corefile"
         env         = false
@@ -91,78 +68,17 @@ EOH
 
       }
 
-      template {
-data = <<EOH
-$ORIGIN nomad.
-@       3600 IN SOA ns1.nomad. ns2.nomad. (
-          {{ timestamp "unix" }} ; serial
-          7200       ; refresh (2 hours)
-          3600       ; retry (1 hour)
-          1209600    ; expire (2 weeks)
-          3600       ; minimum (1 hour)
-          )
-
-        3600 IN NS ns1.nomad.
-        3600 IN NS ns2.nomad.
-
-ns1  		       IN  A  10.90.80.146
-ns2  		       IN  A  10.90.80.176
-
-*.nomad.       IN  A 88.99.163.75
-EOH
-        destination = "local/coredns/zones/nomad"
-        env         = false
-        change_mode = "signal"
-        change_signal = "SIGHUP"
-        left_delimiter  = "{{"
-        right_delimiter = "}}"
-
-      }
-
-      template {
-data = <<EOH
-$ORIGIN homelab.
-@       3600 IN SOA ns1.homelab. ns2.homelab. (
-          {{ timestamp "unix" }} ; serial
-          7200       ; refresh (2 hours)
-          3600       ; retry (1 hour)
-          1209600    ; expire (2 weeks)
-          3600       ; minimum (1 hour)
-          )
-
-        3600 IN NS ns1.homelab.
-        3600 IN NS ns2.homelab.
-
-ns1  		       IN  A  10.90.80.146
-ns2  		       IN  A  10.90.80.176
-
-*.homelab.       IN  A 192.168.50.120
-EOH
-        destination = "local/coredns/zones/homelab"
-        env         = false
-        change_mode = "signal"
-        change_signal = "SIGHUP"
-        left_delimiter  = "{{"
-        right_delimiter = "}}"
-
-      }
-
-
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" { static = "53" }
-          port "metrics" { static = "9153" }
-        }
       }
     }
   }
 }
 
-variable "region" {
-    type = string
-}
+variable "region" {}
+
+variable "tailscale_ip" {}
 
 variable "datacenters" {
     type = list(string)

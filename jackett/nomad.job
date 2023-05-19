@@ -9,12 +9,20 @@ job "jackett" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      port "http" {
+        static = "9117"
+        host_network = "tailscale"
+      }
+    }
+
     task "jackett" {
       driver = "docker"
       config {
         image = "lscr.io/linuxserver/jackett:latest"
         network_mode = "host"
-        port_map = { http = 9117 }
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}jackett:/config",
           "/tmp:/downloads",
@@ -38,9 +46,6 @@ job "jackett" {
       resources {
         cpu    = 500
         memory = 256
-        network {
-          port "http" { static = "9117" }
-        }
       }
     }
   }

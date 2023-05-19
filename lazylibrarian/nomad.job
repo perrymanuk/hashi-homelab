@@ -9,10 +9,18 @@ job "lazylibrarian" {
 
   group "downloaders" {
     count = 1 
+    network {
+      port "http" {
+        static = "5299"
+        host_network = "tailscale"
+      }
+    }
+
     task "lazylibrarian" {
       driver = "docker"
       config {
         image = "linuxserver/lazylibrarian"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}lazylibrarian:/config",
           "${var.books_dir}:/books",
@@ -23,7 +31,15 @@ job "lazylibrarian" {
       service {
         port = "http"
 	name = "lazylibrarian"
-        tags = ["net-internal", "net-external", "lazylibrarian", "net.frontend.entryPoints=https"]
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
         check {
           type     = "http"
           path     = "/"
@@ -35,9 +51,6 @@ job "lazylibrarian" {
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" { static = "5299" }
-        }
       }
     }
   }

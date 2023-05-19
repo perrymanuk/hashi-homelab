@@ -9,21 +9,30 @@ job "sonarr" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      port "http" {
+        host_network = "public"
+        to = "8989"
+      }
+
+    }
+
     task "sonarr" {
       driver = "docker"
       config {
         image = "linuxserver/sonarr"
-        network_mode = "host"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}sonarr:/config",
           "${var.downloads_dir}:/downloads",
-          "[[ .dirs.tv ]]:/media/TV",
+          "${var.tv_dir}:/media/TV",
         ]
       }
 
       service {
         port = "http"
-	      name = "sonarr"
+	name = "sonarr"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -43,10 +52,7 @@ job "sonarr" {
 
       resources {
         cpu    = 100
-        memory = 512
-        network {
-          port "http" { static = "8989" }
-        }
+        memory = 1024
       }
     }
   }

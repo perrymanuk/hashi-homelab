@@ -43,7 +43,7 @@ job "plex" {
 
       resources {
         cpu    = 400
-        memory = 16284
+        memory = 8000
         network {
           port "http" { static = "32400" }
         }

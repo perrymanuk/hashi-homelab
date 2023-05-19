@@ -9,10 +9,19 @@ job "docker-registry" {
 
   group "infrastructure" {
     count = 1 
+
+    network {
+      port "http" {
+        static = "5000"
+        host_network = "tailscale"
+      }
+    }
+
     task "docker-registry" {
       driver = "docker"
       config {
         image = "registry:2.7.1"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}docker-registry:/data",
         ]
@@ -46,9 +55,6 @@ job "docker-registry" {
       resources {
         cpu    = 20
         memory = 256
-        network {
-          port "http" { static = "5000" }
-        }
       }
     }
   }

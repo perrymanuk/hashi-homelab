@@ -490,3 +490,7 @@ variable "tld" {
 variable "shared_dir" {
     type = string
 }
+
+variable "auth" {
+    type = string
+}

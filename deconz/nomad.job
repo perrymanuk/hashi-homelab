@@ -10,11 +10,23 @@ job "deconz" {
 
   group "homeautomation" {
     count = 1 
+
+    network {
+      port "web" {
+        static = "8182"
+        host_network = "lan"
+      }
+      port "ws" {
+        host_network = "lan"
+      }
+    }
+
     task "deconz" {
       driver = "docker"
       config {
         image = "marthoc/deconz"
         force_pull = true
+        ports = ["web", "ws"]
         network_mode = "host"
         privileged = true
         volumes = [
@@ -25,19 +37,18 @@ job "deconz" {
 
       service {
         port = "web"
-	      name = "deconz"
+	name = "deconz"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT",
-          "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=origin-list-or-null",
           "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
           "traefik.http.middlewares.cors.headers.addvaryheader=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect,cors",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=[[ .auth ]]",
+          "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
         ]
         check {
@@ -61,10 +72,6 @@ job "deconz" {
       resources {
         cpu    = 100
         memory = 256
-        network {
-          port "web" { static = "8182" }
-          port "ws" {}
-        }
       }
     }
   }
@@ -84,4 +91,8 @@ variable "tld" {
 
 variable "shared_dir" {
     type = string
+}
+
+variable "auth" {
+   type = string
 }
