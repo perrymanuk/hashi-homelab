@@ -1,0 +1,93 @@
+job "radarr" {
+  region = var.region
+  datacenters = var.datacenters
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "7878"
+      }
+
+    }
+
+    task "radarr" {
+      driver = "docker"
+      config {
+        image = "linuxserver/radarr"
+        ports = ["http"]
+        volumes = [
+          "${var.shared_dir}radarr:/config",
+          "${var.downloads_dir}:/downloads",
+          "${var.movies_dir}:/movies",
+        ]
+      }
+
+      env {
+        UMASK_SET = "022"
+        TZ        = "UTC"
+        PGUID     = "1000"
+        PGID      = "1000"
+      }
+
+      service {
+        port = "http"
+	name = "radarr"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}
+
+variable "tv_dir" {
+    type = string
+}
+
+variable "movies_dir" {
+    type = string
+}
