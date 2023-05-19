@@ -4,12 +4,19 @@ job "owntracks-recorder" {
   type        = "service"
 
   meta {
-    service_owner = "@pmanuk"
     version = "8"
   }
 
   group "homeautomation" {
     count = 1 
+
+    network {
+      port "http" {
+        host_network = "tailscale"
+        static = "8989"
+      }
+    }
+
     task "owntracks" {
       driver = "docker"
       config {
@@ -62,9 +69,6 @@ job "owntracks-recorder" {
       resources {
         cpu    = 100
         memory = 256
-        network {
-          port "http" { static = "8083" }
-        }
       }
     }
   }

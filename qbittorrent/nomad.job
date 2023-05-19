@@ -9,11 +9,19 @@ job "qbittorrent" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "8080"
+      }
+    }
+
     task "qbittorrent" {
       driver = "docker"
       config {
         image = "wernight/qbittorrent"
-        port_map = { http = 8080 }
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}qbittorrent/config:/config",
           "${var.shared_dir}qbittorrent/torrents:/torrents",
@@ -38,9 +46,6 @@ job "qbittorrent" {
       resources {
         cpu    = 500
         memory = 256
-        network {
-          port "http" {}
-        }
       }
     }
   }

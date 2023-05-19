@@ -10,12 +10,18 @@ job "zigbee2mqtt" {
 
   group "homeautomation" {
     count = 1 
+    network {
+      port "tcp" {
+        host_network = "lan"
+      }
+    }
     task "zigbee2mqtt" {
       driver = "docker"
       config {
         image = "koenkk/zigbee2mqtt"
         force_pull = true
         network_mode = "host"
+        ports = ["tcp"]
         privileged = true
         volumes = [
           "${var.shared_dir}zigbee2mqtt:/app/data",

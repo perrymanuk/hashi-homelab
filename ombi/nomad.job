@@ -9,11 +9,20 @@ job "ombi" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "3579"
+      }
+    }
+
     task "ombi" {
       driver = "docker"
       config {
         image = "linuxserver/ombi"
         force_pull = "true"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}ombi:/config",
         ]
@@ -42,9 +51,6 @@ job "ombi" {
       resources {
         cpu    = 100
         memory = 1024
-        network {
-          port "http" { static = "3579" }
-        }
       }
     }
   }

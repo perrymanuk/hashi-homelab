@@ -9,11 +9,19 @@ job "sabnzbd" {
 
   group "downloaders" {
     count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "8080"
+      }
+    }
+
     task "sabnzbd" {
       driver = "docker"
       config {
         image = "linuxserver/sabnzbd"
         network_mode = "host"
+        ports = ["http"]
         mounts = [
           {
             type = "bind"
@@ -68,9 +76,6 @@ job "sabnzbd" {
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" { static = "8080" }
-        }
       }
     }
   }

@@ -9,11 +9,17 @@ job "www" {
 
   group "nginx" {
     count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+      }
+    }
     task "www" {
       driver = "docker"
       config {
         image = "docker-registry${var.tld}/www:2"
         network_mode = "host"
+        ports = ["http"]
         command = "nginx"
         args = ["-c", "/usr/local/etc/nginx/nginx.conf", "-g", "daemon off;"]
         volumes = [
@@ -108,9 +114,6 @@ EOH
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" {}
-        }
       }
     }
   }

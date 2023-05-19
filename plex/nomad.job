@@ -9,6 +9,14 @@ job "plex" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      port "http" {
+        host_network = "public"
+        static = "32400"
+      }
+    }
+
     task "plex" {
       driver = "docker"
       config {
@@ -44,9 +52,6 @@ job "plex" {
       resources {
         cpu    = 400
         memory = 8000
-        network {
-          port "http" { static = "32400" }
-        }
       }
     }
   }

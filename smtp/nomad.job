@@ -7,13 +7,21 @@ job "smtp" {
     version = "2"
   }
 
-  group "password" {
+  group "mail" {
     count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        static = "25"
+      }
+    }
+
     task "smtp" {
       driver = "docker"
       config {
         image = "namshi/smtp"
         network_mode = "host"
+        ports = ["http"]
         force_pull = "true"
       }
 
@@ -37,11 +45,8 @@ EOH
       }
 
       resources {
-        cpu    = 1000
-        memory = 2048
-        network {
-          port "smtp" { static = "25" }
-        }
+        cpu    = 100
+        memory = 256
       }
     }
   }

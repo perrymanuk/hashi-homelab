@@ -9,17 +9,22 @@ job "tautulli" {
 
   group "metrics" {
     count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "8181"
+      }
+    }
+
     task "tautulli" {
       driver = "docker"
       config {
         image = "tautulli/tautulli"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}tautulli:/config",
           "[[ .dirs.plexlogs ]]:/media/TV",
         ]
-        port_map = {
-	        http = 8181
-	      }
       }
 
       service {
@@ -37,9 +42,6 @@ job "tautulli" {
       resources {
         cpu    = 100
         memory = 128
-        network {
-          port "http" {}
-        }
       }
     }
   }

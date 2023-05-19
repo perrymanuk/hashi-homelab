@@ -9,12 +9,24 @@ job "synclounge" {
 
   group "synclounge" {
     count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "8088"
+      }
+      port "server" {
+        host_network = "tailscale"
+        to = "8089"
+      }
+    }
+
     task "plexlounge" {
       driver = "docker"
       config {
         image = "starbix/synclounge"
         network_mode = "host"
         force_pull = "true"
+        ports = ["http", "server"]
       }
 
       env {
@@ -63,11 +75,7 @@ job "synclounge" {
 
       resources {
         cpu    = 3500
-        memory = 16284
-        network {
-          port "http" { static = "8088" }
-          port "server" { static = "8089" }
-        }
+        memory = 512
       }
     }
   }

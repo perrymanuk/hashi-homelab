@@ -13,6 +13,29 @@ job "traefik" {
 
   group "lbs" {
     count = 1
+    network {
+      port "http" {
+        host_network = "public"
+        static = "80"
+      }
+      port "mqtt" {
+        host_network = "tailscale"
+        static = "8884"
+      }
+      port "mumble" {
+        host_network = "tailscale"
+        static = "64738"
+      }
+      port "https" {
+        host_network = "public"
+        static = "443"
+      }
+      port "admin" {
+        host_network = "tailscale"
+        static = "9002"
+      }
+    }
+
     update {
       max_parallel     = 1
       min_healthy_time = "30s"
@@ -45,11 +68,12 @@ job "traefik" {
 
       config {
         image = "traefik:v3.0"
+        ports = ["http", "mqtt", "mumble", "https", "admin"]
+        network_mode = "host"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "${var.shared_dir}traefik-ingress/acme.json:/acme.json"
         ]
-        network_mode = "host"
       }
 
       template {
@@ -103,23 +127,6 @@ EOH
       resources {
         cpu = 100
         memory = 256
-        network {
-          port "http" {
-            static = "8880"
-          }
-          port "mqtt" {
-            static = "8884"
-          }
-          port "mumble" {
-            static = "64738"
-          }
-          port "https" {
-            static = "443"
-          }
-          port "admin" {
-            static = "9002"
-          }
-        }
       }
     }
   }

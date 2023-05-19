@@ -9,13 +9,11 @@ job "sonarr" {
 
   group "downloaders" {
     count = 1 
-
     network {
       port "http" {
         host_network = "public"
         to = "8989"
       }
-
     }
 
     task "sonarr" {

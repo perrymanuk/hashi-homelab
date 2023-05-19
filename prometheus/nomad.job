@@ -6,13 +6,16 @@ job "prometheus" {
   meta {
   version = "1"
   }
-  update {
-    stagger      = "20s"
-    max_parallel = 1
-  }
 
   group "monitoring" {
     count = 1
+
+    network {
+      port "http" {
+        host_network = "public"
+        to = "9090"
+      }
+    }
 
     task "prometheus" {
       driver = "docker"
@@ -192,9 +195,7 @@ EOH
         args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
         force_pull = true
         #network_mode = "host"
-        port_map {
-          http = 9090
-        }
+        ports = ["http"]
         volumes = [
           "/opt/prometheus:/data",
         ]
@@ -203,10 +204,6 @@ EOH
       resources {
         cpu    = 400
         memory = 4096
-
-        network {
-          port "http" { static = "9090" }
-        }
       }
     }
   }
