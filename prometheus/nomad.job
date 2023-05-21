@@ -12,8 +12,8 @@ job "prometheus" {
 
     network {
       port "http" {
-        host_network = "public"
-        to = "9090"
+        host_network = "tailscale"
+        static = "9090"
       }
     }
 
@@ -72,7 +72,7 @@ scrape_configs:
     scrape_interval: 5s
     metrics_path: /metrics
     consul_sd_configs:
-      - server: 'localhost:8500'
+      - server: '{{ env "NOMAD_IP_http" }}:8500'
         tags: ['metrics']
         scheme: http
     relabel_configs:
@@ -96,7 +96,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     consul_sd_configs:
-      - server: 'localhost:8500'
+      - server: '{{ env "NOMAD_IP_http" }}:8500'
         services: ['consul-agent']
         scheme: http
     relabel_configs:
@@ -113,16 +113,16 @@ scrape_configs:
 
     # Long-Lived Access Token
     authorization:
-      credentials: {{with secret "secret/data/homelab/homeassistant/api"}}{{.Data.data.KEY}}{{end}}
+      credentials: ${var.hass_key}
 
     scheme: http
     static_configs:
-      - targets: ['10.90.80.120:8123']
+      - targets: ['{{ env "NOMAD_IP_http" }}:8123']
 
-  - job_name: 'nomad-client'
+  - job_name: 'nomad'
     consul_sd_configs:
-    - server: 'localhost:8500'
-      services: ['nomad-client']
+    - server: '{{ env "NOMAD_IP_http" }}:8500'
+      services: ['nomad-client', 'nomad']
       tags: ['http']
       scheme: http
     scrape_interval: 10s
@@ -137,49 +137,49 @@ scrape_configs:
       - source_labels: ['__meta_consul_node']
         target_label:  'host'
 
-  - job_name: 'blackbox_http_2xx'
-    metrics_path: /probe
-    scheme: http
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    params:
-      module: [ http_2xx ]
-    static_configs:
-      - targets:
-        - https://www.google.com/
-        - http://prometheus.homelab/
-    relabel_configs:
-      - source_labels: ['__address__']
-        regex: 'https?://(.+?)(/.*)'
-        replacement: '${1}'
-        target_label: 'url'
-      - source_labels: ['__param_target']
-        target_label: 'instance'
-      - source_labels: [__address__]
-        target_label: __param_target
-      - target_label: __address__
-        replacement: blackbox-exporter.service.[[ .region ]]:9115
-      - source_labels: ['__param_target']
-        target_label: 'endpoint'
-
-  - job_name: 'dns_google_com' 
-    metrics_path: /probe   
-    params:                
-      module: [dns_google_com]                                                                 
-    static_configs:        
-      - targets:           
-        - 8.8.8.8
-        - 1.1.1.1
-        labels:                            
-          dc: '[[ .datacenter ]]'        
-          region: '[[ .region ]]'        
-    relabel_configs:       
-      - source_labels: [__address__] 
-        target_label: __param_target 
-      - source_labels: [__param_target] 
-        target_label: instance 
-      - target_label: __address__ 
-        replacement: blackbox-exporter.service.[[ .region ]]:9115
+#  - job_name: 'blackbox_http_2xx'
+#    metrics_path: /probe
+#    scheme: http
+#    scrape_interval: 30s
+#    scrape_timeout: 10s
+#    params:
+#      module: [ http_2xx ]
+#    static_configs:
+#      - targets:
+#        - https://www.google.com/
+#        - http://prometheus.homelab/
+#    relabel_configs:
+#      - source_labels: ['__address__']
+#        regex: 'https?://(.+?)(/.*)'
+#        replacement: '${1}'
+#        target_label: 'url'
+#      - source_labels: ['__param_target']
+#        target_label: 'instance'
+#      - source_labels: [__address__]
+#        target_label: __param_target
+#      - target_label: __address__
+#        replacement: blackbox-exporter.service.[[ .region ]]:9115
+#      - source_labels: ['__param_target']
+#        target_label: 'endpoint'
+#
+#  - job_name: 'dns_google_com' 
+#    metrics_path: /probe   
+#    params:                
+#      module: [dns_google_com]                                                                 
+#    static_configs:        
+#      - targets:           
+#        - 8.8.8.8
+#        - 1.1.1.1
+#        labels:                            
+#          dc: '[[ .datacenter ]]'        
+#          region: '[[ .region ]]'        
+#    relabel_configs:       
+#      - source_labels: [__address__] 
+#        target_label: __param_target 
+#      - source_labels: [__param_target] 
+#        target_label: instance 
+#      - target_label: __address__ 
+#        replacement: blackbox-exporter.service.[[ .region ]]:9115
 
 EOH
 
@@ -190,37 +190,30 @@ EOH
       }
 
       config {
-        image = "prom/prometheus:v2.33.2"
+        image = "prom/prometheus"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/data", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
+        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
         force_pull = true
-        #network_mode = "host"
         ports = ["http"]
         volumes = [
-          "/opt/prometheus:/data",
+          "${var.shared_dir}prometheus:/opt/prometheus",
         ]
       }
 
       resources {
-        cpu    = 400
+        cpu    = 1600
         memory = 4096
       }
     }
   }
 }
 
-variable "region" {
-    type = string
-}
-
 variable "datacenters" {
     type = list(string)
 }
 
-variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
+variable "region" {}
+variable "tld" {}
+variable "shared_dir" {}
+variable "auth" {}
+variable "hass_key" {}

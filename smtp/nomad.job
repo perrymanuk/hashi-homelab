@@ -10,7 +10,7 @@ job "smtp" {
   group "mail" {
     count = 1 
     network {
-      port "http" {
+      port "smtp" {
         host_network = "tailscale"
         static = "25"
       }
@@ -19,16 +19,18 @@ job "smtp" {
     task "smtp" {
       driver = "docker"
       config {
-        image = "namshi/smtp"
+        image = "ixdotai/smtp"
         network_mode = "host"
-        ports = ["http"]
+        ports = ["smtp"]
         force_pull = "true"
       }
 
       template {
 data = <<EOH
-MAILNAME=[[ .smtp.domain ]]
-RELAY_NETWORKS=:172.0.0.0/8:127.0.0.1/32:10.0.0.0/8
+MAILNAME=${var.tld}
+RELAY_NETWORKS=:172.0.0.0/8:127.0.0.1/32:10.0.0.0/8:100.0.0.0/8
+NET_DEV=enp2s0
+DISABLE_IPV6=true
 EOH
         destination = "local/env"
         env         = true
@@ -36,7 +38,7 @@ EOH
 
       service {
         port = "smtp"
-	      name = "smtp"
+	name = "smtp"
         check {
           type     = "tcp"
           interval = "10s"
@@ -46,7 +48,7 @@ EOH
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 128
       }
     }
   }

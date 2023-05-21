@@ -11,12 +11,13 @@ job "coredns" {
     count = 1 
 
     network {
+      mode = "host"
       port "dns" {
         static = "53"
         host_network = "lan"
       }
       port "metrics" {
-        static = "7878"
+        static = "9153"
         host_network = "tailscale"
       }
     }
@@ -25,6 +26,7 @@ job "coredns" {
       driver = "docker"
       config {
         image = "coredns/coredns"
+        network_mode = "host"
         ports = ["dns", "metrics"]
         args = ["-conf", "local/coredns/corefile"]
       }
@@ -48,12 +50,14 @@ job "coredns" {
       template {
 data = <<EOH
 . {
+  bind {{ env "NOMAD_IP_dns" }}
   forward . {{ env "NOMAD_IP_dns" }}:8053
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
 
 home.:53 {
+  bind {{ env "NOMAD_IP_dns" }}
   forward . {{ env "NOMAD_IP_metrics" }}:8600
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153

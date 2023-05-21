@@ -4,7 +4,7 @@ job "grafana" {
   type        = "service"
 
   meta {
-    version = "9"
+    version = "2"
   }
 
   group "monitoring" {
@@ -20,10 +20,11 @@ job "grafana" {
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana:6.4.3"
+        image = "grafana/grafana"
+        userns_mode = "host"
         volumes = [
           "${var.shared_dir}grafana/config:/etc/grafana/",
-          "/opt/grafana/data:/var/lib/grafana",
+          "${var.shared_dir}grafana/data:/var/lib/grafana",
         ]
 
         network_mode = "host"
@@ -36,7 +37,7 @@ job "grafana" {
       }
       service {
         port = "http"
-	      name = "grafana"
+	name = "grafana"
         tags = [
           "traefik.enable=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
