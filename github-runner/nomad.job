@@ -1,0 +1,106 @@
+job "github-runner" {
+  datacenters = var.datacenters
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "runners" {
+    # Don't reschedule in case of failure or drain
+    reschedule {
+      attempts  = 0
+      unlimited = false
+    }
+
+    network {
+      port "http" { 
+        host_network = "tailscale"
+        to = "9252" 
+      }
+    }
+
+    task "runner" {
+      driver = "docker"
+
+      kill_timeout = "25s"
+      template {
+        env         = true
+        destination = "secrets/env"
+        data        = <<-EOH
+        RUNNER_NAME_PREFIX = "amd64"
+        RUNNER_GROUP = "Default"
+        RUNNER_SCOPE = "repo"
+        REPO_URL = "https://github.com/perrymanuk/hashi-homelab"
+        ACCESS_TOKEN = ${var.github_pat}
+        EPHEMERAL = "1"
+        DISABLE_AUTO_UPDATE = "1"
+        LABELS = "${var.labels}"
+        EOH
+      }
+
+      template {
+        data = <<-EOH
+        {
+        	"auths": {
+        		"https://index.docker.io/v1/": {
+              "auth": ""
+        		}
+	        }
+        }
+        EOH
+        destination = "secrets/config.json"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1024
+      }
+
+      config {
+        image       = "myoung34/github-runner"
+        ports       = ["http"]
+        userns_mode = "host"
+        privileged  = true
+        mounts = [
+          {
+            type     = "bind"
+            source   = "/var/run/docker.sock"
+            target   = "/var/run/docker.sock"
+            readonly = false
+            bind_options = {
+              propagation = "rprivate"
+            }
+          },
+          {
+            type     = "bind"
+            source   = "secrets/config.json"
+            target   = "/root/.docker/config.json"
+            readonly = false
+            bind_options = {
+              propagation = "rprivate"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+variable "labels" {
+  type = string
+  default = "self-hosted"
+}
+
+variable "datacenters" {
+  type = list(string)
+}
+
+variable "github_pat" {}
