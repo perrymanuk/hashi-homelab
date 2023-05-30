@@ -3,6 +3,12 @@ job "zigbee2mqtt" {
   datacenters = var.datacenters
   type        = "service"
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   meta {
     service_owner = "@pmanuk"
     version = "15"

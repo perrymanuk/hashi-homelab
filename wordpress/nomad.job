@@ -2,6 +2,12 @@ job "wordpress" {
   region = var.region
   datacenters = var.datacenters
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "database" {
     network {
       port "db" {

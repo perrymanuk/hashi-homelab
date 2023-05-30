@@ -8,6 +8,12 @@ job "deconz" {
     version = "10"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "homeautomation" {
     count = 1 
 

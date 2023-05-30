@@ -7,8 +7,9 @@ job "traefik" {
   }
 
   constraint {
-    attribute = "${attr.kernel.name}"
-    value     = "linux"
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
   }
 
   group "lbs" {

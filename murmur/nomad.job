@@ -8,6 +8,12 @@ job "murmur" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "chat" {
     count = 1 
     task "mumble-server" {

@@ -7,6 +7,12 @@ job "linuxgsm" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "gaming" {
     count = 1 
     task "linuxgsm" {

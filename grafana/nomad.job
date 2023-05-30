@@ -7,6 +7,12 @@ job "grafana" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "monitoring" {
     count = 1 
 

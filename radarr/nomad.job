@@ -7,6 +7,12 @@ job "radarr" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "downloaders" {
     count = 1 
     network {

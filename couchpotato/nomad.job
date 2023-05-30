@@ -7,6 +7,12 @@ job "couchpotato" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "downloaders" {
     count = 1 
     task "couch" {

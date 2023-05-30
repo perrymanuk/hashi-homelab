@@ -4,8 +4,13 @@ job "adb" {
   type        = "service"
 
   meta {
-    service_owner = "@pmanuk"
     version = "8"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
   }
 
   group "downloaders" {

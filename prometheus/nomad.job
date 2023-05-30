@@ -7,6 +7,12 @@ job "prometheus" {
   version = "1"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "monitoring" {
     count = 1
 

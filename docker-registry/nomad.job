@@ -7,6 +7,12 @@ job "docker-registry" {
     version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "infrastructure" {
     count = 1 
 

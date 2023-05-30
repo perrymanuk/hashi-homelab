@@ -7,6 +7,12 @@ job "nextcloud" {
     version = "4"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   vault {
     policies      = ["admin"]
     change_mode   = "signal"
