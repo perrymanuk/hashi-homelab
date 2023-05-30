@@ -1,0 +1,94 @@
+job "vector" {
+  datacenters = var.datacenters
+  region = var.region
+  type = "system"
+  group "vector" {
+    network {
+      port "api" {
+        host_network = "tailscale"
+        to = 8686
+      }
+    }
+    ephemeral_disk {
+      size    = 500
+      sticky  = true
+    }
+    task "vector" {
+      driver = "docker"
+      config {
+        image = "timberio/vector:0.28.X-alpine"
+        ports = ["api"]
+        volumes = ["/var/run/docker.sock:/var/run/docker.sock"]
+      }
+
+      env {
+        VECTOR_CONFIG = "local/vector.toml"
+        VECTOR_REQUIRE_HEALTHY = "true"
+      }
+
+      service {
+        check {
+          port     = "api"
+          type     = "http"
+          path     = "/health"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu    = 500 # 500 MHz
+        memory = 256 # 256MB
+      }
+
+      template {
+        destination = "local/vector.toml"
+        change_mode   = "signal"
+        change_signal = "SIGHUP"
+        # overriding the delimiters to [[ ]] to avoid conflicts with Vector's native templating, which also uses {{ }}
+        left_delimiter = "[["
+        right_delimiter = "]]"
+        data=<<EOH
+          data_dir = "alloc/data/vector/"
+          [api]
+            enabled = true
+            address = "0.0.0.0:8686"
+            playground = false
+          [sources.logs]
+            type = "docker_logs"
+          [transforms.transformed]
+            type = "remap"
+            inputs = [ "logs" ]
+            source = '''
+                   .debug = parse_key_value!(.message)
+                   .job_name = split(get!(value: .label, path: ["com.hashicorp.nomad.job_name"]), "/")[0] ?? get!(value: .label, path: ["com.hashicorp.nomad.job_name"])
+            '''
+          [sinks.loki]
+            type = "loki"
+            inputs = ["transformed"]
+            endpoint = "http://[[ range service "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
+            encoding.codec = "json"
+            buffer.type = "memory"
+            out_of_order_action = "accept"
+            request.concurrency = "adaptive"
+            remove_label_fields = true
+            healthcheck.enabled = true
+              [sinks.loki.labels]
+              job = "{{label.\"com.hashicorp.nomad.job_name\" }}"
+              task = "{{label.\"com.hashicorp.nomad.task_name\" }}"
+              group = "{{label.\"com.hashicorp.nomad.task_group_name\" }}"
+              namespace = "{{label.\"com.hashicorp.nomad.namespace\" }}"
+              node = "{{label.\"com.hashicorp.nomad.node_name\" }}"
+              correlation_id = "{{ message.requestId }}"
+              stream = "{{ stream }}"
+        EOH
+      }
+      kill_timeout = "30s"
+    }
+  }
+}
+
+variable "datacenters" {
+  type = list(string)
+}
+variable "region" {}
