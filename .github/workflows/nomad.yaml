@@ -23,7 +23,7 @@ jobs:
         base: master
         filters: |
           nomadJobs: 
-            - added|modified; '*.job'
+            - added|modified: '*.job'
 
   # JOB to build and test each of modified nomadjobs
   build:
