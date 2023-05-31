@@ -5,7 +5,7 @@ job "mosquitto" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "0"
+    version = "1"
   }
 
   constraint {

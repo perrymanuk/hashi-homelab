@@ -4,7 +4,7 @@ job "couchpotato" {
   type        = "service"
 
   meta {
-    version = "0"
+    version = "1"
   }
 
   constraint {
