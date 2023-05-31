@@ -40,7 +40,7 @@ jobs:
       - name: Get environment variables
         shell: bash
         run: |
-          make dc1-${{ matrix.nomadjob }}
+          make dc1- ${{ matrix.nomadjob }}
         env:
           NOMAD_ADDR: 'http://nomad.service.home:4646'
           NOMAD_VAR_region: 'home'
