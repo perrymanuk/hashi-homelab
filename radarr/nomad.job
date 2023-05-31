@@ -4,7 +4,7 @@ job "radarr" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"
   }
 
   constraint {
