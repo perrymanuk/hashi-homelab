@@ -33,8 +33,8 @@ jobs:
         # Parse JSON array containing names of all filters matching any of changed files
         # e.g. ['package1', 'package2'] if both package folders contains changes
         job: ${{ fromJSON(needs.changes.outputs.jobs ) }}
-    - name: setup nomad
-      uses: lucasmelin/setup-nomad@v1
+
+    - uses: lucasmelin/setup-nomad@v1
 
     - name: deploy
       shell: bash
