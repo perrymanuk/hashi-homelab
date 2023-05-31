@@ -25,7 +25,7 @@ jobs:
       run: |
         export JOBS=(${{ steps.filter.outputs.nomadjobs_files }})
         for i in "${JOBS[@]}"; do
-        nomad job run ${i}
+        nomad job run -detach ${i}
         done
       env:
         NOMAD_ADDR: 'http://100.76.162.62:4646'
