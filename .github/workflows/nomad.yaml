@@ -48,7 +48,7 @@ jobs:
           NOMAD_VAR_movies_dir: '/home/media/Movies'
           NOMAD_VAR_tv_dir: '/home/media/TV'
           NOMAD_VAR_media_dir: '/home/media'
-          NOMAD_VAR_tailscale_ip: {{ secrets.NOMAD_VAR_TAILSCALE_IP }}
+          NOMAD_VAR_tailscale_ip: '{{ secrets.NOMAD_VAR_TAILSCALE_IP }}'
           NOMAD_VAR_public_ip: {{ secrets.NOMAD_VAR_PUBLIC_IP }}
           NOMAD_VAR_auth: {{ secrets.NOMAD_VAR_AUTH }}
           NOMAD_VAR_otr_pass: {{ secrets.NOMAD_VAR_OTR_PASS }}
