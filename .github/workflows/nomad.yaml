@@ -5,7 +5,7 @@ on:
 
 jobs:
   # JOB to run change detection
-  changes:
+  deploy:
     runs-on: self-hosted
     steps:
     - name: 'Checkout'
