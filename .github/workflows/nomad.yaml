@@ -12,7 +12,7 @@ jobs:
       pull-requests: read
     outputs:
       # Expose matched filters as job 'nomadjobs' output variable
-      nomadjobs: ${{ steps.filter.outputs.changes }}
+      nomadjobs: ${{ steps.filter.outputs.nomadjobs_files }}
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
