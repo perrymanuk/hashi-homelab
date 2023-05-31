@@ -22,7 +22,7 @@
     },
     {
       "packagePatterns": ["^ghcr.io\\/linuxserver\\/"],
-      "versionScheme": "regex:^(?<compatibility>.*(\\d+\\.)?)(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$"
+      "versionScheme": "regex:^(?<compatibility>.*?)-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     }
   ],
   "regexManagers": [
