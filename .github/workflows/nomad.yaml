@@ -52,6 +52,7 @@ jobs:
         NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
         NOMAD_VAR_music_dir: '/home/media/Music'
         NOMAD_VAR_movies_dir: '/home/media/Movies'
+        NOMAD_VAR_books_dir: '/home/media/Books'
         NOMAD_VAR_tv_dir: '/home/media/TV'
         NOMAD_VAR_media_dir: '/home/media'
         NOMAD_VAR_tailscale_ip: '${{ secrets.NOMAD_VAR_TAILSCALE_IP }}'

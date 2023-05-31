@@ -4,7 +4,7 @@ job "coredns" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"
   }
 
   group "infrastructure" {

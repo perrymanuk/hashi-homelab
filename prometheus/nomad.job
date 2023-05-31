@@ -4,7 +4,7 @@ job "prometheus" {
   type        = "service"
 
   meta {
-  version = "1"
+  version = "2"
   }
 
   constraint {
