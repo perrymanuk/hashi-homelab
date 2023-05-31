@@ -19,7 +19,7 @@ job "loki" {
     task "loki" {
       driver = "docker"
       config {
-        image = "grafana/loki"
+        image = "grafana/loki:1.4.1"
         args = [
           "-config.file",
           "local/loki/local-config.yaml",
