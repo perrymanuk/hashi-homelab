@@ -28,11 +28,6 @@ jobs:
   # JOB to build and test each of modified nomadjobs
   build:
     needs: changes
-    strategy:
-      matrix:
-        # Parse JSON array containing names of all filters matching any of changed files
-        # e.g. ['package1', 'package2'] if both package folders contains changes
-        nomadjob: ${{ needs.changes.outputs.nomadjobs }}
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +35,7 @@ jobs:
       - name: Get environment variables
         shell: bash
         run: |
-          export JOBS=${{ matrix.nomadjob }}
+          export JOBS=${{ steps.filter.outputs.nomadjobs_files }}
           for i in "${JOBS[@]}"; do
           nomad job run -var datacenters='["dc1"]' ${i}
           fi
