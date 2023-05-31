@@ -196,7 +196,7 @@ EOH
       }
 
       config {
-        image = "prom/prometheus"
+        image = "prom/prometheus:v2.44.0"
         network_mode = "host"
         args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
         force_pull = true

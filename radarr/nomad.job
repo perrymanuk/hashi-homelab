@@ -26,7 +26,7 @@ job "radarr" {
     task "radarr" {
       driver = "docker"
       config {
-        image = "linuxserver/radarr"
+        image = "linuxserver/radarr:4.5.2"
         ports = ["http"]
         volumes = [
           "${var.shared_dir}radarr:/config",
