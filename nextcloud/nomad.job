@@ -174,7 +174,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "postgres:9.6.14"
+        image = "postgres:9.6.24"
         volumes = [
           "${var.shared_dir}nextcloud-postgres:/appdata/postgres",
         ]
