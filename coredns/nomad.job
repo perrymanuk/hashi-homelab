@@ -1,6 +1,6 @@
 job "coredns" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_dc1
   type        = "service"
 
   meta {
@@ -84,6 +84,6 @@ variable "region" {}
 
 variable "tailscale_ip" {}
 
-variable "datacenters" {
+variable "datacenters_dc1" {
     type = list(string)
 }

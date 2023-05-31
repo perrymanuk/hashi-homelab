@@ -1,6 +1,6 @@
 job "linuxgsm" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_public
   type        = "service"
 
   meta {
@@ -56,7 +56,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
+variable "datacenters_public" {
     type = list(string)
 }
 

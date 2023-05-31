@@ -1,6 +1,6 @@
 job "traefik" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_public
   type = "system"
   meta {
     version = "17"
@@ -140,7 +140,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
+variable "datacenters_public" {
     type = list(string)
 }
 

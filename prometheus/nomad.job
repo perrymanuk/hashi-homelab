@@ -1,6 +1,6 @@
 job "prometheus" {
   region      = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_dc1
   type        = "service"
 
   meta {
@@ -214,7 +214,7 @@ EOH
   }
 }
 
-variable "datacenters" {
+variable "datacenters_dc1" {
     type = list(string)
 }
 

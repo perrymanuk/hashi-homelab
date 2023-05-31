@@ -1,5 +1,5 @@
 job "github-runner" {
-  datacenters = var.datacenters
+  datacenters = var.datacenters_all
   type        = "service"
 
   meta {
@@ -106,7 +106,7 @@ variable "labels" {
   default = "self-hosted"
 }
 
-variable "datacenters" {
+variable "datacenters_all" {
   type = list(string)
 }
 

@@ -1,5 +1,5 @@
 job "vector" {
-  datacenters = var.datacenters
+  datacenters = var.datacenters_all
   region = var.region
   type = "system"
   group "vector" {
@@ -88,7 +88,7 @@ job "vector" {
   }
 }
 
-variable "datacenters" {
+variable "datacenters_all" {
   type = list(string)
 }
 variable "region" {}

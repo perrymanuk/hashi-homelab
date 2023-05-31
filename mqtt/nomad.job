@@ -1,6 +1,6 @@
 job "mosquitto" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_dc1
   type        = "service"
 
   meta {
@@ -62,7 +62,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
+variable "datacenters_dc1" {
     type = list(string)
 }
 

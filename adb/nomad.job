@@ -1,6 +1,6 @@
 job "adb" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = var.datacenters_dc1
   type        = "service"
 
   meta {
