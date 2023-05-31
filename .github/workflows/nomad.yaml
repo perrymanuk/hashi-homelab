@@ -22,7 +22,7 @@ jobs:
       with:
         filters: |
           nomadjobs: 
-            - added|modified: '*.job'
+            - added|modified: '**/*.job'
 
   # JOB to build and test each of modified nomadjobs
   build:
