@@ -23,6 +23,15 @@
   ],
   "regexManagers": [
     {
+      "fileMatch": ["(^|/)*\\.job$"],
+      "matchStrings": [
+        "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\n"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ]
+  "regexManagers": [
+    {
       "fileMatch": [".*.job"],
       "matchStringsStrategy": "any",
       "matchStrings": ["image = (?<depName>\\S*):(?<currentValue>\\S*)"],
