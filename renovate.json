@@ -26,8 +26,8 @@
       "fileMatch": [".*.job"],
       "matchStringsStrategy": "any",
       "matchStrings": [".*image = (?<depName>\\S*):(?<currentValue>\\S*)"],
-      "datasourceTemplate": "docker"
       "depTypeTemplate": "image",
+      "datasourceTemplate": "docker"
     }
   ]
 }
