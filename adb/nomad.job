@@ -90,3 +90,5 @@ variable "region" {
 variable "datacenters_dc1" {
     type = list(string)
 }
+
+variable "shared_dir" {}
