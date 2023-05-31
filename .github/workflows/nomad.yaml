@@ -43,3 +43,6 @@ jobs:
         NOMAD_VAR_otr_pass: '${{ secrets.NOMAD_VAR_OTR_PASS }}'
         NOMAD_VAR_hass_key: '${{ secrets.NOMAD_VAR_HASS_KEY }}'
         NOMAD_VAR_github_pat: ${{ secrets.NOMAD_VAR_GITHUB_PAT }}
+        NOMAD_VAR_datacenters_all: '["dc1", "hetzner"]'
+        NOMAD_VAR_datacenters_dc1: '["dc1"]'
+        NOMAD_VAR_datacenters_public: '["hetzner"]'
