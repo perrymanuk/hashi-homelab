@@ -5,11 +5,17 @@ on:
 
 jobs:
   # JOB to run change detection
-  deploy:
+  changes:
     runs-on: self-hosted
+    permissions:
+      pull-requests: read
+    outputs:
+      # Expose matched filters as job 'packages' output variable
+      jobss: ${{ steps.filter.outputs.nomadjobs_files }}
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
+
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
       id: filter
@@ -19,14 +25,21 @@ jobs:
           nomadjobs: 
             - added|modified: '**/*.job'
 
-    - uses: lucasmelin/setup-nomad@v1
+  deploy:
+    runs-on: self-hosted
+    needs: changes
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        # e.g. ['package1', 'package2'] if both package folders contains changes
+        job: ${{ fromJSON(needs.changes.outputs.jobs ) }}
+    - name: setup nomad
+      uses: lucasmelin/setup-nomad@v1
+
     - name: deploy
       shell: bash
       run: |
-        export JOBS=(${{ steps.filter.outputs.nomadjobs_files }})
-        for i in "${JOBS[@]}"; do
-        nomad job run -detach ${i}
-        done
+        nomad job run -detach ${{ matrix.job }}
       env:
         NOMAD_ADDR: 'http://100.76.162.62:4646'
         NOMAD_VAR_region: 'home'
