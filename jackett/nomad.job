@@ -4,7 +4,7 @@ job "jackett" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "0"
   }
 
   constraint {

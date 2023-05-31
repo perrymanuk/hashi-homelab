@@ -3,7 +3,7 @@ job "traefik" {
   datacenters = var.datacenters_public
   type = "system"
   meta {
-    version = "17"
+    version = "0"
   }
 
   constraint {

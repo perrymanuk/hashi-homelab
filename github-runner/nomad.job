@@ -3,7 +3,7 @@ job "github-runner" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "0"
   }
 
   constraint {

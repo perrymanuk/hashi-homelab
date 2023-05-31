@@ -43,7 +43,7 @@ jobs:
     - name: deploy
       shell: bash
       run: |
-        nomad job run -detach ${{ matrix.job }}
+        nomad job run ${{ matrix.job }}
       env:
         NOMAD_ADDR: 'http://100.76.162.62:4646'
         NOMAD_VAR_region: 'home'
