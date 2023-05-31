@@ -20,6 +20,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
+        list-files: 'shell'
         filters: |
           nomadjobs: 
             - added|modified: '**/*.job'
