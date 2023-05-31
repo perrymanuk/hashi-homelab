@@ -85,7 +85,7 @@ EOH
             read_only   = false
           }
         config {
-          image = "postgres:10-alpine"
+          image = "postgres:15-alpine"
           port_map {
             db = 5432
           }
