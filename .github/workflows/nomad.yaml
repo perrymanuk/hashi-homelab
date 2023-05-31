@@ -23,7 +23,7 @@ jobs:
     - name: deploy
       shell: bash
       run: |
-        export JOBS="${{ steps.filter.outputs.nomadjobs_files }}"
+        export JOBS=(${{ steps.filter.outputs.nomadjobs_files }})
         for i in "${JOBS[@]}"; do
         nomad job run ${i}
         done
