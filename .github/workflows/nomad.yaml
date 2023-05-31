@@ -20,6 +20,7 @@ jobs:
     - uses: dorny/paths-filter@v2
       id: filter
       with:
+        base: HEAD
         filters: |
           nomadJobs: 
             - added|modified; '*.job'

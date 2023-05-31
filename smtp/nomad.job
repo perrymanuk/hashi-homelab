@@ -4,7 +4,7 @@ job "smtp" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "0"
   }
 
   group "mail" {
