@@ -30,13 +30,4 @@
       "datasourceTemplate": "docker"
     }
   ]
-  "regexManagers": [
-    {
-      "fileMatch": [".*.job"],
-      "matchStringsStrategy": "any",
-      "matchStrings": ["image = (?<depName>\\S*):(?<currentValue>\\S*)"],
-      "depTypeTemplate": "image",
-      "datasourceTemplate": "docker"
-    }
-  ]
 }
