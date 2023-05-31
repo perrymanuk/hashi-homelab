@@ -32,7 +32,7 @@ job "pihole" {
     task "pihole" {
       driver = "docker"
       config {
-        image = "pihole/pihole"
+        image = "pihole/pihole:2023.05.0"
         force_pull = true
         ports = ["dns", "web"]
         volumes = [
