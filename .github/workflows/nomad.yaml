@@ -21,8 +21,6 @@ jobs:
       id: filter
       with:
         base: master
-        filters: |
-          nomadJobs: '*.job'
 
   # JOB to build and test each of modified nomadjobs
   build:
