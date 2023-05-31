@@ -1,3 +1,8 @@
+on:
+  push:
+    branches:
+      - master
+
 jobs:
   # JOB to run change detection
   changes:
