@@ -28,7 +28,7 @@ jobs:
         nomad job run -var datacenters='["dc1"]' ${i}
         done
       env:
-        NOMAD_ADDR: 'http://nomad.service.home:4646'
+        NOMAD_ADDR: 'http://100.76.162.62:4646'
         NOMAD_VAR_region: 'home'
         NOMAD_VAR_tld: '.demonsafe.com'
         NOMAD_VAR_shared_dir: '/home/shared/'
