@@ -28,6 +28,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: changes
+    continue-on-error: true
     strategy:
       matrix:
         # Parse JSON array containing names of all filters matching any of changed files
