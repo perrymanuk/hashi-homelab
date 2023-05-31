@@ -6,13 +6,7 @@ on:
 jobs:
   # JOB to run change detection
   changes:
-    runs-on: ubuntu-latest
-    # Required permissions
-    permissions:
-      pull-requests: read
-    outputs:
-      # Expose matched filters as job 'nomadjobs' output variable
-      nomadjobs: ${{ steps.filter.outputs.nomadjobs_files }}
+    runs-on: self-hosted
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
@@ -25,33 +19,27 @@ jobs:
           nomadjobs: 
             - added|modified: '**/*.job'
 
-  # JOB to build and test each of modified nomadjobs
-  build:
-    needs: changes
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
-      - uses: lucasmelin/setup-nomad@v1
-      - name: Get environment variables
-        shell: bash
-        run: |
-          export JOBS=${{ needs.changes.outputs.packages }}
-          for i in "${JOBS[@]}"; do
-          nomad job run -var datacenters='["dc1"]' ${i}
-          done
-        env:
-          NOMAD_ADDR: 'http://nomad.service.home:4646'
-          NOMAD_VAR_region: 'home'
-          NOMAD_VAR_tld: '.demonsafe.com'
-          NOMAD_VAR_shared_dir: '/home/shared/'
-          NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
-          NOMAD_VAR_music_dir: '/home/media/Music'
-          NOMAD_VAR_movies_dir: '/home/media/Movies'
-          NOMAD_VAR_tv_dir: '/home/media/TV'
-          NOMAD_VAR_media_dir: '/home/media'
-          NOMAD_VAR_tailscale_ip: '{{ secrets.NOMAD_VAR_TAILSCALE_IP }}'
-          NOMAD_VAR_public_ip: '{{ secrets.NOMAD_VAR_PUBLIC_IP }}'
-          NOMAD_VAR_auth: '{{ secrets.NOMAD_VAR_AUTH }}'
-          NOMAD_VAR_otr_pass: '{{ secrets.NOMAD_VAR_OTR_PASS }}'
-          NOMAD_VAR_hass_key: '{{ secrets.NOMAD_VAR_HASS_KEY }}'
-          NOMAD_VAR_github_pat: '{{ secrets.NOMAD_VAR_GITHUB_PAT }}'
+    - uses: lucasmelin/setup-nomad@v1
+    - name: deploy
+      shell: bash
+      run: |
+        export JOBS=${{ steps.filter.outputs.nomadjobs_files }}
+        for i in "${JOBS[@]}"; do
+        nomad job run -var datacenters='["dc1"]' ${i}
+        done
+      env:
+        NOMAD_ADDR: 'http://nomad.service.home:4646'
+        NOMAD_VAR_region: 'home'
+        NOMAD_VAR_tld: '.demonsafe.com'
+        NOMAD_VAR_shared_dir: '/home/shared/'
+        NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
+        NOMAD_VAR_music_dir: '/home/media/Music'
+        NOMAD_VAR_movies_dir: '/home/media/Movies'
+        NOMAD_VAR_tv_dir: '/home/media/TV'
+        NOMAD_VAR_media_dir: '/home/media'
+        NOMAD_VAR_tailscale_ip: '{{ secrets.NOMAD_VAR_TAILSCALE_IP }}'
+        NOMAD_VAR_public_ip: '{{ secrets.NOMAD_VAR_PUBLIC_IP }}'
+        NOMAD_VAR_auth: '{{ secrets.NOMAD_VAR_AUTH }}'
+        NOMAD_VAR_otr_pass: '{{ secrets.NOMAD_VAR_OTR_PASS }}'
+        NOMAD_VAR_hass_key: '{{ secrets.NOMAD_VAR_HASS_KEY }}'
+        NOMAD_VAR_github_pat: '{{ secrets.NOMAD_VAR_GITHUB_PAT }}'
