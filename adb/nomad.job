@@ -83,3 +83,10 @@ EOH
   }
 }
 
+variable "region" {
+    type = string
+}
+
+variable "datacenters_dc1" {
+    type = list(string)
+}
