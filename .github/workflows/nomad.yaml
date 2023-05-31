@@ -38,7 +38,7 @@ jobs:
           export JOBS=${{ steps.filter.outputs.nomadjobs_files }}
           for i in "${JOBS[@]}"; do
           nomad job run -var datacenters='["dc1"]' ${i}
-          fi
+          done
         env:
           NOMAD_ADDR: 'http://nomad.service.home:4646'
           NOMAD_VAR_region: 'home'
