@@ -14,6 +14,8 @@ jobs:
       # Expose matched filters as job 'nomadjobs' output variable
       nomadjobs: ${{ steps.filter.outputs.changes }}
     steps:
+    - name: 'Checkout'
+      uses: 'actions/checkout@v3'
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
       id: filter
