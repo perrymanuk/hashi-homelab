@@ -18,6 +18,13 @@ job "github-runner" {
       attempts  = 0
       unlimited = false
     }
+   
+    restart {
+      attempts = 3
+      delay = "30s"
+      interval = "3m"
+      mode = "delay"
+    }
 
     network {
       port "http" { 
