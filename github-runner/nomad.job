@@ -13,6 +13,7 @@ job "github-runner" {
   }
 
   group "runners" {
+    count = 4
     # Don't reschedule in case of failure or drain
     reschedule {
       attempts  = 0
@@ -46,7 +47,7 @@ job "github-runner" {
         RUNNER_SCOPE = "repo"
         REPO_URL = "https://github.com/perrymanuk/hashi-homelab"
         ACCESS_TOKEN = ${var.github_pat}
-        EPHEMERAL = "1"
+        EPHEMERAL = "0"
         DISABLE_AUTO_UPDATE = "1"
         LABELS = "${var.labels}"
         EOH
@@ -67,7 +68,7 @@ job "github-runner" {
 
       resources {
         cpu    = 100
-        memory = 1024
+        memory = 256
       }
 
       config {
