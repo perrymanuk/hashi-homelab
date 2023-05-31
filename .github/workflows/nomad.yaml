@@ -35,7 +35,7 @@ jobs:
       - name: Get environment variables
         shell: bash
         run: |
-          export JOBS=${{ steps.filter.outputs.nomadjobs_files }}
+          export JOBS=${{ needs.changes.outputs.packages }}
           for i in "${JOBS[@]}"; do
           nomad job run -var datacenters='["dc1"]' ${i}
           done
