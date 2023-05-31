@@ -35,7 +35,7 @@ job "alertmanager" {
       }
 
       config {
-        image = "prom/alertmanager"
+        image = "prom/alertmanager:latest"
         network_mode = "host"
         force_pull = true
         args = ["--web.external-url", "http://alertmanager.[[ .region ]]lab", "--config.file", "/local/config.yml", "--storage.path", "/local/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
