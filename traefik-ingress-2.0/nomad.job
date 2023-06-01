@@ -98,6 +98,8 @@ data = <<EOH
     address = "${var.public_ip}:64738"
   [entryPoints.mumble-udp]
     address = "${var.public_ip}:64738/udp"
+[accessLog]
+  format = "json"
 [http.middlewares]
   [http.middlewares.https-redirect.redirectscheme]
     scheme = "https"
