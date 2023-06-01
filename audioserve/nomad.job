@@ -4,7 +4,7 @@ job "audioserve" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "1"
   }
 
   constraint {
