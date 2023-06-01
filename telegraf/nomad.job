@@ -22,7 +22,7 @@ job "telegraf" {
       service {
         name = "telegraf"
         port = "http"
-
+        tags = ["metrics"]
         check {
           type     = "tcp"
           interval = "5s"
@@ -32,6 +32,7 @@ job "telegraf" {
 
       config {
         image = "telegraf:1.26.3"
+        privileged = "true"
         ports = ["http"]
         args = [
           "--config=/local/config.yaml",
@@ -40,7 +41,7 @@ job "telegraf" {
       template {
       data = <<EOH
 [global_tags]
-  realm = '[[ .region ]]'
+  realm = '${var.region}'
   role = 'nomad'
 [agent]
 [[outputs.prometheus_client]]
@@ -65,7 +66,7 @@ EOH
       }
       resources {
         cpu    = 100
-        memory = 32
+        memory = 128
       }
     }
   }
