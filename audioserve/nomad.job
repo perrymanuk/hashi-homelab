@@ -1,0 +1,82 @@
+job "audioserve" {
+  region = var.region
+  datacenters = var.datacenters_public
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        to = "3000"
+      }
+    }
+
+    task "audioserve" {
+      driver = "docker"
+      config {
+        image = "izderadicka/audioserve"
+        ports = ["http"]
+        args = ["--tags", "/audiobooks"]
+        volumes = [
+          "${var.media_dir}/Books:/audiobooks",
+        ]
+      }
+
+      env {
+        AUDIOSERVE_SHARED_SECRET = "testies123"
+      }
+
+      service {
+        port = "http"
+	name = "audioserve"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters_public" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "media_dir" {
+    type = string
+}
