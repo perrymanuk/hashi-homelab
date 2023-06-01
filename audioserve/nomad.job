@@ -25,7 +25,7 @@ job "audioserve" {
     task "audioserve" {
       driver = "docker"
       config {
-        image = "izderadicka/audioserve"
+        image = "izderadicka/audioserve:2.2.22"
         ports = ["http"]
         args = ["--tags", "/audiobooks"]
         volumes = [
@@ -34,7 +34,7 @@ job "audioserve" {
       }
 
       env {
-        AUDIOSERVE_SHARED_SECRET = "testies123"
+        AUDIOSERVE_SHARED_SECRET = "${var.web_pass}"
       }
 
       service {
@@ -80,3 +80,5 @@ variable "tld" {
 variable "media_dir" {
     type = string
 }
+
+variable "web_pass" {}
