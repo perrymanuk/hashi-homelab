@@ -1,0 +1,83 @@
+job "heimdall" {
+  region = var.region
+  datacenters = var.datacenters_public
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "public"
+        to = "80"
+      }
+    }
+
+    task "heimdall" {
+      driver = "docker"
+      config {
+        image = "linuxserver/heimdall:2.5.6"
+        ports = ["http"]
+        volumes = [
+          "${var.shared_dir}heimdall:/config",
+        ]
+      }
+
+      env {
+        TZ = "Etc/UTC"
+        PUID = "1000"
+        PGID = "1000"
+      }
+
+      service {
+        port = "http"
+	name = "heimdall"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "datacenters_public" {
+    type = list(string)
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
