@@ -17,7 +17,7 @@ job "heimdall" {
     count = 1 
     network {
       port "http" {
-        host_network = "public"
+        host_network = "tailscale"
         to = "80"
       }
     }
