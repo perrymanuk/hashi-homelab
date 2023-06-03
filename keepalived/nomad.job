@@ -1,0 +1,41 @@
+job "keepalived" {
+  datacenters = var.datacenters_dc1
+  type = "system"
+
+  group "keepalived" {
+    task "keepalived" {
+      driver = "docker"
+      config {
+        image = "osixia/keepalived:2.0.20"
+        network_mode = "host"
+        volumes = [
+            "local/:/container/environment/01-custom"
+        ]
+        cap_add = ["NET_ADMIN"]
+      }
+      template {
+        destination = "local/env.yaml"
+        change_mode = "restart"
+        splay       = "1m"
+        data        = <<EOH
+KEEPALIVED_VIRTUAL_IPS:
+  - 192.168.50.2/24
+KEEPALIVED_UNICAST_PEERS:
+{{- with $node := node -}}
+{{ range nodes }}
+{{- if ne .Address $node.Node.Address }}
+  - {{ .Address }}
+{{- end -}}
+{{- end -}}
+{{- end }}
+KEEPALIVED_PRIORITY: {{ env "meta.keepalived_priority" }}
+KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+EOH
+      }
+    }
+  }
+}
+
+variable "datacenters_dc1" {
+  type = list(string)
+}

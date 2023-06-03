@@ -24,7 +24,7 @@ job "pihole" {
 
     network {
       port "dns" { 
-        host_network = "lan"
+        host_network = "tailscale"
         static = "8053" 
         to     = "53" 
       }

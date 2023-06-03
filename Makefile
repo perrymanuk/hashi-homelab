@@ -15,9 +15,9 @@ dc1-%:##........Deploy specific job from sub folder
 all-%:##........Deploy specific job from sub folder
 	nomad job run -var datacenters='["dc1", "hetzner"]' $*/nomad.job
 
-.PHONY: hz-%
-hz-%:##........Deploy specific job from sub folder
-	nomad job run -var datacenters='["hetzner"]' $*/nomad.job
+.PHONY: deploy-%
+deploy-%:##........Deploy specific job from sub folder
+	nomad job run $*/nomad.job
 
 .PHONY: deploy-base
 deploy-base:##.....Deploys all jobs to nomad
