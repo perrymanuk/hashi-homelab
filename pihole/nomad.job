@@ -8,6 +8,12 @@ job "pihole" {
   }
 
   constraint {
+    attribute = "${meta.dns}"
+    operator  = "="
+    value     = "true"
+  }
+
+  constraint {
     attribute = "${meta.shared_mount}"
     operator  = "="
     value     = "true"
