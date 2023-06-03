@@ -9,6 +9,12 @@ job "deconz" {
   }
 
   constraint {
+    attribute = "${meta.zigbee}"
+    operator  = "="
+    value     = "true"
+  }
+
+  constraint {
     attribute = "${meta.shared_mount}"
     operator  = "="
     value     = "true"
