@@ -8,6 +8,12 @@ job "octoprint" {
   }
 
   constraint {
+    attribute = "${meta.3d_printer}"
+    operator  = "="
+    value     = "true"
+  }
+
+  constraint {
     attribute = "${meta.shared_mount}"
     operator  = "="
     value     = "true"
