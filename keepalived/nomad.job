@@ -1,5 +1,5 @@
 job "keepalived" {
-  datacenters = var.datacenters_dc1
+  datacenters = ["dc1"]
   type = "system"
 
   group "keepalived" {
@@ -11,7 +11,7 @@ job "keepalived" {
         volumes = [
             "local/:/container/environment/01-custom"
         ]
-        cap_add = ["NET_ADMIN"]
+        cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
       }
       template {
         destination = "local/env.yaml"

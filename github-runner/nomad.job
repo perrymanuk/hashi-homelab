@@ -1,5 +1,5 @@
 job "github-runner" {
-  datacenters = var.datacenters_all
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {

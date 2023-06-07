@@ -1,6 +1,6 @@
 job "mosquitto" {
   region = var.region
-  datacenters = var.datacenters_dc1
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
@@ -19,11 +19,11 @@ job "mosquitto" {
 
     network {
       port "0" {
-        host_network = "public"
+        host_network = "tailscale"
         to = "9001"
       }
       port "1" {
-        host_network = "public"
+        host_network = "tailscale"
         to = "1883"
       }
     }
@@ -62,9 +62,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_dc1" {
-    type = list(string)
-}
+
 
 variable "shared_dir" {
     type = string

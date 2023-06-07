@@ -1,6 +1,6 @@
 job "blackbox-exporter" {
   region      = var.region
-  datacenters = var.datacenters_all
+  datacenters = ["dc1"]
   type = "system"
 
   group "blackbox-exporter" {
@@ -97,6 +97,4 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_all" {
-    type = list(string)
-}
+

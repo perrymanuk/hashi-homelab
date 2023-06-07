@@ -1,6 +1,6 @@
 job "uploader" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
   type = "service"
   meta {
     version = "3"

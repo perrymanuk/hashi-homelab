@@ -1,6 +1,6 @@
 job "qbittorrent" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
@@ -61,9 +61,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
-    type = list(string)
-}
+
 
 variable "tld" {
     type = string

@@ -1,6 +1,6 @@
 job "tailscale" {
   region = var.region
-  datacenters = var.datacenters_dc1
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
@@ -22,8 +22,11 @@ job "tailscale" {
         entrypoint = ["/local/start.sh"]
         network_mode = "host"
         force_pull = "true"
+        privileged = true
+        cap_add = ["NET_ADMIN", "NET_RAW"]
 	volumes = [
           "${var.shared_dir}tailscale:/var/lib/tailscale",
+          "/dev/net/tun:/dev/net/tun",
 	]
       }
 
@@ -32,7 +35,7 @@ data = <<EOH
 #!/bin/sh
 
 function up() {
-    until /usr/local/bin/tailscale up --auth-key="AUTH_KEY_FROM_TAILSCALE" --advertise-routes="192.168.50.0/24" --hostname="HOSTNAME_TO_REGISTER_IN_TAILSCALE"
+    until /usr/local/bin/tailscale up --snat-subnet-routes=false --auth-key="${var.tailscale_auth}" --advertise-routes="192.168.50.0/24" --hostname="videowald-gateway"
     do
         sleep 0.1
     done
@@ -50,8 +53,8 @@ EOH
       }
 
       resources {
-        cpu    = 1000
-        memory = 2048
+        cpu    = 200
+        memory = 256
       }
     }
   }
@@ -61,9 +64,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_dc1" {
-    type = list(string)
-}
+
 
 variable "tld" {
     type = string
@@ -72,3 +73,5 @@ variable "tld" {
 variable "shared_dir" {
     type = string
 }
+
+variable "tailscale_auth" {}

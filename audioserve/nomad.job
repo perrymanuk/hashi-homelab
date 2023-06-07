@@ -1,6 +1,6 @@
 job "audioserve" {
   region = var.region
-  datacenters = var.datacenters_public
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
@@ -69,9 +69,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_public" {
-    type = list(string)
-}
+
 
 variable "tld" {
     type = string

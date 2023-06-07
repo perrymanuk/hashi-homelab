@@ -1,14 +1,22 @@
 {
-  "advertise_addr": "",
-  "advertise_addr_wan": "",
-  "bind_addr": "0.0.0.0",
-  "client_addr": "0.0.0.0",
+  "server": true,
+  "bootstrap_expect": 3,
+  "advertise_addr": "{{ GetInterfaceIP "tailscale0" }}",
+  "advertise_addr_wan": "{{ GetInterfaceIP "tailscale0" }}",
+  "bind_addr": "{{ GetInterfaceIP "tailscale0" }}",
+  "client_addr": "{{ GetInterfaceIP "tailscale0" }}",
   "data_dir": "/appdata/consul",
-  "datacenter": "home",
+  "datacenter": "homelab",
   "enable_syslog": true,
+  "leave_on_terminate": true,
   "log_level": "WARN",
   "start_join": [
-    ""
-  ]
+    "consul server 1 ip",
+    "consul server 2 ip",
+    "consul server 3 ip"
+  ],
+  "telemetry": {
+    "prometheus_retention_time": "60s"
+  }
 }
 

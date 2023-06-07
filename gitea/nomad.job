@@ -1,6 +1,6 @@
 job "gitea" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
   type = "service"
     group "svc" {
       count = 1
@@ -113,9 +113,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
-    type = list(string)
-}
+
 
 variable "tld" {
     type = string

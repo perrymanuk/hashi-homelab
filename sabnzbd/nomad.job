@@ -1,10 +1,10 @@
 job "sabnzbd" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
-    version = "2"
+    version = "3"
   }
 
   constraint {
@@ -26,7 +26,6 @@ job "sabnzbd" {
       driver = "docker"
       config {
         image = "linuxserver/sabnzbd"
-        network_mode = "host"
         ports = ["http"]
         mounts = [
           {
@@ -34,34 +33,40 @@ job "sabnzbd" {
             target = "/config"
             source = "${var.shared_dir}sabnzbd",
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           },
           {
             type = "bind"
             target = "/downloads"
-            source = "${var.downloads_dir}"
+            source = "/tmp"
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           },
           {
             type = "bind"
             target = "/media"
-            source = "[[ .dirs.media ]]"
+            source = "${var.media_dir}"
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           }
         ]
       }
+  
+      env {
+        PUID = "1000"
+        PGID = "1000"
+        TZ = "Etc/UTC"
+      }
 
       service {
         port = "http"
-	      name = "${NOMAD_TASK_NAME}"
+        name = "${NOMAD_TASK_NAME}"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -81,28 +86,18 @@ job "sabnzbd" {
 
       resources {
         cpu    = 100
-        memory = 128
+        memory = 4096
       }
     }
   }
 }
 
-variable "region" {
-    type = string
-}
+variable "region" {}
 
-variable "datacenters" {
-    type = list(string)
-}
+variable "tld" {}
 
-variable "tld" {
-    type = string
-}
+variable "shared_dir" {}
 
-variable "shared_dir" {
-    type = string
-}
+variable "media_dir" {}
 
-variable "downloads_dir" {
-    type = string
-}
+variable "downloads_dir" {}

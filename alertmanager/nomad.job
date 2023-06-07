@@ -1,6 +1,6 @@
 job "alertmanager" {
   region      = var.region
-  datacenters = var.datacenters_all
+  datacenters = ["dc1"]
   type = "service"
 
   meta {
@@ -108,6 +108,4 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_all" {
-    type = list(string)
-}
+

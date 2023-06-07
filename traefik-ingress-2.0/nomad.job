@@ -1,15 +1,9 @@
-job "traefik" {
+job "traefik-new" {
   region = var.region
-  datacenters = var.datacenters_public
-  type = "system"
+  datacenters = ["public"]
+  type = "service"
   meta {
     version = "2"
-  }
-
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
   }
 
   group "lbs" {
@@ -87,17 +81,17 @@ data = <<EOH
   [metrics.prometheus]
 [entryPoints]
   [entryPoints.web]
-    address = "${var.public_ip}:80"
+    address = "{{ GetInterfaceIP \"eth0\" }}:80"
   [entryPoints.traefik]
-    address = "${var.tailscale_ip}:9002"
+    address = "{{ GetInterfaceIP \"tailscale0\" }}:9002"
   [entryPoints.websecure]
-    address = "${var.public_ip}:443"
+    address = "{{ GetInterfaceIP \"eth0\" }}:443"
   [entryPoints.mqtt]
-    address = "${var.public_ip}:8884"
+    address = "{{ GetInterfaceIP \"eth0\" }}:8884"
   [entryPoints.mumble]
-    address = "${var.public_ip}:64738"
+    address = "{{ GetInterfaceIP \"eth0\" }}:64738"
   [entryPoints.mumble-udp]
-    address = "${var.public_ip}:64738/udp"
+    address = "{{ GetInterfaceIP \"eth0\" }}:64738/udp"
 [accessLog]
   format = "json"
 [http.middlewares]
@@ -118,7 +112,7 @@ data = <<EOH
   prefix = "traefik"
   defaultRule = "Host(`{{ .Name }}${var.tld}`)"
   [providers.consulcatalog.endpoint]
-    address = "${var.tailscale_ip}:8500"
+    address = "{{ GetInterfaceIP \"tailscale0\" }}:8500"
     scheme = "http"
     datacenter = "homelab"
     endpointWaitTime = "15s"
@@ -142,10 +136,6 @@ variable "region" {
     type = string
 }
 
-variable "datacenters_public" {
-    type = list(string)
-}
-
 variable "tld" {
     type = string
 }
@@ -154,10 +144,3 @@ variable "shared_dir" {
     type = string
 }
 
-variable "public_ip" {
-    type = string
-}
-
-variable "tailscale_ip" {
-    type = string
-}

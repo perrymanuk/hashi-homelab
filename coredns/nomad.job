@@ -1,6 +1,6 @@
 job "coredns" {
   region = var.region
-  datacenters = var.datacenters_dc1
+  datacenters = ["dc1"]
   type        = "system"
 
   meta {
@@ -59,11 +59,12 @@ data = <<EOH
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2
   {{ range service "pihole" }}forward . {{ .Address }}:8053{{ end }}
   log
+  errors
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
 home.:53 {
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2
-  forward . {{ env "NOMAD_IP_metrics" }}:8600
+  forward . {{ sockaddr "GetInterfaceIP \"tailscale0\"" }}:8600
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
@@ -87,8 +88,4 @@ EOH
 
 variable "region" {}
 
-variable "tailscale_ip" {}
 
-variable "datacenters_dc1" {
-    type = list(string)
-}

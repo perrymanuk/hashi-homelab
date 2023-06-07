@@ -1,6 +1,6 @@
 job "zigbee2mqtt" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
   type        = "service"
 
   constraint {
@@ -52,9 +52,7 @@ variable "region" {
     type = string
 }
 
-variable "datacenters" {
-    type = list(string)
-}
+
 
 variable "shared_dir" {
     type = string

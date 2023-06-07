@@ -1,6 +1,6 @@
 job "pihole" {
   region = var.region
-  datacenters = var.datacenters_dc1
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
@@ -68,7 +68,7 @@ job "pihole" {
         DNS2         = "1.1.1.1"
         INTERFACE    = "eth0"
         VIRTUAL_HOST = join("", ["pihole", var.tld])
-        ServerIP     = var.tailscale_ip
+        ServerIP     = "{{ GetInterfaceIP \"tailscale0\" }}"
       }
 
       resources {
@@ -89,4 +89,3 @@ variable "tld" {}
 
 variable "shared_dir" {}
 
-variable "tailscale_ip" {}

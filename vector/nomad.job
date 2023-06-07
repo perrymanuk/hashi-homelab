@@ -1,5 +1,5 @@
 job "vector" {
-  datacenters = var.datacenters_all
+  datacenters = ["dc1"]
   region = var.region
   type = "system"
   group "vector" {

@@ -1,6 +1,6 @@
 job "wordpress" {
   region = var.region
-  datacenters = var.datacenters
+  datacenters = ["dc1"]
 
   constraint {
     attribute = "${meta.shared_mount}"
