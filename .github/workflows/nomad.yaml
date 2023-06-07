@@ -10,7 +10,6 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      # Expose matched filters as job 'packages' output variable
       jobs: ${{ steps.filter.outputs.nomadjobs_files }}
     steps:
     - name: 'Checkout'
@@ -24,6 +23,26 @@ jobs:
         filters: |
           nomadjobs: 
             - added|modified: '**/*.job'
+            - '!bitwarden/**'
+            - '!couchpotato/**'
+            - '!flaresolverr/**'
+            - '!gitea/**'
+            - '!haproxy/**'
+            - '!haproxy-pub/**'
+            - '!jackett/**'
+            - '!heimdall/**'
+            - '!lazylibrarian/**'
+            - '!linuxgsm/**'
+            - '!nginx-pot-pub/**'
+            - '!nginx-pub/**'
+            - '!octoprint/**'
+            - '!postgres/**'
+            - '!qbittorrent/**'
+            - '!synclounge/**'
+            - '!tautulli/**'
+            - '!uploader/**'
+            - '!wordpress/**'
+            - '!zigbee2mqtt/**'
 
   deploy:
     runs-on: self-hosted
@@ -31,8 +50,6 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        # Parse JSON array containing names of all filters matching any of changed files
-        # e.g. ['package1', 'package2'] if both package folders contains changes
         job: ${{ fromJSON(needs.changes.outputs.jobs ) }}
 
     steps:
