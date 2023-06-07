@@ -33,6 +33,8 @@ jobs:
             - '!heimdall/**'
             - '!lazylibrarian/**'
             - '!linuxgsm/**'
+            - '!murmur/**'
+            - '!nextcloud/**'
             - '!nginx-pot-pub/**'
             - '!nginx-pub/**'
             - '!octoprint/**'
