@@ -13,13 +13,13 @@ job "owntracks-recorder" {
     value     = "true"
   }
 
-  group "homeautomation" {
+  group "tracking" {
     count = 1 
 
     network {
       port "http" {
         host_network = "tailscale"
-        static = "8989"
+        to = "8083"
       }
     }
 
@@ -31,7 +31,8 @@ job "owntracks-recorder" {
           "--http-host", "${NOMAD_IP_http}"
         ]
         force_pull = true
-        network_mode = "host"
+        #network_mode = "host"
+        ports = ["http"]
         volumes = [
           "${var.shared_dir}owntracks-recorder:/store/",
           "${var.shared_dir}owntracks-recorder/views:/htdocs/views/",
@@ -40,7 +41,7 @@ job "owntracks-recorder" {
 
       service {
         port = "http"
-	      name = "owntracks"
+        name = "owntracks"
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
@@ -48,8 +49,8 @@ job "owntracks-recorder" {
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+          "traefik.http.middlewares.malpotAuthNew.basicauth.users=${var.auth}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, forward-auth"
         ]
         check {
           type     = "http"
@@ -61,12 +62,12 @@ job "owntracks-recorder" {
 
       env {
         TZ = "Europe/Amsterdam"
-        #OTR_HTTPHOST = "${NOMAD_ADDR_http}"
+        #OTR_HTTPHOST = "${NOMAD_IP_http}"
         #OTR_HTTPPORT = "${NOMAD_PORT_http}"
         OTR_HOST = "100.82.104.95"
-        OTR_PORT = var.otr_pass
+        OTR_PORT = "8883"
         OTR_USER = "mqtt"
-        OTR_PASS = "Zee1tuiGha9h"
+        OTR_PASS = var.otr_pass
         OTR_STORAGEDIR = "/store"
         OTR_VIEWSDIR = "/store/views"
         #OTR_CAPATH = "/etc/ssl/certs"

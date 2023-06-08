@@ -9,9 +9,9 @@ job "mosquitto" {
   }
 
   constraint {
-    attribute = "${meta.shared_mount}"
+    attribute = "${meta.server}"
     operator  = "="
-    value     = "true"
+    value     = "patty02"
   }
 
   group "homeautomation" {

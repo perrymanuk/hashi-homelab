@@ -3,7 +3,7 @@ job "traefik-new" {
   datacenters = ["public"]
   type = "service"
   meta {
-    version = "2"
+    version = "1"
   }
 
   group "lbs" {
@@ -81,17 +81,17 @@ data = <<EOH
   [metrics.prometheus]
 [entryPoints]
   [entryPoints.web]
-    address = "{{ GetInterfaceIP \"eth0\" }}:80"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:80"
   [entryPoints.traefik]
-    address = "{{ GetInterfaceIP \"tailscale0\" }}:9002"
+    address = "{{{ sockaddr "GetInterfaceIP \"tailscale0\"" }}}:9002"
   [entryPoints.websecure]
-    address = "{{ GetInterfaceIP \"eth0\" }}:443"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:443"
   [entryPoints.mqtt]
-    address = "{{ GetInterfaceIP \"eth0\" }}:8884"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:8884"
   [entryPoints.mumble]
-    address = "{{ GetInterfaceIP \"eth0\" }}:64738"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:64738"
   [entryPoints.mumble-udp]
-    address = "{{ GetInterfaceIP \"eth0\" }}:64738/udp"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:64738/udp"
 [accessLog]
   format = "json"
 [http.middlewares]
@@ -112,7 +112,7 @@ data = <<EOH
   prefix = "traefik"
   defaultRule = "Host(`{{ .Name }}${var.tld}`)"
   [providers.consulcatalog.endpoint]
-    address = "{{ GetInterfaceIP \"tailscale0\" }}:8500"
+    address = "{{{ sockaddr "GetInterfaceIP \"tailscale0\"" }}}:8500"
     scheme = "http"
     datacenter = "homelab"
     endpointWaitTime = "15s"
@@ -126,7 +126,7 @@ EOH
 
       resources {
         cpu = 100
-        memory = 256
+        memory = 512
       }
     }
   }
