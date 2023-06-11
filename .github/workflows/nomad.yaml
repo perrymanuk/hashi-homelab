@@ -44,7 +44,7 @@ jobs:
             - '!uploader/*.job'
             - '!wordpress/*.job'
             - '!zigbee2mqtt/*.job'
-            - added|modified: '**/*.job'
+            - added|modified: '*.job'
 
   deploy:
     runs-on: self-hosted
