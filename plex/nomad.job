@@ -4,7 +4,7 @@ job "plex" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "1"
   }
 
   constraint {
@@ -63,20 +63,10 @@ job "plex" {
   }
 }
 
-variable "region" {
-    type = string
-}
+variable "region" {}
 
+variable "tld" {}
 
+variable "shared_dir" {}
 
-variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
-
-variable "media_dir" {
-    type = string
-}
+variable "media_dir" {}
