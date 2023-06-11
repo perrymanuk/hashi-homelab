@@ -22,6 +22,33 @@ jobs:
         filters: |
           nomadjobs: 
             - 'plex/*.job'
+            - 'audioserver/*.job'
+            - 'bitwarden/*.job'
+            - 'coredns/*.job'
+            - 'deconz/*.job'
+            - 'docker-registry/*.job'
+            - 'github-runner/*.job'
+            - 'grafana/*.job'
+            - 'home-assistant/*.job'
+            - 'keepalived/*.job'
+            - 'lidarr/*.job'
+            - 'loki/*.job'
+            - 'mqtt-pub/*.job'
+            - 'ombi/*.job'
+            - 'owntracks-recorder/*.job'
+            - 'pihole/*.job'
+            - 'plex/*.job'
+            - 'prometheus/*.job'
+            - 'radarr/*.job'
+            - 'sabnzbd/*.job'
+            - 'sickchill/*.job'
+            - 'smtp/*.job'
+            - 'sonarr/*.job'
+            - 'tailscale/*.job'
+            - 'telegraf/*.job'
+            - 'traefik-ingress/*.job'
+            - 'vector/*.job'
+            - 'www/*.job'
 
   deploy:
     runs-on: self-hosted
