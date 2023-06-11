@@ -27,7 +27,7 @@ jobs:
             - 'gitea/!(*.job)'
             - 'haproxy/!(*.job)'
             - 'haproxy-pub/!(*.job)'
-            - 'jackett/!(*.job)'
+            - '!jackett/nomad.job'
             - 'heimdall/!(*.job)'
             - 'lazylibrarian/!(*.job)'
             - 'linuxgsm/!(*.job)'
