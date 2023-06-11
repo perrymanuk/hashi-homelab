@@ -56,8 +56,8 @@ job "plex" {
       }
 
       resources {
-        cpu    = 400
-        memory = 8000
+        cpu    = 4000
+        memory = 1024
       }
     }
   }
