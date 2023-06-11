@@ -15,7 +15,6 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
 
-    # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -44,7 +43,7 @@ jobs:
             - '!uploader/*.job'
             - '!wordpress/*.job'
             - '!zigbee2mqtt/*.job'
-            - added|modified: '*.job'
+            - '**/*.job'
 
   deploy:
     runs-on: self-hosted
