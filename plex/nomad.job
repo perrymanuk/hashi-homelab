@@ -18,7 +18,7 @@ job "plex" {
 
     network {
       port "http" {
-        host_network = "tailscale"
+        host_network = "lan"
         static = "32400"
       }
     }

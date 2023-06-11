@@ -4,7 +4,7 @@ job "sabnzbd" {
   type        = "service"
 
   meta {
-    version = "3"
+    version = "1"
   }
 
   constraint {
@@ -59,8 +59,8 @@ job "sabnzbd" {
       }
   
       env {
-        PUID = "1000"
-        PGID = "1000"
+        PUID = "65534"
+        PGID = "65534"
         TZ = "Etc/UTC"
       }
 

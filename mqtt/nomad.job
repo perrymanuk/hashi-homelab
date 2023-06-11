@@ -4,14 +4,13 @@ job "mosquitto" {
   type        = "service"
 
   meta {
-    service_owner = "@pmanuk"
     version = "2"
   }
 
   constraint {
-    attribute = "${meta.server}"
+    attribute = "${meta.shared_mount}"
     operator  = "="
-    value     = "patty02"
+    value     = "true"
   }
 
   group "homeautomation" {
@@ -52,7 +51,7 @@ job "mosquitto" {
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 64
       }
     }
   }

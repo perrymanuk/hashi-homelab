@@ -34,6 +34,12 @@ job "sonarr" {
         ]
       }
 
+      env {
+        PUID = "65534"
+        PGID = "65534"
+        TZ = "Etc/UTC"
+      }
+
       service {
         port = "http"
 	name = "sonarr"
@@ -55,7 +61,7 @@ job "sonarr" {
       }
 
       resources {
-        cpu    = 100
+        cpu    = 1000
         memory = 1024
       }
     }

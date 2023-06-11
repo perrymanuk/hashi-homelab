@@ -17,6 +17,10 @@ job "traefik-new" {
         host_network = "tailscale"
         static = "8884"
       }
+      port "mqtt_pub" {
+        host_network = "tailscale"
+        static = "8883"
+      }
       port "mumble" {
         host_network = "tailscale"
         static = "64738"
@@ -88,6 +92,8 @@ data = <<EOH
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:443"
   [entryPoints.mqtt]
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:8884"
+  [entryPoints.mqtt_pub]
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:8883"
   [entryPoints.mumble]
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:64738"
   [entryPoints.mumble-udp]

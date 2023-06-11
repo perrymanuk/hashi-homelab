@@ -39,7 +39,6 @@ job "deconz" {
         image = "deconzcommunity/deconz:2.22.01"
         force_pull = true
         ports = ["web", "ws"]
-        network_mode = "host"
         privileged = true
         volumes = [
           "${var.shared_dir}deconz:/opt/deCONZ",

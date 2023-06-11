@@ -34,6 +34,12 @@ job "ombi" {
         ]
       }
 
+      env {
+        PUID = "65534"
+        PGID = "65534"
+        TZ = "Etc/UTC"
+      }
+
       service {
         port = "http"
         name = "ombi"
@@ -56,7 +62,7 @@ job "ombi" {
 
       resources {
         cpu    = 100
-        memory = 1024
+        memory = 512
       }
     }
   }

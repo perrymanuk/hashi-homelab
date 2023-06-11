@@ -62,9 +62,7 @@ job "owntracks-recorder" {
 
       env {
         TZ = "Europe/Amsterdam"
-        #OTR_HTTPHOST = "${NOMAD_IP_http}"
-        #OTR_HTTPPORT = "${NOMAD_PORT_http}"
-        OTR_HOST = "100.82.104.95"
+        OTR_HOST = "mqtt-pub${var.tld}"
         OTR_PORT = "8883"
         OTR_USER = "mqtt"
         OTR_PASS = var.otr_pass
@@ -81,19 +79,11 @@ job "owntracks-recorder" {
   }
 }
 
-variable "region" {
-    type = string
-}
+variable "region" {}
 
+variable "tld" {}
 
-
-variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
+variable "shared_dir" {}
 
 variable "auth" {}
 
