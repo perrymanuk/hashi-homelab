@@ -21,28 +21,6 @@ jobs:
         list-files: 'json'
         filters: |
           nomadjobs: 
-            - '!bitwarden/*.job'
-            - '!couchpotato/*.job'
-            - '!flaresolverr/*.job'
-            - '!gitea/*.job'
-            - '!haproxy/*.job'
-            - '!haproxy-pub/*.job'
-            - '!jackett/*.job'
-            - '!heimdall/*.job'
-            - '!lazylibrarian/*.job'
-            - '!linuxgsm/*.job'
-            - '!murmur/*.job'
-            - '!nextcloud/*.job'
-            - '!nginx-pot-pub/*.job'
-            - '!nginx-pub/*.job'
-            - '!octoprint/*.job'
-            - '!postgres/*.job'
-            - '!qbittorrent/*.job'
-            - '!synclounge/*.job'
-            - '!tautulli/*.job'
-            - '!uploader/*.job'
-            - '!wordpress/*.job'
-            - '!zigbee2mqtt/*.job'
             - '**/*.job'
 
   deploy:
