@@ -30,7 +30,6 @@ jobs:
             - 'github-runner/*.job'
             - 'grafana/*.job'
             - 'home-assistant/*.job'
-            - 'keepalived/*.job'
             - 'lidarr/*.job'
             - 'loki/*.job'
             - 'mqtt-pub/*.job'
