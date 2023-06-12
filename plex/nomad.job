@@ -8,9 +8,9 @@ job "plex" {
   }
 
   constraint {
-    attribute = "${meta.shared_mount}"
+    attribute = "${meta.hardware}"
     operator  = "="
-    value     = "true"
+    value     = "vm"
   }
 
   group "downloaders" {

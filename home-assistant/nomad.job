@@ -55,7 +55,7 @@ job "home-assistant" {
 
       resources {
         cpu    = 100
-        memory = 2048
+        memory = 512
       }
     }
   }
