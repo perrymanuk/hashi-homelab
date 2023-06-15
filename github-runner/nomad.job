@@ -6,14 +6,8 @@ job "github-runner" {
     version = "0"
   }
 
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
-  }
-
   group "runners" {
-    count = 4
+    count = 1
     # Don't reschedule in case of failure or drain
     reschedule {
       attempts  = 0
@@ -36,8 +30,8 @@ job "github-runner" {
 
     task "runner" {
       driver = "docker"
-
       kill_timeout = "25s"
+
       template {
         env         = true
         destination = "secrets/env"

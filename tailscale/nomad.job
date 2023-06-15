@@ -64,8 +64,6 @@ variable "region" {
     type = string
 }
 
-
-
 variable "tld" {
     type = string
 }
