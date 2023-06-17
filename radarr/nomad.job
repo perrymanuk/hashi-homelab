@@ -38,8 +38,8 @@ job "radarr" {
       env {
         UMASK_SET = "022"
         TZ        = "UTC"
-        PGUID     = "1000"
-        PGID      = "1000"
+        PGUID     = "65534"
+        PGID      = "65534"
       }
 
       service {
@@ -47,7 +47,7 @@ job "radarr" {
 	name = "radarr"
         tags = [
           "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https, forward-auth",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",

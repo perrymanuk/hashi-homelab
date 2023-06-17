@@ -55,7 +55,7 @@ job "octoprint" {
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=cors",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
           "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=malpotAuth"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ]
         check {
           type     = "http"

@@ -1,0 +1,103 @@
+job "traefik-forward-auth" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "tailscale"
+        static = "4181"
+      }
+
+    }
+
+    task "auth" {
+      driver = "docker"
+      config {
+        image = "thomseddon/traefik-forward-auth:2.2.0"
+        ports = ["http"]
+      }
+
+      env {
+        PROVIDERS_GOOGLE_CLIENT_ID     = "${var.oauth_client_id}"
+        PROVIDERS_GOOGLE_CLIENT_SECRET = "${var.oauth_client_secret}"
+        SECRET                         = "${var.oauth_secret}"
+        AUTH_HOST                      = "auth.demonsafe.com"
+        COOKIE_DOMAIN                  = "demonsafe.com"
+        WHITELIST                      = "realitysandwich@gmail.com"
+        LOG_LEVEL                      = "debug"
+        URL_PATH                       = "/_oauth"
+        DEFAULT_ACTION                 = "auth"
+        INSECURE_COOKIE                = "false"
+      }
+
+      service {
+        port = "http"
+	name = "traefik-forward-auth"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.auth.rule=Host(`auth.demonsafe.com`)",
+          "traefik.http.routers.auth.entrypoints=websecure",
+          "traefik.http.routers.auth.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`auth${var.tld}`)",
+          "traefik.http.routers.auth.tls.domains[0].main=demonsafe.com",
+          "traefik.http.routers.auth.tls.domains[0].sans=*.demonsafe.com",
+          "traefik.http.routers.auth.tls.certresolver=sample",
+          "traefik.http.routers.auth.rule=Host(`auth${var.tld}`)",
+          "traefik.http.routers.auth.rule=Path(`/_oauth`)",
+          "traefik.http.middlewares.forward-auth.forwardauth.address=http://${NOMAD_IP_http}:${NOMAD_PORT_http}/",
+          "traefik.http.middlewares.forward-auth.forwardauth.trustForwardHeader=true",
+          "traefik.http.middlewares.forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User",
+          "traefik.http.routers.auth.middlewares=forward-auth"
+        ]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}
+
+variable "tv_dir" {
+    type = string
+}
+
+variable "movies_dir" {
+    type = string
+}
+
+variable "oauth_client_id" {}
+variable "oauth_client_secret" {}
+variable "oauth_secret" {}

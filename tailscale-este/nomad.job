@@ -1,0 +1,77 @@
+job "tailscale-este" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "networking" {
+    count = 1 
+    task "tailscale" {
+      driver = "docker"
+      config {
+        image = "tailscale/tailscale:v1.42.0"
+        entrypoint = ["/local/start.sh"]
+        network_mode = "host"
+        force_pull = "true"
+        privileged = true
+        cap_add = ["NET_ADMIN", "NET_RAW"]
+	volumes = [
+          "${var.shared_dir}tailscale_este:/var/lib/tailscale",
+          "/dev/net/tun:/dev/net/tun",
+	]
+      }
+
+      template {
+data = <<EOH
+#!/bin/sh
+
+function up() {
+    until /usr/local/bin/tailscale up --snat-subnet-routes=false --auth-key="${var.tailscale_auth_este}" --advertise-routes="192.168.50.0/24" --hostname="este-gateway"
+    do
+        sleep 0.1
+    done
+
+}
+
+# send this function into the background
+up &
+
+exec tailscaled --tun=userspace-networking --statedir="/var/lib/tailscale/tailscaled.state"
+EOH
+        destination = "local/start.sh"
+        env         = false
+        perms       = 755
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "tailscale_auth_este" {}
