@@ -4,8 +4,8 @@ name = "example"
 plugin_id = "nfsofficial"
 external_id = "example"
 capability {
-	access_mode = "multi-node-multi-writer"
-	attachment_mode = "file-system"
+  access_mode = "multi-node-multi-writer"
+  attachment_mode = "file-system"
 }
 context {
   server = "192.168.50.208"
