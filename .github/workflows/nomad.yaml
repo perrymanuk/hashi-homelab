@@ -23,7 +23,6 @@ jobs:
           nomadjobs: 
             - 'plex/*.job'
             - 'audioserver/*.job'
-            - 'bitwarden/*.job'
             - 'coredns/*.job'
             - 'deconz/*.job'
             - 'docker-registry/*.job'
@@ -42,7 +41,6 @@ jobs:
             - 'sabnzbd/*.job'
             - 'sickchill/*.job'
             - 'smtp/*.job'
-            - 'sonarr/*.job'
             - 'tailscale/*.job'
             - 'tailscale-este/*.job'
             - 'telegraf/*.job'
