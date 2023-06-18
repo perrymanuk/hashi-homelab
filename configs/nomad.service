@@ -1,0 +1,15 @@
+[Unit]
+Description=nomad.agent
+Requires=network-online.target tailscaled.service
+After=network-online.target tailscaled.service
+
+[Service]
+EnvironmentFile=-/etc/default/nomad
+Restart=always
+ExecStart=/usr/local/bin/nomad agent $OPTIONS -config=/etc/nomad/server.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
