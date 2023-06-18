@@ -28,8 +28,8 @@ job "traefik-forward-auth" {
         PROVIDERS_GOOGLE_CLIENT_ID     = "${var.oauth_client_id}"
         PROVIDERS_GOOGLE_CLIENT_SECRET = "${var.oauth_client_secret}"
         SECRET                         = "${var.oauth_secret}"
-        AUTH_HOST                      = "auth.demonsafe.com"
-        COOKIE_DOMAIN                  = "demonsafe.com"
+        AUTH_HOST                      = "auth.${var.tld}"
+        COOKIE_DOMAIN                  = "${var.tld}"
         WHITELIST                      = "realitysandwich@gmail.com"
         LOG_LEVEL                      = "debug"
         URL_PATH                       = "/_oauth"
@@ -42,13 +42,13 @@ job "traefik-forward-auth" {
 	name = "traefik-forward-auth"
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.auth.rule=Host(`auth.demonsafe.com`)",
+          "traefik.http.routers.auth.rule=Host(`auth.${var.tld}`)",
           "traefik.http.routers.auth.entrypoints=websecure",
           "traefik.http.routers.auth.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`auth${var.tld}`)",
-          "traefik.http.routers.auth.tls.domains[0].main=demonsafe.com",
-          "traefik.http.routers.auth.tls.domains[0].sans=*.demonsafe.com",
+          "traefik.http.routers.auth.tls.domains[0].main=${var.tld}",
+          "traefik.http.routers.auth.tls.domains[0].sans=*.${var.tld}",
           "traefik.http.routers.auth.tls.certresolver=sample",
           "traefik.http.routers.auth.rule=Host(`auth${var.tld}`)",
           "traefik.http.routers.auth.rule=Path(`/_oauth`)",
@@ -101,3 +101,4 @@ variable "movies_dir" {
 variable "oauth_client_id" {}
 variable "oauth_client_secret" {}
 variable "oauth_secret" {}
+variable "tld" {}

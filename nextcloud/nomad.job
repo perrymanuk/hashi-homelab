@@ -42,8 +42,8 @@ job "nextcloud" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}${var.tld}`)",
-          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}.${var.tld}`)",
+          "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_JOB_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_JOB_NAME}.middlewares=httpsRedirect"
         ]
@@ -59,11 +59,11 @@ job "nextcloud" {
       template {
 data = <<EOH
 POSTGRES_DB="nextcloud"
-POSTGRES_USER="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.user}}{{end}}"
-POSTGRES_PASSWORD="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.password}}{{end}}"
-NEXTCLOUD_ADMIN_USER="{{with secret "secret/demonsafe/nextcloud/admin"}}{{.Data.user}}{{end}}"
-NEXTCLOUD_ADMIN_PASSWORD="{{with secret "secret/demonsafe/nextcloud/admin"}}{{.Data.password}}{{end}}"
-NEXTCLOUD_TRUSTED_DOMAINS="nextcloud.demonsafe.com"
+POSTGRES_USER=""
+POSTGRES_PASSWORD=""
+NEXTCLOUD_ADMIN_USER=""
+NEXTCLOUD_ADMIN_PASSWORD=""
+NEXTCLOUD_TRUSTED_DOMAINS=""
 POSTGRES_HOST="{{ env "NOMAD_ADDR_postgres_db" }}"
 EOH
         destination = "local/env"
@@ -185,8 +185,8 @@ EOH
       template {
 data = <<EOH
 POSTGRES_DB=nextcloud
-POSTGRES_USER="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.user}}{{end}}"
-POSTGRES_PASSWORD="{{with secret "secret/demonsafe/nextcloud/postgres"}}{{.Data.password}}{{end}}"
+POSTGRES_USER=""
+POSTGRES_PASSWORD=""
 PGDATA="/appdata/postgres"
 EOH
         destination = "local/env"

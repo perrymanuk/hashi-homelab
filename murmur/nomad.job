@@ -32,7 +32,7 @@ job "murmur" {
       service {
          tags = [
           "traefik.enable=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`mumble-server${var.tld}`)",
+          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`mumble-server.${var.tld}`)",
           "traefik.tcp.services.${NOMAD_TASK_NAME}.loadbalancer.server.port=${NOMAD_PORT_0}",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=mumble",
           "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.passthrough=true",

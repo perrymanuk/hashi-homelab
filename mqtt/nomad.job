@@ -30,7 +30,7 @@ job "mosquitto" {
     task "mosquitto" {
       driver = "docker"
       config {
-        image = "docker-registry.demonsafe.com/mosquitto:2"
+        image = "docker-registry.${var.tld}/mosquitto:2"
         force_pull = true
         network_mode = "host"
         ports = ["0", "1"]
@@ -61,7 +61,7 @@ variable "region" {
     type = string
 }
 
-
+variable "tld" {}
 
 variable "shared_dir" {
     type = string

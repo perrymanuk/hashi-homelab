@@ -30,7 +30,7 @@ job "synclounge" {
       }
 
       env {
-        DOMAIN = "${NOMAD_TASK_NAME}${var.tld}"
+        DOMAIN = "${NOMAD_TASK_NAME}.${var.tld}"
       }
 
       service {
@@ -40,8 +40,8 @@ job "synclounge" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
         ]
@@ -60,8 +60,8 @@ job "synclounge" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.syncserver_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.syncserver_insecure.rule=Host(`syncserver${var.tld}`)",
-          "traefik.http.routers.syncserver.tls.domains[0].sans=syncserver${var.tld}",
+          "traefik.http.routers.syncserver_insecure.rule=Host(`syncserver.${var.tld}`)",
+          "traefik.http.routers.syncserver.tls.domains[0].sans=syncserver.${var.tld}",
           "traefik.http.routers.syncserver.tls.certresolver=sample",
           "traefik.http.routers.syncserver.middlewares=httpsRedirect"
         ]

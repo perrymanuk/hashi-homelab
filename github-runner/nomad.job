@@ -7,7 +7,7 @@ job "github-runner" {
   }
 
   group "runners" {
-    count = 2
+    count = 5
     # Don't reschedule in case of failure or drain
     reschedule {
       attempts  = 0

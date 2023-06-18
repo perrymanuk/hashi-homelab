@@ -46,8 +46,8 @@ job "owntracks-recorder" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}${var.tld}`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.${var.tld}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuthNew.basicauth.users=${var.auth}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, forward-auth"
@@ -62,7 +62,7 @@ job "owntracks-recorder" {
 
       env {
         TZ = "Europe/Amsterdam"
-        OTR_HOST = "mqtt-pub${var.tld}"
+        OTR_HOST = "mqtt-pub.${var.tld}"
         OTR_PORT = "8883"
         OTR_USER = "mqtt"
         OTR_PASS = var.otr_pass

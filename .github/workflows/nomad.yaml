@@ -72,7 +72,7 @@ jobs:
       env:
         NOMAD_ADDR: 'http://nomad.service.home:4646'
         NOMAD_VAR_region: 'home'
-        NOMAD_VAR_tld: '.demonsafe.com'
+        NOMAD_VAR_tld: '${{ secrets.NOMAD_VAR_TLD }}'
         NOMAD_VAR_shared_dir: '/home/shared/'
         NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
         NOMAD_VAR_music_dir: '/home/media/Music'
