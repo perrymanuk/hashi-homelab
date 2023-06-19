@@ -45,8 +45,7 @@ job "traefik-forward-auth" {
           "traefik.http.routers.auth.rule=Host(`auth.${var.tld}`)",
           "traefik.http.routers.auth.entrypoints=websecure",
           "traefik.http.routers.auth.tls=true",
-
-
+          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`auth${var.tld}`)",
           "traefik.http.routers.auth.tls.domains[0].main=${var.tld}",
           "traefik.http.routers.auth.tls.domains[0].sans=*.${var.tld}",
           "traefik.http.routers.auth.tls.certresolver=sample",
@@ -101,4 +100,3 @@ variable "movies_dir" {
 variable "oauth_client_id" {}
 variable "oauth_client_secret" {}
 variable "oauth_secret" {}
-variable "tld" {}

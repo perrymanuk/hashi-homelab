@@ -4,7 +4,7 @@ job "pihole" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "1"
   }
 
   constraint {
@@ -51,9 +51,7 @@ job "pihole" {
          tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
          ]
@@ -67,7 +65,7 @@ job "pihole" {
         DNS1         = "8.8.8.8"
         DNS2         = "1.1.1.1"
         INTERFACE    = "eth0"
-        VIRTUAL_HOST = join("", ["pihole", var.tld])
+        VIRTUAL_HOST = join("", ["pihole.", var.tld])
         ServerIP     = "{{ GetInterfaceIP \"tailscale0\" }}"
       }
 

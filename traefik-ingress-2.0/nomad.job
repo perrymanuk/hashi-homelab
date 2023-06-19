@@ -56,12 +56,6 @@ job "traefik-new" {
         name = "traefik"
         port = "admin"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "metrics"
         ]
       }
