@@ -15,12 +15,20 @@ job "plex" {
 
   group "downloaders" {
     count = 1 
-
     network {
       port "http" {
         host_network = "lan"
         static = "32400"
       }
+    }
+
+    volume "plex" {
+      type      = "csi"
+      read_only = false
+
+      source    = "plex"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     task "plex" {
@@ -31,10 +39,15 @@ job "plex" {
         privileged = "true"
         force_pull = "true"
         volumes = [
-          "${var.shared_dir}plex:/config",
           "/tmp:/transcode",
           "${var.media_dir}:/data",
         ]
+      }
+
+      volume_mount {
+        volume      = "plex"
+        destination = "/config"
+        read_only   = false
       }
 
       service {
@@ -42,8 +55,6 @@ job "plex" {
 	name = "plex"
         tags = [
           "traefik.enable=true",
-
-
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
         ]
@@ -64,9 +75,6 @@ job "plex" {
 }
 
 variable "region" {}
-
 variable "tld" {}
-
 variable "shared_dir" {}
-
 variable "media_dir" {}

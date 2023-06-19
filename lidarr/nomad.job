@@ -15,12 +15,20 @@ job "lidarr" {
 
   group "downloaders" {
     count = 1 
-
     network {
       port "http" {
         host_network = "tailscale"
         to = "8686"
       }
+    }
+
+    volume "lidarr" {
+      type      = "csi"
+      read_only = false
+
+      source    = "lidarr"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     task "lidarr" {
@@ -29,11 +37,16 @@ job "lidarr" {
         image = "linuxserver/lidarr:8.1.2135"
         ports = ["http"]
         volumes = [
-          "${var.shared_dir}lidarr:/config",
           "${var.downloads_dir}:/downloads",
           "${var.music_dir}:/music",
           "${var.music_dir}:/home/media/Music",
         ]
+      }
+
+      volume_mount {
+        volume      = "lidarr"
+        destination = "/config"
+        read_only   = false
       }
 
       service {

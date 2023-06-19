@@ -22,16 +22,30 @@ job "sickchill" {
       }
     }
 
+    volume "sickchill" {
+      type      = "csi"
+      read_only = false
+
+      source    = "sickchill"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "sickchill" {
       driver = "docker"
       config {
         image = "linuxserver/sickchill:2023.5.30"
         ports = ["http"]
         volumes = [
-          "${var.shared_dir}sickchill:/config",
           "${var.downloads_dir}:/downloads",
           "${var.tv_dir}:/tv",
         ]
+      }
+
+      volume_mount {
+        volume      = "sickchill"
+        destination = "/config"
+        read_only   = false
       }
 
       env {
@@ -71,10 +85,6 @@ variable "region" {
 }
 
 variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
     type = string
 }
 

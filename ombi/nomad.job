@@ -78,16 +78,5 @@ job "ombi" {
   }
 }
 
-variable "region" {
-    type = string
-}
-
-
-
-variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
+variable "region" {}
+variable "tld" {}

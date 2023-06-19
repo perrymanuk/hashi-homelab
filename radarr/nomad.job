@@ -20,7 +20,15 @@ job "radarr" {
         host_network = "tailscale"
         to = "7878"
       }
+    }
 
+    volume "radarr" {
+      type      = "csi"
+      read_only = false
+
+      source    = "radarr"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     task "radarr" {
@@ -29,10 +37,15 @@ job "radarr" {
         image = "linuxserver/radarr:4.5.2"
         ports = ["http"]
         volumes = [
-          "${var.shared_dir}radarr:/config",
           "${var.downloads_dir}:/downloads",
           "${var.movies_dir}:/movies",
         ]
+      }
+
+      volume_mount {
+        volume      = "radarr"
+        destination = "/config"
+        read_only   = false
       }
 
       env {
@@ -72,13 +85,7 @@ variable "region" {
     type = string
 }
 
-
-
 variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
     type = string
 }
 
