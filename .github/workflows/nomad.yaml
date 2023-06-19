@@ -61,7 +61,7 @@ jobs:
   add_volumes:
     runs-on: self-hosted
     needs: changes
-    if: ${{ needs.changes.outputs.volumes == 'true' }}
+    if: ${{ needs.changes.outputs.volumes != '' }}
     continue-on-error: true
     strategy:
       matrix:
@@ -83,7 +83,7 @@ jobs:
   deploy_jobs:
     runs-on: self-hosted
     needs: changes
-    if: ${{ needs.changes.outputs.jobs == 'true' }}
+    if: ${{ needs.changes.outputs.jobs != '' }}
     continue-on-error: true
     strategy:
       matrix:
