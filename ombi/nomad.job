@@ -23,15 +23,27 @@ job "ombi" {
       }
     }
 
+    volume "ombi" {
+      type      = "csi"
+      read_only = false
+      
+      source    = "ombi"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "ombi" {
       driver = "docker"
       config {
         image = "linuxserver/ombi:4.39.1"
         force_pull = "true"
         ports = ["http"]
-        volumes = [
-          "${var.shared_dir}ombi:/config",
-        ]
+      }
+
+      volume_mount {
+        volume      = "ombi"
+        destination = "/config"
+        read_only   = false
       }
 
       env {
@@ -46,11 +58,9 @@ job "ombi" {
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.${var.tld}`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ]
 
         check {
