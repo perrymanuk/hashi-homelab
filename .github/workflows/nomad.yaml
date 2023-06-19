@@ -22,7 +22,7 @@ jobs:
         list-files: 'json'
         filters: |
           volumes: 
-            - 'added: **/volume.hcl'
+            - '**/volume.hcl'
 
     - uses: dorny/paths-filter@v2
       id: filter
