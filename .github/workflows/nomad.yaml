@@ -11,9 +11,18 @@ jobs:
       pull-requests: read
     outputs:
       jobs: ${{ steps.filter.outputs.nomadjobs_files }}
+      volumes: ${{ steps.filter_volumes.outputs.volumes_files }}
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@v3'
+
+    - uses: dorny/paths-filter@v2
+      id: filter_volumes
+      with:
+        list-files: 'json'
+        filters: |
+          volumes: 
+            - '**/volume.hcl'
 
     - uses: dorny/paths-filter@v2
       id: filter
@@ -49,9 +58,32 @@ jobs:
             - 'vector/*.job'
             - 'www/*.job'
 
-  deploy:
+  add_volumes:
     runs-on: self-hosted
     needs: changes
+    if: ${{ needs.changes.outputs.volumes == 'true' }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        job: ${{ fromJSON(needs.changes.outputs.volumes ) }}
+
+    steps:
+    - name: 'Checkout'
+      uses: 'actions/checkout@v3'
+
+    - uses: lucasmelin/setup-nomad@v1
+
+    - name: deploy
+      shell: bash
+      run: |
+        nomad volume create ${{ matrix.job }}
+      env:
+        NOMAD_ADDR: 'http://nomad.service.home:4646'
+
+  deploy_jobs:
+    runs-on: self-hosted
+    needs: changes
+    if: ${{ needs.changes.outputs.jobs == 'true' }}
     continue-on-error: true
     strategy:
       matrix:
