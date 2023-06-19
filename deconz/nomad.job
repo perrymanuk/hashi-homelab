@@ -55,12 +55,12 @@ job "deconz" {
           "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT",
           "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100",
           "traefik.http.middlewares.cors.headers.addvaryheader=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.middlewares=httpsRedirect,cors",
-          "traefik.http.routers.${NOMAD_TASK_NAME}_insecure.rule=Host(`${NOMAD_TASK_NAME}.${var.tld}`)",
+
+
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.middlewares.malpotAuth.basicauth.users=${var.auth}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=httpsRedirect, malpotAuth"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth, malpotAuth"
         ]
         check {
           type     = "http"

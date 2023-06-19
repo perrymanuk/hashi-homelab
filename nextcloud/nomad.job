@@ -41,11 +41,11 @@ job "nextcloud" {
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.middlewares=httpsRedirect",
-          "traefik.http.routers.${NOMAD_JOB_NAME}_insecure.rule=Host(`${NOMAD_JOB_NAME}.${var.tld}`)",
+
+
           "traefik.http.routers.${NOMAD_JOB_NAME}.tls.domains[0].sans=${NOMAD_JOB_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_JOB_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_JOB_NAME}.middlewares=httpsRedirect"
+          "traefik.http.routers.${NOMAD_JOB_NAME}.middlewares=forward-auth"
         ]
 
         check {
