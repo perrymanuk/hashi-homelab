@@ -35,6 +35,7 @@ job "traefik-forward-auth" {
         URL_PATH                       = "/_oauth"
         DEFAULT_ACTION                 = "auth"
         INSECURE_COOKIE                = "false"
+        CONFIG                         = "local/config"
       }
 
       service {
@@ -63,6 +64,15 @@ job "traefik-forward-auth" {
         }
       }
 
+      template {
+data = <<EOH
+rule.sabnzbd.action = allow
+rule.sabnzbd.rule = PathPrefix(`/sabnzbd/api`)
+EOH
+        destination = "local/config"
+        env         = false
+      }
+
       resources {
         cpu    = 100
         memory = 256
@@ -71,32 +81,8 @@ job "traefik-forward-auth" {
   }
 }
 
-variable "region" {
-    type = string
-}
-
-
-
-variable "tld" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
-
-variable "downloads_dir" {
-    type = string
-}
-
-variable "tv_dir" {
-    type = string
-}
-
-variable "movies_dir" {
-    type = string
-}
-
+variable "region" {}
+variable "tld" {}
 variable "oauth_client_id" {}
 variable "oauth_client_secret" {}
 variable "oauth_secret" {}

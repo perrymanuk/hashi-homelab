@@ -18,7 +18,7 @@ job "sabnzbd" {
     network {
       port "http" {
         host_network = "tailscale"
-        to = "8080"
+        static = "8080"
       }
     }
 
@@ -71,7 +71,8 @@ job "sabnzbd" {
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ]
         check {
           type     = "http"

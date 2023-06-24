@@ -39,7 +39,6 @@ job "pihole" {
       driver = "docker"
       config {
         image = "pihole/pihole:2023.05.2"
-        force_pull = true
         ports = ["dns", "web"]
         volumes = [
           "${var.shared_dir}pihole:/etc/pihole/",

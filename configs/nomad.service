@@ -6,7 +6,7 @@ After=network-online.target tailscaled.service
 [Service]
 EnvironmentFile=-/etc/default/nomad
 Restart=always
-ExecStart=/usr/local/bin/nomad agent $OPTIONS -config=/etc/nomad/server.hcl
+ExecStart=/usr/bin/nomad agent $OPTIONS -config=/etc/nomad.d/nomad.hcl
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 KillMode=process

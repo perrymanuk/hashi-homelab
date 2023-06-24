@@ -6,7 +6,7 @@ After=network-online.target tailscaled.service
 [Service]
 EnvironmentFile=-/etc/default/consul
 Restart=always
-ExecStart=/usr/local/bin/consul agent -domain home -ui -config-dir=/etc/consul.d
+ExecStart=/usr/bin/consul agent -domain home -ui -config-dir=/etc/consul.d
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 [Install]

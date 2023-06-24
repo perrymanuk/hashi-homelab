@@ -3,8 +3,8 @@ external_id  = "plex"
 name         = "plex"
 type         = "csi"
 plugin_id    = "org.democratic-csi.iscsi"
-capacity_min = "1GiB"
-capacity_max = "1GiB"
+capacity_min = "20GiB"
+capacity_max = "20GiB"
 
 capability {
   access_mode     = "single-node-writer"
