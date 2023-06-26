@@ -1,0 +1,175 @@
+---
+- name: network mounts
+  hosts: 
+    - lan-clients
+  become: true
+  remote_user: root
+  tasks:
+    - name: Ensure directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - /home/shared
+        - /home/media/TV
+        - /home/media/Music
+        - /home/media/Movies
+        - /home/media/Books
+
+    - name: makesure multipath.conf exists
+      copy:
+        content: ""
+        dest: /etc/multipath.conf
+        force: no
+        backup: yes
+      ignore_errors: yes
+
+    - name: Manage /etc/multipath.conf
+      blockinfile:
+        path: /etc/multipath.conf
+        block: |
+          defaults {
+              user_friendly_names yes
+              find_multipaths yes
+          }
+
+    - name: Install Apt packages
+      apt:
+        name:
+          - nfs-common
+          - docker.io
+          - open-iscsi
+          - lsscsi
+          - sg3-utils
+          - multipath-tools
+          - scsitools
+
+    - name: Ensure specific /etc/fstab entries
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ item }}"
+        insertafter: EOF
+      with_items:
+        - "192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,auto  0  0"
+        - "192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,auto  0  0"
+        - "192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,auto  0  0"
+        - "192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,auto  0  0"
+        - "192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,auto  0  0"
+      notify: Mount Filesystems
+
+    - name: Enable services
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - open-iscsi
+        - multipath-tools
+
+  handlers:
+    - name: Mount Filesystems
+      command: mount -a
+
+- name: Update configuration, execute command, and install packages
+  hosts: 
+    - lan-clients
+    - wan-clients
+    - servers
+  become: true
+  remote_user: root
+  #roles:
+  #  - role: artis3n.tailscale
+  #    vars:
+  #      # Example pulling the API key from the env vars on the host running Ansible
+  #      tailscale_authkey: "{{ lookup('env', 'NOMAD_VAR_tailscale_auth') }}"
+  #      tailscale_args: "{% if 'wan-clients' in group_names %}--accept-routes=true{% else %}--accept-routes=false{% endif %}"
+  tasks:
+    - name: Ensure directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - /var/lib/nomad
+        - /var/lib/consul
+        - /etc/nomad.d
+        - /etc/consul.d
+
+    - name: Manage systemd service file nomad
+      copy:
+        src: configs/nomad.service
+        dest: /lib/systemd/system/nomad.service
+      notify: Reload systemd
+
+    - name: Manage systemd service file consul
+      copy:
+        src: configs/consul.service
+        dest: /lib/systemd/system/consul.service
+      notify: Reload systemd
+
+    - name: manage nomad config
+      template:
+        src: configs/nomad.hcl.j2
+        dest: /etc/nomad.d/nomad.hcl
+      notify: Restart Service
+
+    - name: manage consul config
+      template:
+        src: configs/consul.hcl.j2
+        dest: /etc/consul.d/server.hcl
+
+    - name: Add HashiCorp APT repository key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+        validate_certs: no
+        keyring: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Configure HashiCorp APT repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+
+    - name: Install Apt packages
+      apt:
+        name:
+          - nomad=1.5.6-1
+          - consul=1.15.3-1
+        dpkg_options: 'force-confdef,force-confold'
+        state: latest
+
+    - name: Modify sysctl entry for net.ipv4.ip_nonlocal_bind
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+      with_items:
+        - { name: "net.ipv4.ip_nonlocal_bind", value: "1" }
+        - { name: "net.ipv4.conf.all.forwarding", value: "1" }
+      notify: Apply Sysctl Changes
+
+    - name: Enable services
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - nomad
+        - consul
+        - tailscaled
+
+  handlers:
+    - name: Restart Service
+      service:
+        name: nomad
+        state: restarted
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: Mount Filesystems
+      command: mount -a
+
+    - name: Apply Sysctl Changes
+      command: sysctl -p /etc/sysctl.conf

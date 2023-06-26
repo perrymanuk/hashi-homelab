@@ -1,6 +1,6 @@
 job "telegraf" {
   region = var.region
-  datacenters = ["dc1"]
+  datacenters = ["dc1", "public", "system"]
   type = "system"
 
   group "telegraf-exporter" {

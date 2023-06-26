@@ -59,11 +59,11 @@ alerting:
   alertmanagers:
   - static_configs:
     - targets:
-      # - alertmanager:9093
+       - alertmanager.service.home:9093
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
-  # - "first_rules.yml"
+  - "alerts.yml"
   # - "second_rules.yml"
 
 scrape_configs:
@@ -120,7 +120,7 @@ scrape_configs:
 
     scheme: http
     static_configs:
-      - targets: ['{{ env "NOMAD_IP_http" }}:8123']
+      - targets: ['hass.service.home:8123']
 
   - job_name: 'nomad'
     consul_sd_configs:
@@ -192,13 +192,47 @@ EOH
         env           = false
       }
 
+      template {
+        change_mode = "noop"
+        destination = "local/alerts.yml"
+        left_delimiter = "[["
+        right_delimiter = "]]"
+        data = <<EOH
+---
+groups:
+- name: prometheus_alerts
+  rules:
+  - alert: Traefik Down
+    expr: absent(nomad_client_allocs_cpu_user{task="traefik"})
+    for: 10s
+    labels:
+      severity: page
+    annotations:
+      description: "Traefik is down."
+  # Alert for any instance that is unreachable for >5 minutes.
+  - alert: InstanceDown
+    expr: up == 0
+    for: 5m
+    labels:
+      severity: page
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+
+
+EOH
+      }
+
+
       config {
         image = "prom/prometheus:v2.44.0"
         network_mode = "host"
-        args = ["--config.file", "/local/prometheus.yml", "--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
+        args = ["--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
         force_pull = true
         ports = ["http"]
         volumes = [
+          "local/alerts.yml:/prometheus/alerts.yml",
+          "local/prometheus.yml:/prometheus/prometheus.yml",
           "${var.shared_dir}prometheus:/opt/prometheus",
         ]
       }
