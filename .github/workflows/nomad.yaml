@@ -123,3 +123,6 @@ jobs:
         NOMAD_VAR_oauth_client_id: '${{ secrets.NOMAD_VAR_OAUTH_CLIENT_ID }}'
         NOMAD_VAR_oauth_client_secret: '${{ secrets.NOMAD_VAR_OAUTH_CLIENT_SECRET }}'
         NOMAD_VAR_oauth_secret: '${{ secrets.NOMAD_VAR_OAUTH_SECRET }}'
+        NOMAD_VAR_oauth_emails: '${{ secrets.NOMAD_VAR_OAUTH_EMAILS }}'
+        NOMAD_VAR_pushover_token: '${{ secrets.NOMAD_VAR_PUSHOVER_TOKEN }}'
+        NOMAD_VAR_pushover_user_key: '${{ secrets.NOMAD_VAR_PUSHOVER_USER_KEY }}'
