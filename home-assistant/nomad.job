@@ -27,7 +27,7 @@ job "home-assistant" {
     task "hass" {
       driver = "docker"
       config {
-        image = "homeassistant/home-assistant:2023.6.2"
+        image = "homeassistant/home-assistant:2023.6.3"
         network_mode = "host"
         volumes = [
           "${var.shared_dir}home-assistant:/config",
