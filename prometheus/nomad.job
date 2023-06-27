@@ -204,11 +204,46 @@ groups:
   rules:
   - alert: Traefik Down
     expr: absent(nomad_client_allocs_cpu_user{task="traefik"})
-    for: 10s
+    for: 2m
     labels:
       severity: page
     annotations:
       description: "Traefik is down."
+  - alert: Sabnzbd Down
+    expr: absent(nomad_client_allocs_cpu_user{task="sabnzbd"})
+    for: 2m
+    labels:
+      severity: page
+    annotations:
+      description: "Sabnzbd is down."
+  - alert: Plex Down
+    expr: absent(nomad_client_allocs_cpu_user{task="plex"})
+    for: 2m
+    labels:
+      severity: page
+    annotations:
+      description: "Plex is down."
+  - alert: Sickchill Down
+    expr: absent(nomad_client_allocs_cpu_user{task="Sickchill"})
+    for: 2m
+    labels:
+      severity: page
+    annotations:
+      description: "Sickchill is down."
+  - alert: Sickchill Down
+    expr: absent(nomad_client_allocs_cpu_user{task="Sickchill"})
+    for: 2m
+    labels:
+      severity: page
+    annotations:
+      description: "Sickchill is down."
+  - alert: Radarr Down
+    expr: absent(nomad_client_allocs_cpu_user{task="radarr"})
+    for: 2m
+    labels:
+      severity: page
+    annotations:
+      description: "Radarr is down."
   # Alert for any instance that is unreachable for >5 minutes.
   - alert: InstanceDown
     expr: up == 0
@@ -218,7 +253,6 @@ groups:
     annotations:
       summary: "Instance {{ $labels.instance }} down"
       description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
-
 
 EOH
       }
