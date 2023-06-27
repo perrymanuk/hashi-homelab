@@ -38,6 +38,7 @@ jobs:
             - 'github-runner/*.job'
             - 'grafana/*.job'
             - 'home-assistant/*.job'
+            - 'iscsi-csi-plugin/*.job'
             - 'lidarr/*.job'
             - 'loki/*.job'
             - 'mqtt-pub/*.job'
@@ -126,3 +127,5 @@ jobs:
         NOMAD_VAR_oauth_emails: '${{ secrets.NOMAD_VAR_OAUTH_EMAILS }}'
         NOMAD_VAR_pushover_token: '${{ secrets.NOMAD_VAR_PUSHOVER_TOKEN }}'
         NOMAD_VAR_pushover_user_key: '${{ secrets.NOMAD_VAR_PUSHOVER_USER_KEY }}'
+        NOMAD_VAR_ssh_id: '${{ secrets.NOMAD_VAR_SSH_ID }}'
+        NOMAD_VAR_truenas_api_key: '${{ secrets.NOMAD_VAR_TRUENAS_API_KEY }}'

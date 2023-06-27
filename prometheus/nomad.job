@@ -224,19 +224,12 @@ groups:
     annotations:
       description: "Plex is down."
   - alert: Sickchill Down
-    expr: absent(nomad_client_allocs_cpu_user{task="Sickchill"})
+    expr: absent(nomad_client_allocs_cpu_user{task="sickchill"})
     for: 2m
     labels:
       severity: page
     annotations:
-      description: "Sickchill is down."
-  - alert: Sickchill Down
-    expr: absent(nomad_client_allocs_cpu_user{task="Sickchill"})
-    for: 2m
-    labels:
-      severity: page
-    annotations:
-      description: "Sickchill is down."
+      description: "sickchill is down."
   - alert: Radarr Down
     expr: absent(nomad_client_allocs_cpu_user{task="radarr"})
     for: 2m
