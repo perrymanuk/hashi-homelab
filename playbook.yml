@@ -137,6 +137,7 @@
           - consul=1.15.3-1
         dpkg_options: 'force-confdef,force-confold'
         state: latest
+        allow_downgrade: true
 
     - name: Modify sysctl entry for net.ipv4.ip_nonlocal_bind
       sysctl:

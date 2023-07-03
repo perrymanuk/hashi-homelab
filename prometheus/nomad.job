@@ -100,7 +100,7 @@ scrape_configs:
       format: ['prometheus']
     consul_sd_configs:
       - server: '{{ env "NOMAD_IP_http" }}:8500'
-        services: ['consul-agent']
+        services: ['nomad-client']
         scheme: http
     relabel_configs:
       - source_labels: ['__meta_consul_dc']
@@ -109,6 +109,11 @@ scrape_configs:
         target_label:  'host'
       - source_labels: ['__meta_consul_tags']
         target_label: 'tags'
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+):.*
+        replacement: $1:8500
+        target_label: __address__
 
   - job_name: 'hass'
     scrape_interval: 60s
@@ -125,7 +130,7 @@ scrape_configs:
   - job_name: 'nomad'
     consul_sd_configs:
     - server: '{{ env "NOMAD_IP_http" }}:8500'
-      services: ['nomad-client', 'nomad']
+      services: ['nomad-client']
       tags: ['http']
       scheme: http
     scrape_interval: 10s

@@ -49,6 +49,12 @@ job "lidarr" {
         read_only   = false
       }
 
+      env {
+        PUID = "65534"
+        PGID = "65534"
+        TZ = "Etc/UTC"
+      }
+
       service {
         port = "http"
 	name = "lidarr"
