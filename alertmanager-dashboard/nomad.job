@@ -12,7 +12,7 @@ job "alertmanager-dashboard" {
     task "alertmanager-dashboard" {
       driver = "docker"
       config {
-        image = "lmierzwa/karma:v0.114"
+        image = "lmierzwa/karma:v0.115"
         network_mode = "host"
       }
       env {
