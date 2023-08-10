@@ -53,7 +53,7 @@ job "haproxy" {
       }
 
       config {
-        image = "haproxy:2.8.1-alpine"
+        image = "haproxy:2.8.2-alpine"
         args = ["-W", "-f", "local/etc/haproxy.cfg"]
         network_mode = "host"
       }
