@@ -35,7 +35,7 @@ job "ombi" {
     task "ombi" {
       driver = "docker"
       config {
-        image = "linuxserver/ombi:4.39.1"
+        image = "linuxserver/ombi:4.43.5"
         force_pull = "true"
         ports = ["http"]
       }
