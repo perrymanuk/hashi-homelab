@@ -41,7 +41,7 @@ job "deconz" {
         ports = ["web", "ws"]
         privileged = true
         volumes = [
-          "${var.shared_dir}deconz:/opt/deCONZ",
+          "${var.shared_dir}deconz2:/opt/deCONZ",
           "/dev/ttyACM0:/dev/ttyACM0",
         ]
       }

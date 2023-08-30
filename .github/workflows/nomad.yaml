@@ -30,6 +30,7 @@ jobs:
         list-files: 'json'
         filters: |
           nomadjobs: 
+            - 'adb/*.job'
             - 'plex/*.job'
             - 'audioserver/*.job'
             - 'coredns/*.job'

@@ -133,7 +133,7 @@
     - name: Install Apt packages
       apt:
         name:
-          - nomad=1.5.6-1
+          - nomad=1.6.1-1
           - consul=1.15.3-1
         dpkg_options: 'force-confdef,force-confold'
         state: latest

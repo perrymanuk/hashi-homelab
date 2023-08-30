@@ -13,12 +13,18 @@ job "adb" {
     value     = "true"
   }
 
+  constraint {
+    attribute = "${meta.zigbee}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "downloaders" {
     count = 1 
     task "adb" {
       driver = "docker"
       config {
-        image = "docker.service.home:5000/adb"
+        image = "docker-registry.demonsafe.com/adb"
         entrypoint = ["/local/start.sh"]
         network_mode = "host"
         extra_hosts = ["hassio:127.0.0.1"]
@@ -50,7 +56,7 @@ echo "Start the server in background mode..."
 adb -a -P 5037 server nodaemon &
 echo "Sleep 10 seconds for the adb server to start"
 sleep 10
-DEVICES="[[ .adb.devices ]]"
+DEVICES="192.168.50.206"
 echo "Connecting to devices."
 for device in $DEVICES; do
 echo "Connect to device: $device"
@@ -86,7 +92,5 @@ EOH
 variable "region" {
     type = string
 }
-
-
 
 variable "shared_dir" {}
