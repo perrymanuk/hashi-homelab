@@ -5,7 +5,7 @@ job "deconz" {
 
   meta {
     service_owner = "@pmanuk"
-    version = "2"
+    version = "1"
   }
 
   constraint {
@@ -33,6 +33,15 @@ job "deconz" {
       }
     }
 
+    volume "deconz" {
+      type      = "csi"
+      read_only = false
+
+      source    = "deconz"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "deconz" {
       driver = "docker"
       config {
@@ -41,9 +50,14 @@ job "deconz" {
         ports = ["web", "ws"]
         privileged = true
         volumes = [
-          "${var.shared_dir}deconz2:/opt/deCONZ",
           "/dev/ttyACM0:/dev/ttyACM0",
         ]
+      }
+
+      volume_mount {
+        volume      = "deconz"
+        destination = "/opt/deCONZ"
+        read_only   = false
       }
 
       service {
