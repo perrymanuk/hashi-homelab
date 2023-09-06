@@ -15,6 +15,16 @@ job "tailscale" {
 
   group "networking" {
     count = 1 
+
+    volume "tailscale" {
+      type      = "csi"
+      read_only = false
+
+      source    = "tailscale"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "tailscale" {
       driver = "docker"
       config {
@@ -28,6 +38,12 @@ job "tailscale" {
           "${var.shared_dir}tailscale:/var/lib/tailscale",
           "/dev/net/tun:/dev/net/tun",
 	]
+      }
+
+      volume_mount {
+        volume      = "tailscale"
+        destination = "/var/lib/tailscale"
+        read_only   = false
       }
 
       template {
