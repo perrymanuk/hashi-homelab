@@ -35,7 +35,6 @@ job "tailscale" {
         privileged = true
         cap_add = ["NET_ADMIN", "NET_RAW"]
 	volumes = [
-          "${var.shared_dir}tailscale:/var/lib/tailscale",
           "/dev/net/tun:/dev/net/tun",
 	]
       }
