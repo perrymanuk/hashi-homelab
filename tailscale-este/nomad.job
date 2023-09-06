@@ -35,7 +35,7 @@ data = <<EOH
 #!/bin/sh
 
 function up() {
-    until /usr/local/bin/tailscale up --snat-subnet-routes=false --auth-key="${var.tailscale_auth_este}" --advertise-routes="192.168.50.0/24" --hostname="este-gateway"
+    until /usr/local/bin/tailscale up --snat-subnet-routes=false --no-logs-no-support --auth-key="${var.tailscale_auth_este}" --advertise-routes="192.168.50.0/24" --hostname="este-gateway"
     do
         sleep 0.1
     done

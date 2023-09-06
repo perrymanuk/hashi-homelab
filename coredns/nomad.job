@@ -35,7 +35,7 @@ job "coredns" {
         image = "coredns/coredns:1.11.1"
         network_mode = "host"
         ports = ["dns", "metrics"]
-        args = ["-conf", "local/coredns/corefile"]
+        args = ["-conf", "/local/coredns/corefile"]
       }
 
       service {

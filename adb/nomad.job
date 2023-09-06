@@ -21,6 +21,15 @@ job "adb" {
 
   group "downloaders" {
     count = 1 
+
+    network {
+      mode = "host"
+      port "tcp" {
+        static = "5037"
+        host_network = "lan"
+      }
+    }
+
     task "adb" {
       driver = "docker"
       config {
@@ -81,9 +90,6 @@ EOH
       resources {
         cpu    = 100
         memory = 10
-        network {
-          port "tcp" { static = "5037" }
-        }
       }
     }
   }

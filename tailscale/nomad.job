@@ -35,7 +35,7 @@ data = <<EOH
 #!/bin/sh
 
 function up() {
-    until /usr/local/bin/tailscale up --snat-subnet-routes=false --auth-key="${var.tailscale_auth}" --advertise-routes="192.168.50.0/24" --hostname="videowald-gateway"
+    until /usr/local/bin/tailscale up --snat-subnet-routes=false --no-logs-no-support --auth-key="${var.tailscale_auth}" --advertise-routes="192.168.50.0/24" --hostname="videowald-gateway"
     do
         sleep 0.1
     done

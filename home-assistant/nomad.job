@@ -35,8 +35,10 @@ job "home-assistant" {
       config {
         image = "homeassistant/home-assistant:2023.8.4"
         network_mode = "host"
+        privileged = "true"
         volumes = [
           "${var.shared_dir}home-assistant:/config",
+          "/run/dbus:/run/dbus",
         ]
       }
 
