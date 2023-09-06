@@ -30,6 +30,15 @@ job "home-assistant" {
       }
     }
 
+    volume "homeassistant" {
+      type      = "csi"
+      read_only = false
+
+      source    = "homeassistant"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "hass" {
       driver = "docker"
       config {
@@ -37,9 +46,14 @@ job "home-assistant" {
         network_mode = "host"
         privileged = "true"
         volumes = [
-          "${var.shared_dir}home-assistant:/config",
           "/run/dbus:/run/dbus",
         ]
+      }
+
+      volume_mount {
+        volume      = "homeassistant"
+        destination = "/config"
+        read_only   = false
       }
 
       service {
@@ -48,8 +62,6 @@ job "home-assistant" {
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
