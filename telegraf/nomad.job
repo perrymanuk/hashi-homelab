@@ -34,7 +34,7 @@ job "telegraf" {
       }
 
       config {
-        image = "telegraf:1.27.4"
+        image = "telegraf:1.28.0"
         privileged = "true"
         ports = ["http"]
         args = [
