@@ -32,7 +32,15 @@ job "pihole" {
         host_network = "tailscale"
         to = "80" 
       }
+    }
 
+    volume "pihole" {
+      type      = "csi"
+      read_only = false
+
+      source    = "pihole"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     task "pihole" {
@@ -41,9 +49,14 @@ job "pihole" {
         image = "pihole/pihole:2023.05.2"
         ports = ["dns", "web"]
         volumes = [
-          "${var.shared_dir}pihole:/etc/pihole/",
           "${var.shared_dir}pihole-dnsmasq:/etc/dnsmasq.d/",
         ]
+      }
+
+      volume_mount {
+        volume      = "pihole"
+        destination = "/etc/pihole"
+        read_only   = false
       }
 
       service {
@@ -65,7 +78,7 @@ job "pihole" {
         DNS2         = "1.1.1.1"
         INTERFACE    = "eth0"
         VIRTUAL_HOST = join("", ["pihole.", var.tld])
-        ServerIP     = "{{ GetInterfaceIP \"tailscale0\" }}"
+        ServerIP     = "${NOMAD_IP_dns}"
       }
 
       resources {

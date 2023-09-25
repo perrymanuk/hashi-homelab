@@ -30,11 +30,11 @@ job "home-assistant" {
       }
     }
 
-    volume "homeassistant" {
+    volume "home-assistant" {
       type      = "csi"
       read_only = false
 
-      source    = "homeassistant"
+      source    = "home-assistant"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -47,14 +47,15 @@ job "home-assistant" {
         privileged = "true"
         volumes = [
           "/run/dbus:/run/dbus",
+          "${var.shared_dir}home-assistant:/config",
         ]
       }
 
-      volume_mount {
-        volume      = "homeassistant"
-        destination = "/config"
-        read_only   = false
-      }
+#      volume_mount {
+#        volume      = "home-assistant"
+#        destination = "/config"
+#        read_only   = false
+#      }
 
       service {
         port = "http"
