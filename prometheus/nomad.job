@@ -23,8 +23,46 @@ job "prometheus" {
       }
     }
 
+    volume "prometheus" {
+      type      = "csi"
+      read_only = false
+      source    = "prometheus"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "prometheus"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image        = "busybox:latest"
+        command      = "sh"
+        args         = ["-c", "chown -R 1000:2000 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "prometheus" {
       driver = "docker"
+      user = "1000:2000"
+
+      volume_mount {
+        volume      = "prometheus"
+        destination = "/opt/prometheus"
+        read_only   = false
+      }
 
       service {
         name = "prometheus"
@@ -274,7 +312,6 @@ EOH
         volumes = [
           "local/alerts.yml:/prometheus/alerts.yml",
           "local/prometheus.yml:/prometheus/prometheus.yml",
-          "${var.shared_dir}prometheus:/opt/prometheus",
         ]
       }
 
