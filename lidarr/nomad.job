@@ -25,7 +25,6 @@ job "lidarr" {
     volume "lidarr" {
       type      = "csi"
       read_only = false
-
       source    = "lidarr"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"

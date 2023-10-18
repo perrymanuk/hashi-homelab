@@ -16,7 +16,40 @@ job "loki" {
         static = 3100
       }
     }
+
+    volume "loki" {
+      type      = "csi"
+      read_only = false
+      source    = "loki"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "loki"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image        = "busybox:latest"
+        command      = "sh"
+        args         = ["-c", "chown -R 10001:10001 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "loki" {
+      user = "10001:10001"
       driver = "docker"
       config {
         image = "grafana/loki:2.9.2"
@@ -25,9 +58,11 @@ job "loki" {
           "local/loki/local-config.yaml",
         ]
         ports = ["loki"]
-        volumes = [
-          "${var.shared_dir}loki:/loki",
-        ]
+      }
+      volume_mount {
+        volume      = "loki"
+        destination = "/loki"
+        read_only   = false
       }
       service {
         name = "loki"

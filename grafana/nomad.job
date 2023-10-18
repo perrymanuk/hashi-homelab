@@ -23,19 +23,54 @@ job "grafana" {
       }
     }
 
+    volume "grafana" {
+      type      = "csi"
+      read_only = false
+      source    = "grafana"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "grafana"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image        = "busybox:latest"
+        command      = "sh"
+        args         = ["-c", "chown -R 1000:1000 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "grafana" {
       driver = "docker"
+      user = "1000:1000"
       config {
         image = "grafana/grafana:10.1.5"
         userns_mode = "host"
         volumes = [
           "${var.shared_dir}grafana/config:/etc/grafana/",
-          "${var.shared_dir}grafana/data:/var/lib/grafana",
         ]
 
         network_mode = "host"
       }
-      user = 1002
+      volume_mount {
+        volume      = "grafana"
+        destination = "/var/lib/grafana"
+        read_only   = false
+      }
       env {
         GF_PATHS_DATA = "/var/lib/grafana"
         GF_AUTH_BASIC_ENABLED = "false"
@@ -46,10 +81,9 @@ job "grafana" {
 	name = "grafana"
         tags = [
           "traefik.enable=true",
-
-
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ] 
         check {
           type     = "http"
