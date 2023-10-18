@@ -23,17 +23,28 @@ job "docker-registry" {
       }
     }
 
+    volume "docker-registry" {
+      type      = "csi"
+      read_only = false
+      source    = "docker-registry"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     task "docker-registry" {
       driver = "docker"
       config {
         image = "registry:2.8.3"
         ports = ["http"]
-        volumes = [
-          "${var.shared_dir}docker-registry:/data",
-        ]
-
         network_mode = "host"
       }
+
+      volume_mount {
+        volume      = "docker-registry"
+        destination = "/data"
+        read_only   = false
+      }
+
       env {
         REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY = "/data"
         REGISTRY_HTTP_ADDR = "${NOMAD_ADDR_http}"
@@ -44,11 +55,8 @@ job "docker-registry" {
         tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
         ]
         check {
           type     = "http"

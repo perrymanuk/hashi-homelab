@@ -37,7 +37,6 @@ job "pihole" {
     volume "pihole" {
       type      = "csi"
       read_only = false
-
       source    = "pihole"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"

@@ -25,7 +25,6 @@ job "radarr" {
     volume "radarr" {
       type      = "csi"
       read_only = false
-
       source    = "radarr"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"

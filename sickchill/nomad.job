@@ -25,7 +25,6 @@ job "sickchill" {
     volume "sickchill" {
       type      = "csi"
       read_only = false
-
       source    = "sickchill"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
