@@ -28,7 +28,7 @@ job "plex" {
     task "plex" {
       driver = "docker"
       config {
-        image = "plexinc/pms-docker:1.32.2.7100-248a2daf0"
+        image = "plexinc/pms-docker:1.32.6.7557-1cf77d501"
         network_mode = "host"
         privileged = "true"
         force_pull = "true"
