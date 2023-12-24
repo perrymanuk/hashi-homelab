@@ -33,7 +33,7 @@ job "radarr" {
     task "radarr" {
       driver = "docker"
       config {
-        image = "linuxserver/radarr:5.1.3"
+        image = "linuxserver/radarr:5.2.6"
         ports = ["http"]
         volumes = [
           "${var.downloads_dir}:/downloads",
