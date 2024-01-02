@@ -45,7 +45,7 @@ job "deconz" {
     task "deconz" {
       driver = "docker"
       config {
-        image = "deconzcommunity/deconz:2.25.0"
+        image = "deconzcommunity/deconz:2.25.1"
         force_pull = true
         ports = ["web", "ws"]
         privileged = true
