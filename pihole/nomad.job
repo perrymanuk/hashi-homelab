@@ -45,7 +45,7 @@ job "pihole" {
     task "pihole" {
       driver = "docker"
       config {
-        image = "pihole/pihole:2023.11.0"
+        image = "pihole/pihole:2024.01.0"
         ports = ["dns", "web"]
         volumes = [
           "${var.shared_dir}pihole-dnsmasq:/etc/dnsmasq.d/",
