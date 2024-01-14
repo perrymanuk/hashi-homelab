@@ -70,7 +70,7 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11' # v4
 
-    - uses: lucasmelin/setup-nomad@v1
+    - uses: lucasmelin/setup-nomad@v2
 
     - name: deploy
       shell: bash
@@ -92,7 +92,7 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11' # v4
 
-    - uses: lucasmelin/setup-nomad@v1
+    - uses: lucasmelin/setup-nomad@v2
 
     - name: deploy
       shell: bash
