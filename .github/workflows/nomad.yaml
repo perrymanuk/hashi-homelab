@@ -16,7 +16,7 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11' # v4
 
-    - uses: dorny/paths-filter@v2
+    - uses: dorny/paths-filter@v3
       id: filter_volumes
       with:
         list-files: 'json'
@@ -24,7 +24,7 @@ jobs:
           volumes: 
             - '**/volume.hcl'
 
-    - uses: dorny/paths-filter@v2
+    - uses: dorny/paths-filter@v3
       id: filter
       with:
         list-files: 'json'
