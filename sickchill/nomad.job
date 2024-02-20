@@ -33,7 +33,7 @@ job "sickchill" {
     task "sickchill" {
       driver = "docker"
       config {
-        image = "linuxserver/sickchill:2024.2.18"
+        image = "linuxserver/sickchill:2024.2.20"
         ports = ["http"]
         volumes = [
           "${var.downloads_dir}:/downloads",
