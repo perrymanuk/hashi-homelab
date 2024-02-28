@@ -42,7 +42,7 @@ job "home-assistant" {
     task "hass" {
       driver = "docker"
       config {
-        image = "homeassistant/home-assistant:2024.2.4"
+        image = "homeassistant/home-assistant:2024.2.5"
         network_mode = "host"
         privileged = "true"
         volumes = [
