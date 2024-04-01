@@ -25,7 +25,7 @@ job "sonarr" {
     task "sonarr" {
       driver = "docker"
       config {
-        image = "linuxserver/sonarr:4.0.2"
+        image = "linuxserver/sonarr:4.0.3"
         ports = ["http"]
         volumes = [
           "${var.shared_dir}sonarr:/config",
