@@ -28,7 +28,7 @@ job "blackbox-exporter" {
       }
 
       config {
-        image = "prom/blackbox-exporter:v0.24.0"
+        image = "prom/blackbox-exporter:v0.25.0"
         network_mode = "host"
         args = [
           "--config.file=/local/config.yaml",
