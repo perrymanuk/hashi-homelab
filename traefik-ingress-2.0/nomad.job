@@ -61,7 +61,7 @@ job "traefik-new" {
       }
 
       config {
-        image = "traefik:v3.1"
+        image = "traefik:v3.2"
         ports = ["http", "mqtt", "mumble", "https", "admin"]
         network_mode = "host"
         volumes = [
