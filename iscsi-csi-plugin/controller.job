@@ -78,7 +78,7 @@ iscsi:
   targetPortals: []
   interface:
 
-  # MUST iensure uniqueness
+  # MUST ensure uniqueness
   # full iqn limit is 223 bytes, plan accordingly
   # default is //template name isn't defined!
   #nameTemplate: "{ { parameters.[csi.storage.k8s.io/pvc/namespace] }}-{ { parameters.[csi.storage.k8s.io/pvc/name] }}"
