@@ -58,7 +58,7 @@ job "grafana" {
       driver = "docker"
       user = "1000:1000"
       config {
-        image = "grafana/grafana:10.4.10"
+        image = "grafana/grafana:10.4.11"
         userns_mode = "host"
         volumes = [
           "${var.shared_dir}grafana/config:/etc/grafana/",
