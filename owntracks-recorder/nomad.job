@@ -26,7 +26,7 @@ job "owntracks-recorder" {
     task "owntracks" {
       driver = "docker"
       config {
-        image = "owntracks/recorder:0.9.8"
+        image = "owntracks/recorder:0.9.9"
         args = [
           "--http-host", "${NOMAD_IP_http}"
         ]
