@@ -32,7 +32,7 @@ job "coredns" {
     task "coredns" {
       driver = "docker"
       config {
-        image = "coredns/coredns:1.11.3"
+        image = "coredns/coredns:1.11.4"
         network_mode = "host"
         ports = ["dns", "metrics"]
         args = ["-conf", "/local/coredns/corefile"]
