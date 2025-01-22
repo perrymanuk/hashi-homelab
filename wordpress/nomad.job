@@ -43,7 +43,7 @@ job "wordpress" {
       }
 
       config {
-        image = "mysql:8.4"
+        image = "mysql:9.2"
         volumes = [
           "${var.shared_dir}wordpress-db:/var/lib/mysql",
         ]
