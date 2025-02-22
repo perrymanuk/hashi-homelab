@@ -1,12 +1,18 @@
 #jinja2: trim_blocks:False
 data_dir = "/var/lib/nomad/"
-datacenter = {% if "wan-clients" in group_names %}"public"{% elif "servers" in group_names %}"system"{% else %}"dc1"{% endif %}
+datacenter = {% if "wan-clients" in group_names %}"public"{% else %}"dc1"{% endif %}
 log_level = "warn"
 bind_addr = "0.0.0.0"
 region = "home"
 
 server {
-  enabled          = {% if "servers" in group_names %}true{% else %}false{% endif %}
+  enabled          = {% if "lan-client-server" in group_names %}true{% else %}false{% endif %}
+  bootstrap_expect = 3
+  server_join {
+    retry_join     = ["192.168.50.39", "192.168.50.113", "192.168.50.85"]
+    retry_max      = 3
+    retry_interval = "15s"
+  }
   authoritative_region  = "home"
   heartbeat_grace = "300s"
   min_heartbeat_ttl = "20s"
@@ -14,13 +20,7 @@ server {
 
 client {
   enabled = true
-  {%- if "lan-clients" in group_names %}
-  {%- raw %}
-  network_interface = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\" }}"
-  {%- endraw %}
-  {%- else %}
-  network_interface = "tailscale0"
-  {%- endif %}
+  network_interface = "ens3"
 
   options {
     docker.auth.config = "/root/.docker/config.json"
@@ -30,8 +30,8 @@ client {
   }
 
   meta {
-    shared_mount = {% if "lan-clients" in group_names %}"true"{% else %}"false"{% endif %}
-    dns = {% if "lan-clients" in group_names %}"true"{% else %}"false"{% endif %}
+    shared_mount = {% if "lan-client-server" in group_names %}"true"{% else %}"false"{% endif %}
+    dns = {% if "lan-client-server" in group_names %}"true"{% else %}"false"{% endif %}
     {%- if ansible_hostname == "klo01" %}
     keepalived_priority = "100"
     zigbee = "true"
@@ -40,7 +40,7 @@ client {
     {%- endif %}
   }
 
-  {%- if "lan-clients" in group_names %}
+  {%- if "lan-client-server" in group_names %}
   host_network "lan" {
     cidr = "192.168.50.0/24"
     reserved_ports = "22,80"
@@ -70,20 +70,16 @@ telemetry {
 }
 {% raw %}
 advertise {
-  http = "{{ GetInterfaceIP \"tailscale0\" }}:4646"
-  rpc = "{{ GetInterfaceIP \"tailscale0\" }}:4647"
-  serf = "{{ GetInterfaceIP \"tailscale0\" }}:4648"
+  http = "{{ GetInterfaceIP \"ens3\" }}:4646"
+  rpc = "{{ GetInterfaceIP \"ens3\" }}:4647"
+  serf = "{{ GetInterfaceIP \"ens3\" }}:4648"
 }
 {% endraw %}
 consul {
   # The address to the Consul agent.
-  {%- if "wan-clients" in group_names %}
   {%- raw %}
-  address = "{{ GetInterfaceIP \"tailscale0\" }}:8500"
-  {%- endraw %}
-  {%- else %}
   address = "127.0.0.1:8500"
-  {%- endif %}
+  {%- endraw %}
   # The service name to register the server and client with Consul.
 
   client_service_name = "nomad-client"

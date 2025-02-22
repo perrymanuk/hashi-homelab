@@ -17,34 +17,22 @@ job "sickchill" {
     count = 1 
     network {
       port "http" {
-        host_network = "tailscale"
+        host_network = "lan"
         to = "8081"
       }
-    }
-
-    volume "sickchill" {
-      type      = "csi"
-      read_only = false
-      source    = "sickchill"
-      access_mode = "single-node-writer"
-      attachment_mode = "file-system"
     }
 
     task "sickchill" {
       driver = "docker"
       config {
         image = "linuxserver/sickchill:2024.3.1"
+        dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
           "${var.downloads_dir}:/downloads",
           "${var.tv_dir}:/tv",
+          "${var.shared_dir}sickchill:/config",
         ]
-      }
-
-      volume_mount {
-        volume      = "sickchill"
-        destination = "/config"
-        read_only   = false
       }
 
       env {
@@ -92,5 +80,9 @@ variable "downloads_dir" {
 }
 
 variable "tv_dir" {
+    type = string
+}
+
+variable "shared_dir" {
     type = string
 }

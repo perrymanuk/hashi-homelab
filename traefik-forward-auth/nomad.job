@@ -20,7 +20,7 @@ job "traefik-forward-auth" {
     task "auth" {
       driver = "docker"
       config {
-        image = "thomseddon/traefik-forward-auth:2.2.0"
+        image = "ghcr.io/jordemort/traefik-forward-auth:latest"
         ports = ["http"]
       }
 
@@ -36,6 +36,7 @@ job "traefik-forward-auth" {
         DEFAULT_ACTION                 = "auth"
         INSECURE_COOKIE                = "false"
         CONFIG                         = "local/config"
+	TRUSTED_IP_ADDRESS	       = "86.111.155.199/32,86.111.152.230/32,89.246.171.154/32,86.111.155.93/32"
       }
 
       service {

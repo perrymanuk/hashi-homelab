@@ -1,10 +1,10 @@
-id           = "radarr"
-external_id  = "radarr"
-name         = "radarr"
+id           = "radarr2"
+external_id  = "radarr2"
+name         = "radarr2"
 type         = "csi"
 plugin_id    = "org.democratic-csi.iscsi"
-capacity_min = "1GiB"
-capacity_max = "1GiB"
+capacity_min = "10GiB"
+capacity_max = "10GiB"
 
 capability {
   access_mode     = "single-node-writer"

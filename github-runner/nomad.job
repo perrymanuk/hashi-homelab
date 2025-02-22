@@ -40,7 +40,7 @@ job "github-runner" {
         RUNNER_GROUP = "Default"
         RUNNER_SCOPE = "repo"
         REPO_URL = "https://github.com/perrymanuk/hashi-homelab"
-        ACCESS_TOKEN = ${var.github_pat}
+        ACCESS_TOKEN = "temp"
         EPHEMERAL = "0"
         DISABLE_AUTO_UPDATE = "1"
         LABELS = "${var.labels}"
@@ -99,10 +99,6 @@ job "github-runner" {
 variable "labels" {
   type = string
   default = "self-hosted"
-}
-
-variable "datacenters_all" {
-  type = list(string)
 }
 
 variable "github_pat" {}

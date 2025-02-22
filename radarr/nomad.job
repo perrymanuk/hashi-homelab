@@ -17,7 +17,7 @@ job "radarr" {
     count = 1 
     network {
       port "http" {
-        host_network = "tailscale"
+        host_network = "lan"
         to = "7878"
       }
     }
@@ -25,7 +25,7 @@ job "radarr" {
     volume "radarr" {
       type      = "csi"
       read_only = false
-      source    = "radarr"
+      source    = "radarr2"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -34,9 +34,10 @@ job "radarr" {
       driver = "docker"
       config {
         image = "linuxserver/radarr:5.18.4"
+        dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
-          "${var.downloads_dir}:/downloads",
+          "${var.downloads_dir}:/media/Movies",
           "${var.movies_dir}:/movies",
         ]
       }
