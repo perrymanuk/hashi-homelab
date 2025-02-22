@@ -16,14 +16,14 @@ job "plex" {
       }
     }
 
-    volume "plex" {
-      type      = "csi"
-      read_only = false
-
-      source    = "plex2"
-      access_mode = "single-node-writer"
-      attachment_mode = "file-system"
-    }
+#    volume "plex" {
+#      type      = "csi"
+#      read_only = false
+#
+#      source    = "plex2"
+#      access_mode = "single-node-writer"
+#      attachment_mode = "file-system"
+#    }
 
     task "plex" {
       driver = "docker"
@@ -35,15 +35,15 @@ job "plex" {
         volumes = [
           "/tmp:/transcode",
           "${var.media_dir}:/data",
-#          "${var.shared_dir}plex:/config",
+          "${var.shared_dir}plex:/config",
         ]
       }
 
-      volume_mount {
-        volume      = "plex"
-        destination = "/config"
-        read_only   = false
-      }
+#      volume_mount {
+#        volume      = "plex"
+#        destination = "/config"
+#        read_only   = false
+#      }
 
       service {
         port = "http"
