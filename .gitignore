@@ -9,3 +9,4 @@ www/main.jpg
 ssl
 levant/*
 !levant/defaults.yml
+hosts
