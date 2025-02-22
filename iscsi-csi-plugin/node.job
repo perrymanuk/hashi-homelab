@@ -68,7 +68,7 @@ httpConnection:
   # apiKey is only available starting in TrueNAS-12
   apiKey: ${var.truenas_api_key}
   username: iscsi-no
-  password: "testies123!"
+  password: "${var.truenass_iscsi_pass}"
   allowInsecure: true
   # use apiVersion 2 for TrueNAS-12 and up (will work on 11.x in some scenarios as well)
   # leave unset for auto-detection
@@ -78,7 +78,7 @@ sshConnection:
   port: 22
   username: root
   # use either password or key
-  password: "testies123!"
+  password: "${var.truenass_iscsi_pass}"
 zfs:
   # can be used to override defaults if necessary
   # the example below is useful for TrueNAS 12
