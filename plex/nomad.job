@@ -4,7 +4,7 @@ job "plex" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "1"
   }
 
   group "downloaders" {
@@ -35,7 +35,7 @@ job "plex" {
         volumes = [
           "/tmp:/transcode",
           "${var.media_dir}:/data",
-          "${var.shared_dir}plex:/config",
+          "${var.shared_dir}plex_new:/config",
         ]
       }
 

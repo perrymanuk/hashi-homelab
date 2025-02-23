@@ -20,8 +20,9 @@ server {
 
 client {
   enabled = true
-  network_interface = "ens3"
-
+{% raw %}
+  network_interface = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\" }}"
+{% endraw %}
   options {
     docker.auth.config = "/root/.docker/config.json"
     docker.privileged.enabled = true
@@ -30,8 +31,8 @@ client {
   }
 
   meta {
-    shared_mount = {% if "lan-client-server" in group_names %}"true"{% else %}"false"{% endif %}
-    dns = {% if "lan-client-server" in group_names %}"true"{% else %}"false"{% endif %}
+    shared_mount = {% if "wan-clients" in group_names %}"false"{% else %}"true"{% endif %}
+    dns = {% if "wan-clients" in group_names %}"false"{% else %}"true"{% endif %}
     {%- if ansible_hostname == "klo01" %}
     keepalived_priority = "100"
     zigbee = "true"
@@ -40,12 +41,10 @@ client {
     {%- endif %}
   }
 
-  {%- if "lan-client-server" in group_names %}
   host_network "lan" {
     cidr = "192.168.50.0/24"
     reserved_ports = "22,80"
   }
-  {%- endif %}
 
   host_network "tailscale" {
     cidr = "100.0.0.0/8"
@@ -70,9 +69,9 @@ telemetry {
 }
 {% raw %}
 advertise {
-  http = "{{ GetInterfaceIP \"ens3\" }}:4646"
-  rpc = "{{ GetInterfaceIP \"ens3\" }}:4647"
-  serf = "{{ GetInterfaceIP \"ens3\" }}:4648"
+  http = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"address\" }}:4646"
+  rpc = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"address\" }}:4647"
+  serf = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"address\" }}:4648"
 }
 {% endraw %}
 consul {

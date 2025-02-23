@@ -10,12 +10,12 @@ bind_addr = "{{GetInterfaceIP \"tailscale0\"}}"
 {% else %}
 {% raw %}
 client_addr = "0.0.0.0"
-advertise_addr = "{{ GetInterfaceIP \"ens3\" }}"
+advertise_addr = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"address\" }}"
 bind_addr = "0.0.0.0"
 {% endraw %}
 {% endif %}
 {% raw %}
-advertise_addr_wan = "{{GetInterfaceIP \"ens3\"}}"
+advertise_addr_wan = "{{ GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"address\" }}"
 {% endraw %}
 translate_wan_addrs = true
 data_dir = "/var/lib/consul"
@@ -24,7 +24,7 @@ enable_syslog = true
 leave_on_terminate = true
 log_level = "WARN"
 retry_join = ["192.168.50.39", "192.168.50.113", "192.168.50.85"]
-bootstrap_expect = 3
+{% if "lan-client-server" in group_names %}bootstrap_expect = 3{% else %}{% endif %}
 telemetry {
   prometheus_retention_time = "60s"
 }

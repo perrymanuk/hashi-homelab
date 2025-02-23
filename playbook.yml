@@ -2,6 +2,7 @@
 - name: network mounts
   hosts: 
     - lan-client-server
+    - lan-client
   become: true
   remote_user: root
   tasks:
@@ -74,6 +75,7 @@
 - name: Update configuration, execute command, and install packages
   hosts: 
     - lan-client-server
+    - lan-client
     - wan-clients
   remote_user: root
   #roles:
@@ -131,7 +133,7 @@
     - name: Install Apt packages
       apt:
         name:
-          - nomad=1.8.2-1
+          - nomad=1.9.6-1
           - consul=1.19.1-1
         dpkg_options: 'force-confdef,force-confold'
         update_cache: true
