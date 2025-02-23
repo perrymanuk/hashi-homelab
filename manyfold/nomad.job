@@ -1,0 +1,114 @@
+job "manyfold" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "3214"
+      }
+    }
+
+    volume "manyfold" {
+      type      = "csi"
+      read_only = false
+      source    = "manyfold"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    volume "3dprints" {
+      type      = "csi"
+      read_only = false
+      source    = "3dprints"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "manyfold" {
+      driver = "docker"
+      config {
+        image = "ghcr.io/manyfold3d/manyfold-solo:latest"
+        ports = ["http"]
+      }
+
+      volume_mount {
+        volume      = "manyfold"
+        destination = "/config"
+        read_only   = false
+      }
+
+      volume_mount {
+        volume      = "3dprints"
+        destination = "/libraries"
+        read_only   = false
+      }
+
+      env {
+        PUID = "1000"
+        PGID = "1000"
+        TZ = "Etc/UTC"
+	SECRET_KEY_BASE = "${var.manyfold_secret_key}"
+      }
+
+      service {
+        port = "http"
+	name = "manyfold"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
+        ]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "downloads_dir" {
+    type = string
+}
+
+variable "music_dir" {
+    type = string
+}
+
+variable "manyfold_secret_key" {
+    type = string
+}
