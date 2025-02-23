@@ -42,8 +42,6 @@ jobs:
             - 'sabnzbd/*.job'
             - 'sickchill/*.job'
             - 'smtp/*.job'
-            - 'tailscale/*.job'
-            - 'tailscale-este/*.job'
             - 'www/*.job'
 
   add_volumes:
