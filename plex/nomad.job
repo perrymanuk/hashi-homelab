@@ -4,7 +4,7 @@ job "plex" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"
   }
 
   group "downloaders" {
@@ -16,37 +16,14 @@ job "plex" {
       }
     }
 
-    volume "plex" {
-      type      = "csi"
-      read_only = false
-
-      source    = "plex"
-      access_mode = "single-node-writer"
-      attachment_mode = "file-system"
-    }
-
-    task "prep-disk" {
-      driver = "docker"
-      volume_mount {
-        volume      = "plex"
-        destination = "/volume/"
-        read_only   = false
-      }
-      config {
-        image        = "busybox:latest"
-        command      = "sh"
-        args         = ["-c", "chown -R 1001:1001 /volume/"]
-      }
-      resources {
-        cpu    = 200
-        memory = 128
-      }
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
-    }
+#    volume "plex" {
+#      type      = "csi"
+#      read_only = false
+#
+#      source    = "plex2"
+#      access_mode = "single-node-writer"
+#      attachment_mode = "file-system"
+#    }
 
     task "plex" {
       driver = "docker"
@@ -58,15 +35,15 @@ job "plex" {
         volumes = [
           "/tmp:/transcode",
           "${var.media_dir}:/data",
-#          "${var.shared_dir}plex:/config",
+          "${var.shared_dir}plex:/config",
         ]
       }
 
-      volume_mount {
-        volume      = "plex"
-        destination = "/config"
-        read_only   = false
-      }
+#      volume_mount {
+#        volume      = "plex"
+#        destination = "/config"
+#        read_only   = false
+#      }
 
       service {
         port = "http"

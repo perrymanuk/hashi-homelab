@@ -2,6 +2,7 @@ job "pihole" {
   region = var.region
   datacenters = ["dc1"]
   type        = "service"
+  priority    = 100
 
   meta {
     version = "1"
@@ -24,12 +25,12 @@ job "pihole" {
 
     network {
       port "dns" { 
-        host_network = "tailscale"
+        host_network = "lan"
         static = "8053" 
         to     = "53" 
       }
       port "web" { 
-        host_network = "tailscale"
+        host_network = "lan"
         to = "80" 
       }
     }
@@ -37,7 +38,7 @@ job "pihole" {
     volume "pihole" {
       type      = "csi"
       read_only = false
-      source    = "pihole"
+      source    = "pihole3"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -62,12 +63,18 @@ job "pihole" {
          tags = [
           "traefik.enable=true",
           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
          ]
          name = "pihole"
+	 provider = "consul"
          port = "web"
+         check {
+           type     = "tcp"
+           interval = "10s"
+           timeout  = "2s"
+         }
       }
 
       env {
@@ -86,10 +93,6 @@ job "pihole" {
       }
     }
   }
-}
-
-variable "datacenters_dc1" {
-  type = list(string)
 }
 
 variable "region" {}

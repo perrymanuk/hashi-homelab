@@ -4,7 +4,7 @@ job "sabnzbd" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"
   }
 
   constraint {
@@ -17,7 +17,7 @@ job "sabnzbd" {
     count = 1 
     network {
       port "http" {
-        host_network = "tailscale"
+        host_network = "lan"
         static = "8080"
       }
     }

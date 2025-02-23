@@ -1,7 +1,7 @@
 ---
 - name: network mounts
   hosts: 
-    - lan-clients
+    - lan-client-server
   become: true
   remote_user: root
   tasks:
@@ -73,10 +73,8 @@
 
 - name: Update configuration, execute command, and install packages
   hosts: 
-    - lan-clients
+    - lan-client-server
     - wan-clients
-    - servers
-  become: true
   remote_user: root
   #roles:
   #  - role: artis3n.tailscale
@@ -133,9 +131,10 @@
     - name: Install Apt packages
       apt:
         name:
-          - nomad=1.6.1-1
-          - consul=1.15.3-1
+          - nomad=1.8.2-1
+          - consul=1.19.1-1
         dpkg_options: 'force-confdef,force-confold'
+        update_cache: true
         state: latest
         allow_downgrade: true
 

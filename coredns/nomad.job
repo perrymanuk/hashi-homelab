@@ -25,7 +25,7 @@ job "coredns" {
       }
       port "metrics" {
         static = "9153"
-        host_network = "tailscale"
+        host_network = "lan"
       }
     }
 
@@ -65,7 +65,7 @@ data = <<EOH
 }
 home.:53 {
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 
-  forward . {{ sockaddr "GetInterfaceIP \"tailscale0\"" }}:8600
+  forward . {{ sockaddr "GetInterfaceIP \"ens3\"" }}:8600
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
