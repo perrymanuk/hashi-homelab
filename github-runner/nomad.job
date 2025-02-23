@@ -7,7 +7,7 @@ job "github-runner" {
   }
 
   group "runners" {
-    count = 1
+    count = 3
     # Don't reschedule in case of failure or drain
     reschedule {
       attempts  = 0
@@ -62,7 +62,7 @@ job "github-runner" {
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 128
       }
 
       config {
