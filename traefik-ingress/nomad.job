@@ -1,4 +1,4 @@
-job "traefik-new" {
+job "traefik-ingress" {
   region = var.region
   datacenters = ["public"]
   type = "service"
