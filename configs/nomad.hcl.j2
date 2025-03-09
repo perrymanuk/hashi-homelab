@@ -35,9 +35,12 @@ client {
     dns = {% if "wan-clients" in group_names %}"false"{% else %}"true"{% endif %}
     {%- if ansible_hostname == "klo01" %}
     keepalived_priority = "100"
-    zigbee = "true"
+    keepalived_priority_dns1 = "100"
+    keepalived_priority_dns2 = "{{ 200 | random(start=101) }}"
     {%- else %}
     keepalived_priority = "{{ 200 | random(start=101) }}"
+    keepalived_priority_dns1 = "{{ 200 | random(start=101) }}"
+    keepalived_priority_dns2 = "{{ 200 | random(start=101) }}"
     {%- endif %}
   }
 

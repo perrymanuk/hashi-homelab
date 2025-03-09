@@ -5,7 +5,7 @@ job "coredns" {
   priority    = 100
 
   meta {
-    version = "2"
+    version = "3"
   }
 
   constraint {
@@ -40,7 +40,7 @@ job "coredns" {
 
       service {
         port = "dns"
-	name = "coredns"
+        name = "coredns"
         tags = ["coredns"]
         check {
           type     = "tcp"
@@ -50,24 +50,30 @@ job "coredns" {
       }
       service {
         port = "metrics"
-	name = "coredns"
+	      name = "coredns"
         tags = ["metrics", "coredns"]
       }
 
       template {
 data = <<EOH
 . {
-  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 
+  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
   {{ range service "pihole" }}forward . {{ .Address }}:8053{{ end }}
   log
   errors
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
-home.:53 {
-  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 
-  forward . {{ sockaddr "GetInterfaceIP \"ens3\"" }}:8600
+consul.:53 {
+  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
+  forward . {{ env "NOMAD_IP_dns" }}:8600
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
+}
+${var.tld}. {
+  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
+
+  file /local/coredns/zones/db.home.lab ${var.tld}
+
 }
 EOH
         destination = "local/coredns/corefile"
@@ -79,50 +85,46 @@ EOH
 
       }
 
-      resources {
-        cpu    = 100
-        memory = 128
-      }
-    }
+template {
+        change_mode   = "signal"
+        change_signal = "SIGUSR1"
+        destination = "local/coredns/zones/db.home.lab"
+        data = <<EOH
+$ORIGIN ${var.tld}.
+$TTL    604800
+${var.tld}.         IN SOA	ns1.${var.tld}. admin.${var.tld}. (
+         {{ timestamp "unix" }}        ; Serial, current unix timestamp
+             604800        ; Refresh
+              86400        ; Retry
+            2419200        ; Expire
+             604800 )      ; Negative Cache TTL
 
-    task "keepalived" {
-      driver = "docker"
-      config {
-        image = "osixia/keepalived:2.0.20"
-        network_mode = "host"
-        volumes = [
-            "local/:/container/environment/01-custom"
-        ]
-        cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
-      }
-      template {
-        destination = "local/env.yaml"
-        change_mode = "restart"
-        splay       = "1m"
-        data        = <<EOH
-KEEPALIVED_VIRTUAL_IPS:
-  - 192.168.50.2/32
-KEEPALIVED_UNICAST_PEERS:
-{{- with $node := node -}}
-{{ range nodes }}
-{{- if ne .Address $node.Node.Address }}
-  - {{ .Address }}
-{{- end -}}
-{{- end -}}
-{{- end }}
-KEEPALIVED_PRIORITY: {{ env "meta.keepalived_priority" }}
-KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+; name servers - NS records
+${var.tld}.         IN NS	 ns1.${var.tld}.
+${var.tld}.         IN NS	 ns2.${var.tld}.
+
+; name servers - A records
+ns1                      IN A   192.168.50.30
+ns2                      IN A   192.168.50.31
+
+{{- /*  Point domains to the floating IP from keepalived */}}
+; services - A records
+lab.${var.tld}.         IN A   192.168.50.2
+*                       IN A   192.168.50.2
+@                       IN A   192.168.50.2
+
 EOH
       }
 
       resources {
-        cpu    = 10
-        memory = 12
+        cpu    = 100
+        memory = 128
       }
     }
   }
 }
 
 variable "region" {}
+variable "tld" {}
 
 

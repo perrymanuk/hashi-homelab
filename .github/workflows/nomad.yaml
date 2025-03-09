@@ -35,6 +35,7 @@ jobs:
             - 'docker-registry/*.job'
             - 'github-runner/*.job'
             - 'iscsi-csi-plugin/*.job'
+            - 'keepalived/*.job'
             - 'lidarr/*.job'
             - 'pihole/*.job'
             - 'plex/*.job'

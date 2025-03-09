@@ -1,6 +1,11 @@
 job "keepalived" {
   datacenters = ["dc1"]
-  type = "system"
+  type        = "system"
+  priority    = 100
+
+  meta {
+    version = "2"
+  }
 
   group "keepalived" {
     task "keepalived" {
@@ -20,6 +25,7 @@ job "keepalived" {
         data        = <<EOH
 KEEPALIVED_VIRTUAL_IPS:
   - 192.168.50.2/24
+  - 192.168.50.3/24
 KEEPALIVED_UNICAST_PEERS:
 {{- with $node := node -}}
 {{ range nodes }}
@@ -28,14 +34,9 @@ KEEPALIVED_UNICAST_PEERS:
 {{- end -}}
 {{- end -}}
 {{- end }}
-KEEPALIVED_PRIORITY: {{ env "meta.keepalived_priority" }}
 KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
 EOH
       }
     }
   }
-}
-
-variable "datacenters_dc1" {
-  type = list(string)
 }
