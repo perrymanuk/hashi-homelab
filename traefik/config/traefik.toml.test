@@ -1,0 +1,82 @@
+################################################################
+# Entrypoints configuration
+################################################################
+# Entrypoints definition
+#
+defaultEntryPoints = ["https"]
+
+[entryPoints]
+  [entryPoints.admin]
+  address = "10.90.80.120:6062"
+  [entryPoints.http]
+  address = "78.94.59.116:80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+  [entryPoints.https.tls]
+
+[acme]
+email = "perry@stuck-in-blue.com"
+storage = "acme.json"
+#caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+caServer = "https://acme-v02.api.letsencrypt.org/directory"
+entryPoint = "https"
+[acme.httpChallenge]
+entryPoint = "http"
+[acme.dnsChallenge]
+  provider = "gcloud"
+  delayBeforeCheck = 0
+
+[[acme.domains]]
+  main = "*.nolab.xyz"
+  sans = ["nolab.xyz"]
+
+################################################################
+# Traefik logs configuration
+################################################################
+# Enable logs
+# By default it will write to stdout
+[traefikLog]
+
+################################################################
+# Access logs configuration
+################################################################
+# Enable access logs
+# By default it will write to stdout and produce logs in the textual
+# Common Log Format (CLF), extended with additional fields.
+
+[accessLog]
+
+################################################################
+# Metrics configuration
+################################################################
+[metrics]
+  [metrics.prometheus]
+    entryPoint = "admin"
+
+################################################################
+# API and dashboard configuration
+################################################################
+# Enable API and dashboard
+[api]
+  entryPoint = "admin"
+  [api.statistics]
+    recentErrors = 100
+################################################################
+# Ping configuration
+################################################################
+# Enable ping
+[ping]
+  entryPoint = "admin"
+################################################################
+# Consul Catalog Provider
+################################################################
+[consulCatalog]
+endpoint = "{{ env "NOMAD_IP_https" }}:8500"
+stale = true
+prefix = "traefik"
+domain = "holab.io"
+#filename = "/usr/local/etc/traefik/consul.toml"
+#templateVersion = 2
+

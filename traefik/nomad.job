@@ -1,0 +1,110 @@
+job "traefik-internal" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "service"
+  meta {
+    version = "1"
+  }
+
+  group "lbs" {
+    count = 1
+    network {
+      port "http" {
+        static = "80"
+      }
+      port "admin" {
+        static = "9002"
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+    task "traefik" {
+      driver = "docker"
+      service {
+        name = "traefik-secure"
+        port = "https"
+
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+      service {
+        name = "traefik"
+        port = "admin"
+        tags = [
+          "metrics"
+        ]
+      }
+
+      config {
+        image = "traefik:v3.3"
+        ports = ["http", "admin"]
+        network_mode = "host"
+        volumes = [
+          "local/traefik.toml:/etc/traefik/traefik.toml",
+          "${var.shared_dir}traefik-ingress/acme.json:/acme.json"
+        ]
+      }
+
+      template {
+data = <<EOH
+[global]
+  checkNewVersion = false
+  sendAnonymousUsage = false
+[metrics]
+  [metrics.prometheus]
+[entryPoints]
+  [entryPoints.web]
+    address = "192.168.50.2:80"
+  [entryPoints.traefik]
+    address = "192.168.50.2:9002"
+[accessLog]
+  format = "json"
+[log]
+[api]
+  dashboard = true
+  insecure = true
+[ping]
+[providers.consulcatalog]
+  exposedByDefault = false
+  prefix = "traefik"
+  defaultRule = "Host(`{{ .Name }}.${var.tld}`)"
+  [providers.consulcatalog.endpoint]
+    address = "{{{ env "NOMAD_IP_http" }}}:8500"
+    scheme = "http"
+    datacenter = "homelab"
+    endpointWaitTime = "15s"
+EOH
+        destination = "local/traefik.toml"
+        env         = false
+        change_mode = "noop"
+        left_delimiter = "{{{"
+        right_delimiter = "}}}"
+      }
+
+      resources {
+        cpu = 100
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
