@@ -19,7 +19,7 @@ job "docker-registry" {
     network {
       port "http" {
         static = "5000"
-        host_network = "tailscale"
+        host_network = "lan"
       }
     }
 
@@ -53,10 +53,7 @@ job "docker-registry" {
         port = "http"
 	name = "docker-registry"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.enable=true"
         ]
         check {
           type     = "http"
@@ -77,8 +74,6 @@ job "docker-registry" {
 variable "region" {
     type = string
 }
-
-
 
 variable "tld" {
     type = string

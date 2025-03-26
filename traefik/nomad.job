@@ -1,7 +1,7 @@
 job "traefik-internal" {
   region = var.region
   datacenters = ["dc1"]
-  type = "service"
+  type = "system"
   meta {
     version = "1"
   }
@@ -10,6 +10,7 @@ job "traefik-internal" {
     count = 1
     network {
       port "http" {
+        host_network = "lan"
         static = "80"
       }
       port "admin" {
@@ -25,14 +26,8 @@ job "traefik-internal" {
     task "traefik" {
       driver = "docker"
       service {
-        name = "traefik-secure"
-        port = "https"
-
-        check {
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
-        }
+        name = "traefik-web"
+        port = "http"
       }
       service {
         name = "traefik"
@@ -40,6 +35,11 @@ job "traefik-internal" {
         tags = [
           "metrics"
         ]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
       }
 
       config {
@@ -57,29 +57,63 @@ data = <<EOH
 [global]
   checkNewVersion = false
   sendAnonymousUsage = false
+
 [metrics]
   [metrics.prometheus]
+
 [entryPoints]
   [entryPoints.web]
-    address = "192.168.50.2:80"
+    address = ":80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
+
+  [entryPoints.websecure]
+    address = ":443"
+    [entryPoints.websecure.http]
+        middlewares=["allow-local-network@file"]
+    [entryPoints.websecure.http.tls]
+      certResolver = "letsencrypt"
+
   [entryPoints.traefik]
-    address = "192.168.50.2:9002"
+    address = ":9002"
+
+[tls.options]
+  [tls.options.TLSOptions]
+    minVersion = "VersionTLS12"
+    sniStrict = true
+
 [accessLog]
   format = "json"
+
 [log]
+
 [api]
   dashboard = true
-  insecure = true
+  insecure = false  # Changed to false for security
+
 [ping]
+
 [providers.consulcatalog]
   exposedByDefault = false
   prefix = "traefik"
   defaultRule = "Host(`{{ .Name }}.${var.tld}`)"
+
   [providers.consulcatalog.endpoint]
     address = "{{{ env "NOMAD_IP_http" }}}:8500"
     scheme = "http"
     datacenter = "homelab"
     endpointWaitTime = "15s"
+
+[certificatesResolvers.letsencrypt.acme]
+  email = "me@you.com"
+  storage = "acme.json"
+  [certificatesResolvers.letsencrypt.acme.httpChallenge]
+    entryPoint = "web"
+
+[providers.file]
+  filename = "/local/dynamic.toml"
+  watch = true
 EOH
         destination = "local/traefik.toml"
         env         = false
@@ -88,9 +122,54 @@ EOH
         right_delimiter = "}}}"
       }
 
+      template {
+data = <<EOH
+[http.middlewares]
+  [http.middlewares.allow-letsencrypt-ip.ipWhiteList]
+    sourceRange = ["66.133.109.36/32", "66.133.109.35/32", "172.65.32.248/32"]  # Let's Encrypt IPs
+
+  [http.middlewares.allow-local-network.ipWhiteList]
+    sourceRange = ["192.168.50.0/24", "10.0.0.0/16", "172.17.0.0/16"]  # Adjust for your local network
+
+  [http.middlewares.deny-all.ipWhiteList]
+    sourceRange = ["127.0.0.1/32"]  # Blocks everything except localhost
+
+  [http.middlewares.basic-auth.basicAuth]
+    users = [
+      "admin:$apr1$Ht8D2P1z$7QOq2s8xKUomI1cM.rFJX/" # Replace with an htpasswd-generated hash
+    ]
+    realm = "Restricted Area"
+
+  [http.middlewares.ip-or-auth.chain]
+    middlewares = ["allow-local-network", "basic-auth"]
+
+[http.routers]
+  [http.routers.http-certs]
+    entryPoints = ["web"]
+    rule = "PathPrefix(`/.well-known/acme-challenge/`)"
+    middlewares = ["allow-letsencrypt-ip"]
+    service = "noop"
+
+  [http.routers.https-local]
+    entryPoints = ["websecure"]
+    rule = "HostRegexp(`{any:.+}`)"  # Matches any domain
+    middlewares = ["allow-local-network"]
+    service = "beefcake"
+    [http.routers.https-local.tls]
+
+[http.services]
+  [http.services.beefcake.loadBalancer]
+    [[http.services.beefcake.loadBalancer.servers]]
+      url = "http://192.168.50.208:80"
+EOH
+        destination = "local/dynamic.toml"
+        env         = false
+        change_mode = "noop"
+      }
+
       resources {
         cpu = 100
-        memory = 512
+        memory = 256
       }
     }
   }

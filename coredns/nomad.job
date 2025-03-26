@@ -5,7 +5,7 @@ job "coredns" {
   priority    = 100
 
   meta {
-    version = "3"
+    version = "2"
   }
 
   constraint {
@@ -15,8 +15,6 @@ job "coredns" {
   }
 
   group "infrastructure" {
-    count = 1 
-
     network {
       mode = "host"
       port "dns" {
@@ -58,7 +56,7 @@ job "coredns" {
 data = <<EOH
 . {
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
-  {{ range service "pihole" }}forward . {{ .Address }}:8053{{ end }}
+  forward . 8.8.8.8
   log
   errors
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
@@ -69,10 +67,22 @@ consul.:53 {
   log
   prometheus {{ env "NOMAD_IP_metrics" }}:9153
 }
+fritz.box.:53 {
+  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
+  forward . 192.168.50.1:53
+  log
+  prometheus {{ env "NOMAD_IP_metrics" }}:9153
+}
 ${var.tld}. {
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
 
   file /local/coredns/zones/db.home.lab ${var.tld}
+
+}
+k8s. {
+  bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
+
+  file /local/coredns/zones/db.k8s k8s
 
 }
 EOH
@@ -104,8 +114,8 @@ ${var.tld}.         IN NS	 ns1.${var.tld}.
 ${var.tld}.         IN NS	 ns2.${var.tld}.
 
 ; name servers - A records
-ns1                      IN A   192.168.50.30
-ns2                      IN A   192.168.50.31
+ns1                      IN A   192.168.50.1
+ns2                      IN A   192.168.50.2
 
 {{- /*  Point domains to the floating IP from keepalived */}}
 ; services - A records
@@ -116,6 +126,36 @@ lab.${var.tld}.         IN A   192.168.50.2
 EOH
       }
 
+template {
+        change_mode   = "signal"
+        change_signal = "SIGUSR1"
+        destination = "local/coredns/zones/db.k8s"
+        data = <<EOH
+$ORIGIN ${var.tld}.
+$TTL    604800
+k8s.         IN SOA	ns1.k8s. admin.k8s. (
+         {{ timestamp "unix" }}        ; Serial, current unix timestamp
+             604800        ; Refresh
+              86400        ; Retry
+            2419200        ; Expire
+             604800 )      ; Negative Cache TTL
+
+; name servers - NS records
+k8s.         IN NS	 ns1.k8s.
+k8s.         IN NS	 ns2.k8s.
+
+; name servers - A records
+ns1                      IN A   192.168.50.1
+ns2                      IN A   192.168.50.2
+
+{{- /*  Point domains to the floating IP from keepalived */}}
+; services - A records
+lab.k8s.                IN A   192.168.50.93
+*.k8s.                  IN A   192.168.50.93
+@                       IN A   192.168.50.93
+
+EOH
+      }
       resources {
         cpu    = 100
         memory = 128

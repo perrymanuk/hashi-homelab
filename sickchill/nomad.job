@@ -43,7 +43,7 @@ job "sickchill" {
 
       service {
         port = "http"
-	name = "sickchill"
+        name = "sickchill"
         tags = [
           "traefik.enable=true"
         ]

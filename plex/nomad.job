@@ -49,9 +49,7 @@ job "plex" {
         port = "http"
 	name = "plex"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.enable=true"
         ]
 
         check {
@@ -63,7 +61,7 @@ job "plex" {
 
       resources {
         cpu    = 4000
-        memory = 2048
+        memory = 4096
       }
     }
   }

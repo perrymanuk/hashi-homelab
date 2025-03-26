@@ -4,13 +4,7 @@ job "radarr" {
   type        = "service"
 
   meta {
-    version = "2"
-  }
-
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
+    version = "1"
   }
 
   group "downloaders" {
@@ -57,7 +51,7 @@ job "radarr" {
 
       service {
         port = "http"
-	name = "radarr"
+        name = "radarr"
         tags = [
           "traefik.enable=true"
         ]

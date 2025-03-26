@@ -1,6 +1,6 @@
 #jinja2: trim_blocks:False
 data_dir = "/var/lib/nomad/"
-datacenter = {% if "wan-clients" in group_names %}"public"{% else %}"dc1"{% endif %}
+datacenter = {% if "cheese" in group_names %}"cheese"{% else %}"dc1"{% endif %}
 log_level = "warn"
 bind_addr = "0.0.0.0"
 region = "home"
@@ -46,12 +46,12 @@ client {
 
   host_network "lan" {
     cidr = "192.168.50.0/24"
-    reserved_ports = "22,80"
+    reserved_ports = "22"
   }
 
   host_network "tailscale" {
     cidr = "100.0.0.0/8"
-    reserved_ports = "22,80"
+    reserved_ports = "22"
   }
 
   {% if "wan-clients" in group_names %}

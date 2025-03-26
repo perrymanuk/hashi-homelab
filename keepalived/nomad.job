@@ -37,6 +37,10 @@ KEEPALIVED_UNICAST_PEERS:
 KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
 EOH
       }
+      resources {
+        cpu    = 100
+        memory = 128
+      }
     }
   }
 }

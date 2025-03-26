@@ -18,7 +18,7 @@ job "lazylibrarian" {
     network {
       port "http" {
         static = "5299"
-        host_network = "tailscale"
+        host_network = "lan"
       }
     }
 
@@ -26,6 +26,7 @@ job "lazylibrarian" {
       driver = "docker"
       config {
         image = "linuxserver/lazylibrarian"
+        dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
           "${var.shared_dir}lazylibrarian:/config",
@@ -36,15 +37,9 @@ job "lazylibrarian" {
 
       service {
         port = "http"
-	name = "lazylibrarian"
+      	name = "lazylibrarian"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
+          "traefik.enable=true"
         ]
         check {
           type     = "http"
@@ -65,8 +60,6 @@ job "lazylibrarian" {
 variable "region" {
     type = string
 }
-
-
 
 variable "tld" {
     type = string

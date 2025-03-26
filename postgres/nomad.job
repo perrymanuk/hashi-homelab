@@ -7,28 +7,27 @@ job "postgres" {
     version = "1"
   }
 
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
-  }
-
   group "db" {
+    network {
+      mode = "host"
+      port "postgres" {
+        static = "5432"
+        host_network = "lan"
+      }
+    }
     task "postgres" {
       driver = "docker"
 
       config {
-        image = "postgres:9.6.24"
+        image = "postgres:15.4"
         volumes = [
-          "${var.shared_dir}postgres:/appdata/postgres",
+          "${var.shared_dir}paperless-postgres:/appdata/postgres",
         ]
-        port_map {
-          db = 5432
-        }
+        ports = ["postgres"]
       }
 
       env {
-        POSTGRES_DB       = "postgres"
+        POSTGRES_DB       = "paperless"
         POSTGRES_USER     = "postgres"
         POSTGRES_PASSWORD = "ChAnGeMe"
         PGDATA            = "/appdata/postgres"
@@ -37,23 +36,19 @@ job "postgres" {
       service {
         name = "${NOMAD_JOB_NAME}"
         tags = ["postgres"]
-
-        port = "db"
+        port = "postgres"
 
         check {
           type     = "tcp"
-          port     = "db"
+          port     = "postgres"
           interval = "30s"
           timeout  = "2s"
         }
       }
 
       resources {
-        network {
-          port  "db"  {
-            static = "25432"
-          }
-        }
+        cpu    = "200"
+        memory = "512"
       }
     }
   }

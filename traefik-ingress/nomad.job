@@ -80,10 +80,17 @@ data = <<EOH
 [entryPoints]
   [entryPoints.web]
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
   [entryPoints.traefik]
-    address = "{{{ sockaddr "GetInterfaceIP \"tailscale0\"" }}}:9002"
+    address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:9002"
   [entryPoints.websecure]
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:443"
+    [entryPoints.websecure.http.tls]
+      certResolver = "default"
+      [entryPoints.websecure.http.tls.options]
+        sniStrict = false
   [entryPoints.mqtt]
     address = "{{{ sockaddr "GetInterfaceIP \"eth0\"" }}}:8884"
   [entryPoints.mqtt_pub]

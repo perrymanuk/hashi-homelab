@@ -4,7 +4,7 @@ job "sabnzbd" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "1"
   }
 
   constraint {
@@ -68,10 +68,7 @@ job "sabnzbd" {
         port = "http"
         name = "${NOMAD_TASK_NAME}"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
+          "traefik.enable=true"
         ]
         check {
           type     = "http"
@@ -83,7 +80,7 @@ job "sabnzbd" {
 
       resources {
         cpu    = 100
-        memory = 4096
+        memory = 2048
       }
     }
   }

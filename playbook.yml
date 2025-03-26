@@ -3,6 +3,7 @@
   hosts: 
     - lan-client-server
     - lan-client
+    - cheese
   become: true
   remote_user: root
   tasks:
@@ -39,6 +40,7 @@
       apt:
         name:
           - nfs-common
+          - avahi-daemon
           - docker.io
           - open-iscsi
           - lsscsi
@@ -52,11 +54,11 @@
         line: "{{ item }}"
         insertafter: EOF
       with_items:
-        - "192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,auto  0  0"
-        - "192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,auto  0  0"
-        - "192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,auto  0  0"
-        - "192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,auto  0  0"
-        - "192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,auto  0  0"
+        - "192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,auto  0  1"
+        - "192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,auto  0  1"
+        - "192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,auto  0  1"
+        - "192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,auto  0  1"
+        - "192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,auto  0  1"
       notify: Mount Filesystems
 
     - name: Enable services
@@ -77,6 +79,7 @@
     - lan-client-server
     - lan-client
     - wan-clients
+    - cheese
   remote_user: root
   #roles:
   #  - role: artis3n.tailscale
@@ -175,3 +178,127 @@
 
     - name: Apply Sysctl Changes
       command: sysctl -p /etc/sysctl.conf
+
+- name: Install and configure Tailscale 
+  hosts:
+    - all
+  become: yes
+  remote_user: root
+  gather_facts: yes
+
+  vars:
+    # Read authkey from environment variable; default to 'MISSING' if not set
+    tailscale_auth_key: "{{ lookup('env', 'NOMAD_VAR_tailscale_auth') | default('MISSING') }}"
+    # Optionally customize your Tailscale hostname
+    tailscale_hostname: "{{ inventory_hostname }}"
+
+  tasks:
+    - name: Download Tailscale GPG key via curl
+      shell: >
+        curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
+        | tee /usr/share/keyrings/tailscale-archive-keyring.gpg
+        >/dev/null
+      changed_when: true
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Configure Tailscale apt repository
+      copy:
+        dest: /etc/apt/sources.list.d/tailscale.list
+        content: |
+          deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg arch=amd64] https://pkgs.tailscale.com/stable/ubuntu/ noble main
+
+    - name: Update apt cache (after adding Tailscale repo)
+      apt:
+        update_cache: yes
+
+    - name: Install Tailscale
+      apt:
+        name: tailscale
+        state: present
+
+    - name: Enable and start tailscaled service
+      service:
+        name: tailscaled
+        state: started
+        enabled: yes
+
+    - name: Bring Tailscale interface up using authkey
+      # "command" used because there's no official Ansible module for "tailscale up".
+      # This is not strictly idempotent; see notes below for advanced usage.
+      command: >
+        tailscale up
+        --authkey={{ tailscale_auth_key }}
+        --hostname={{ tailscale_hostname }}
+        --reset
+      register: tailscale_up
+      changed_when: "'Success' in tailscale_up.stdout or 'Success' in tailscale_up.stderr or tailscale_up.rc == 0"
+
+    - name: Show tailscale status
+      command: tailscale status
+      register: tailscale_status
+      changed_when: false
+
+    - debug:
+        var: tailscale_status.stdout
+
+- name: Install Zsh and Oh My Zsh with Agnoster theme
+  hosts: all
+  become: yes
+  remote_user: root
+  gather_facts: yes
+
+  vars:
+    my_zsh_user: "root"  # Change this to the desired user
+
+  tasks:
+    - name: Install zsh
+      apt:
+        name: zsh
+        state: present
+        update_cache: yes
+
+    - name: Ensure home directory path is known
+      user:
+        name: "{{ my_zsh_user }}"
+      register: user_info  # This captures the user details, including home directory.
+
+    - name: Check if Oh My Zsh is already installed
+      stat:
+        path: "/root/.oh-my-zsh"
+      register: oh_my_zsh_stat
+
+    - name: Check if zshrc exists
+      stat:
+        path: "/root/.zshrc"
+      register: zshrc_stat
+
+    - name: Clone Oh My Zsh
+      git:
+        repo: "https://github.com/ohmyzsh/ohmyzsh.git"
+        dest: "/root/.oh-my-zsh"
+      become_user: "{{ my_zsh_user }}"
+      when: not oh_my_zsh_stat.stat.exists
+
+    - name: Copy the default .zshrc template if not present
+      copy:
+        src: "/root/.oh-my-zsh/templates/zshrc.zsh-template"
+        dest: "/root/.zshrc"
+        remote_src: yes
+      become_user: "{{ my_zsh_user }}"
+      when: not zshrc_stat.stat.exists
+
+    - name: Set Oh My Zsh theme to agnoster
+      # Uses a regex replace to ensure 'ZSH_THEME="agnoster"'
+      replace:
+        path: "/root/.zshrc"
+        regexp: '^ZSH_THEME="[^"]+"'
+        replace: 'ZSH_THEME="agnoster"'
+      become_user: "{{ my_zsh_user }}"
+
+    - name: Change default shell to zsh for the user
+      user:
+        name: "{{ my_zsh_user }}"
+        shell: /usr/bin/zsh
