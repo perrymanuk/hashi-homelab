@@ -1,0 +1,177 @@
+job "paperless" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "paperless" {
+
+    network {
+      mode = "host"
+      port "tika" {
+        static = "9998"
+        host_network = "lan"
+      }
+      port "gotenberg" {
+        static = "3000"
+        host_network = "lan"
+      }
+      port "redis" {
+        static = "6379"
+        host_network = "lan"
+      }
+      port "paperless" {
+        static = "8000"
+        host_network = "lan"
+      }
+    }
+
+    task "paperless" {
+      driver = "docker"
+      config {
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.14.7"
+        dns_servers = ["192.168.50.2"]
+        network_mode = "host"
+        ports = ["paperless"]
+        volumes = [
+          "${var.shared_dir}paperless/data:/usr/src/paperless/data",
+          "${var.shared_dir}paperless/consume:/usr/src/paperless/consume",
+          "${var.shared_dir}paperless/export:/usr/src/paperless/export",
+          "${var.shared_dir}paperless/media:/usr/src/paperless/media",
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 2048
+      }
+
+      service {
+        port = "paperless"
+        name = "paperless"
+        tags = ["traefik.enable=true"]
+      }
+
+      template {
+data = <<EOH
+PAPERLESS_DBHOST="postgres.service.consul"
+PAPERLESS_DBPASS="ChAnGeMe"
+PAPERLESS_DBUSER="postgres"
+PAPERLESS_DBENGINE="postgres"
+PAPERLESS_REDIS="redis://paperless-redis.service.consul:6379"
+PAPERLESS_TIKA_ENABLED="true"
+PAPERLESS_TIKA_ENDPOINT="http://paperless-tika.service.consul:9998"
+PAPERLESS_TIKA_GOTENBERG_ENDPOINT="http://paperless-gotenberg.service.consul:3000"
+PAPERLESS_ADMIN_USER="admin"
+PAPERLESS_ADMIN_PASSWORD="admin"
+PAPERLESS_OCR_LANGUAGE="deu+eng"
+EOH
+        destination = "local/env"
+        env         = true
+
+      }
+    }
+
+    task "tika" {
+      driver = "docker"
+
+      config {
+        image = "apache/tika"
+        ports = ["tika"]
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}-${NOMAD_TASK_NAME}"
+        tags = ["${NOMAD_TASK_NAME}"]
+        port = "tika"
+
+        check {
+          type     = "tcp"
+          port     = "tika"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+
+    task "gotenberg" {
+      driver = "docker"
+
+      config {
+        image = "gotenberg/gotenberg:8"
+        ports = ["gotenberg"]
+        command = "gotenberg"
+        args = ["--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}-${NOMAD_TASK_NAME}"
+        tags = ["${NOMAD_TASK_NAME}"]
+        port = "gotenberg"
+
+        check {
+          type     = "tcp"
+          port     = "gotenberg"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+    task "redis" {
+      driver = "docker"
+
+      config {
+        image = "redis"
+        ports = ["redis"]
+        volumes = [
+          "${var.shared_dir}paperless-redis:/data",
+        ]
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}-${NOMAD_TASK_NAME}"
+        tags = ["${NOMAD_TASK_NAME}"]
+        port = "redis"
+
+        check {
+          type     = "tcp"
+          port     = "redis"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

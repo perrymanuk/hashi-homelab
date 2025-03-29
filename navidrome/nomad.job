@@ -1,0 +1,83 @@
+job "navidrome" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "downloaders" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "4533"
+      }
+    }
+
+    volume "navidrome" {
+      type      = "csi"
+      read_only = false
+      source    = "navidrome"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "navidrome" {
+      driver = "docker"
+      config {
+        image = "deluan/navidrome:latest"
+        dns_servers = ["192.168.50.2"]
+        ports = ["http"]
+        volumes = [
+          "${var.music_dir}:/music",
+        ]
+      }
+
+      volume_mount {
+        volume      = "navidrome"
+        destination = "/data"
+        read_only   = false
+      }
+
+      env {
+        UMASK_SET = "022"
+        TZ        = "UTC"
+        PGUID     = "1000"
+        PGID      = "1000"
+      }
+
+      service {
+        port = "http"
+        name = "navidrome"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "music_dir" {
+    type = string
+}

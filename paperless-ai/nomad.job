@@ -1,0 +1,57 @@
+job "paperless-ai" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "web" {
+    network {
+      mode = "host"
+      port "web" {
+        to = "3000"
+        host_network = "lan"
+      }
+    }
+    task "paperless-ai" {
+      driver = "docker"
+
+      config {
+        image = "clusterzx/paperless-ai"
+        dns_servers = ["192.168.50.2"]
+        volumes = [
+          "${var.shared_dir}paperless-ai:/app/data",
+        ]
+        ports = ["web"]
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}"
+        tags = ["traefik.enable=true"]
+        port = "web"
+
+        check {
+          type     = "tcp"
+          port     = "web"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = "200"
+        memory = "2048"
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}

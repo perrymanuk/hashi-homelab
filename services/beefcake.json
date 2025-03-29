@@ -1,0 +1,14 @@
+{
+  "Service": {
+    "Name": "beefcake",
+    "ID": "beefcake-instance-1",
+    "Address": "192.168.50.208",
+    "Port": 80,
+    "Check": {
+      "HTTP": "http://192.168.50.208:80",
+      "Interval": "10s",
+      "Timeout": "5s"
+    },
+    "Tags": ["traefik.enable=true"]
+  }
+}

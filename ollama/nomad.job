@@ -1,0 +1,76 @@
+job "ollama" {
+  region = var.region
+  datacenters = [var.datacenter]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  group "web" {
+    network {
+      mode = "host"
+      port "web" {
+        to = "11434"
+        host_network = "lan"
+      }
+    }
+    task "ollama" {
+      driver = "docker"
+
+      config {
+        image = "ollama/ollama"
+        runtime = "nvidia"
+        dns_servers = [var.dns_server_ip]
+        volumes = [
+          "${var.ollama_data_dir}:/root/.ollama",
+        ]
+        ports = ["web"]
+      }
+
+      env {
+        # Make the GPU visible to this container.
+        NVIDIA_VISIBLE_DEVICES       = "all"
+        NVIDIA_DRIVER_CAPABILITIES   = "compute,utility"
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}"
+        tags = ["traefik.enable=true"]
+        port = "web"
+
+        check {
+          type     = "tcp"
+          port     = "web"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = "200"
+        memory = "60000"
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "ollama_data_dir" {
+  type = string
+}
+
+variable "datacenter" {
+  type = string
+}
+
+variable "dns_server_ip" {
+  type = string
+}

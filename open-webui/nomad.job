@@ -1,0 +1,77 @@
+job "open-webui" {
+  region = var.region
+  datacenters = [var.datacenter]
+  type        = "service"
+
+  meta {
+    version = "1"
+  }
+
+  group "web" {
+    network {
+      mode = "host"
+      port "web" {
+        to = "8080"
+        host_network = "lan"
+      }
+    }
+    task "open-webui" {
+      driver = "docker"
+
+      config {
+        image = "ghcr.io/open-webui/open-webui"
+        dns_servers = [var.dns_server_ip]
+        volumes = [
+          "${var.shared_dir}open-webui:/app/backend/data",
+        ]
+        ports = ["web"]
+      }
+
+     env {
+        OLLAMA_BASE_URL= var.ollama_base_url
+        WEBUI_SECRET_KEY = var.webui_secret_key
+     }
+      service {
+        name = "${NOMAD_JOB_NAME}"
+        tags = ["traefik.enable=true"]
+        port = "web"
+
+        check {
+          type     = "tcp"
+          port     = "web"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = "200"
+        memory = "2048"
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "ollama_base_url" {
+  type = string
+}
+
+variable "webui_secret_key" {
+  type = string
+}
+
+variable "datacenter" {
+  type = string
+}
+
+variable "dns_server_ip" {
+  type = string
+}

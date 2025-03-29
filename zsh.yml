@@ -1,0 +1,60 @@
+---
+- name: Install Zsh and Oh My Zsh with Agnoster theme
+  hosts: cheese
+  become: yes
+  remote_user: root
+  gather_facts: yes
+
+  vars:
+    my_zsh_user: "root"  # Change this to the desired user
+
+  tasks:
+    - name: Install zsh
+      apt:
+        name: zsh
+        state: present
+        update_cache: yes
+
+    - name: Ensure home directory path is known
+      user:
+        name: "{{ my_zsh_user }}"
+      register: user_info  # This captures the user details, including home directory.
+
+    - name: Check if Oh My Zsh is already installed
+      stat:
+        path: "/root/.oh-my-zsh"
+      register: oh_my_zsh_stat
+
+    - name: Check if zshrc exists
+      stat:
+        path: "/root/.zshrc"
+      register: zshrc_stat
+
+    - name: Clone Oh My Zsh 
+      git:
+        repo: "https://github.com/ohmyzsh/ohmyzsh.git"
+        dest: "/root/.oh-my-zsh"
+      become_user: "{{ my_zsh_user }}"
+      when: not oh_my_zsh_stat.stat.exists
+
+    - name: Copy the default .zshrc template if not present
+      copy:
+        src: "/root/.oh-my-zsh/templates/zshrc.zsh-template"
+        dest: "/root/.zshrc"
+        remote_src: yes
+      become_user: "{{ my_zsh_user }}"
+      when: not zshrc_stat.stat.exists
+
+    - name: Set Oh My Zsh theme to agnoster
+      # Uses a regex replace to ensure 'ZSH_THEME="agnoster"'
+      replace:
+        path: "/root/.zshrc"
+        regexp: '^ZSH_THEME="[^"]+"'
+        replace: 'ZSH_THEME="agnoster"'
+      become_user: "{{ my_zsh_user }}"
+
+    - name: Change default shell to zsh for the user
+      user:
+        name: "{{ my_zsh_user }}"
+        shell: /usr/bin/zsh
+
