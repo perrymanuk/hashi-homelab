@@ -33,7 +33,7 @@ job "lidarr" {
     task "lidarr" {
       driver = "docker"
       config {
-        image = "linuxserver/lidarr:2.9.6"
+        image = "linuxserver/lidarr:2.10.3"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [
