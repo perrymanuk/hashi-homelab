@@ -1,6 +1,6 @@
-id           = "radarr3"
-external_id  = "radarr3"
-name         = "radarr3"
+id           = "radarr-config"
+external_id  = "radarr-config"
+name         = "radarr-config"
 type         = "csi"
 plugin_id    = "org.democratic-csi.iscsi"
 capacity_min = "10GiB"
@@ -13,6 +13,6 @@ capability {
 
 mount_options {
   fs_type     = "ext4"
-  mount_flags = ["noatime"]
+  mount_flags = ["noatime", "nodiratime", "data=ordered"]
 }
 

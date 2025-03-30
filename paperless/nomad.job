@@ -4,7 +4,7 @@ job "paperless" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"  // Incremented version number
   }
 
   constraint {
@@ -64,7 +64,7 @@ job "paperless" {
       template {
 data = <<EOH
 PAPERLESS_DBHOST="postgres.service.consul"
-PAPERLESS_DBPASS="ChAnGeMe"
+PAPERLESS_DBPASS="${var.postgres_admin_password}"
 PAPERLESS_DBUSER="postgres"
 PAPERLESS_DBENGINE="postgres"
 PAPERLESS_REDIS="redis://paperless-redis.service.consul:6379"
@@ -72,12 +72,11 @@ PAPERLESS_TIKA_ENABLED="true"
 PAPERLESS_TIKA_ENDPOINT="http://paperless-tika.service.consul:9998"
 PAPERLESS_TIKA_GOTENBERG_ENDPOINT="http://paperless-gotenberg.service.consul:3000"
 PAPERLESS_ADMIN_USER="admin"
-PAPERLESS_ADMIN_PASSWORD="admin"
+PAPERLESS_ADMIN_PASSWORD="${var.paperless_admin_password}"
 PAPERLESS_OCR_LANGUAGE="deu+eng"
 EOH
         destination = "local/env"
         env         = true
-
       }
     }
 
@@ -174,4 +173,15 @@ variable "region" {
 
 variable "shared_dir" {
     type = string
+}
+
+variable "postgres_admin_password" {
+    type = string
+    description = "Admin password for PostgreSQL"
+}
+
+variable "paperless_admin_password" {
+    type = string
+    description = "Admin password for Paperless web interface"
+    default = "admin"  // You might want to override this with a more secure password
 }

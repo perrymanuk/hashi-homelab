@@ -23,6 +23,7 @@ jobs:
         filters: |
           volumes: 
             - '**/volume.hcl'
+            - 'plex/plex-database-volume.hcl'
 
     - uses: dorny/paths-filter@v3
       id: filter
@@ -31,19 +32,25 @@ jobs:
         filters: |
           nomadjobs: 
             - 'plex/*.job'
+            - 'sonarr/*.job'
+            - 'radarr/*.job'
+            - 'lidarr/*.job'
+            - 'postgres/*.job'
+            - 'paperless/*.job'
+            - 'mariadb/*.job'
             - 'coredns/*.job'
             - 'docker-registry/*.job'
             - 'github-runner/*.job'
             - 'iscsi-csi-plugin/*.job'
             - 'keepalived/*.job'
-            - 'lidarr/*.job'
             - 'pihole/*.job'
-            - 'plex/*.job'
-            - 'radarr/*.job'
             - 'sabnzbd/*.job'
             - 'sickchill/*.job'
             - 'smtp/*.job'
             - 'www/*.job'
+            - 'ollama/*.job'
+            - 'open-webui/*.job'
+            - 'paperless-ai/*.job'
 
   add_volumes:
     runs-on: self-hosted
@@ -116,4 +123,11 @@ jobs:
         NOMAD_VAR_ssh_id: '${{ secrets.NOMAD_VAR_SSH_ID }}'
         NOMAD_VAR_truenas_api_key: '${{ secrets.NOMAD_VAR_TRUENAS_API_KEY }}'
         NOMAD_VAR_gh_access_token: '${{ secrets.NOMAD_VAR_GH_ACCESS_TOKEN }}'
-
+        NOMAD_VAR_postgres_admin_password: '${{ secrets.NOMAD_VAR_POSTGRES_ADMIN_PASSWORD }}'
+        NOMAD_VAR_paperless_admin_password: '${{ secrets.NOMAD_VAR_PAPERLESS_ADMIN_PASSWORD }}'
+        NOMAD_VAR_db_password: '${{ secrets.NOMAD_VAR_DB_PASSWORD }}'
+        NOMAD_VAR_ollama_data_dir: '/home/shared/ollama'
+        NOMAD_VAR_ollama_base_url: 'http://ollama.service.consul:11434'
+        NOMAD_VAR_webui_secret_key: '${{ secrets.NOMAD_VAR_WEBUI_SECRET_KEY }}'
+        NOMAD_VAR_datacenter: 'dc1'
+        NOMAD_VAR_dns_server_ip: '192.168.50.2'

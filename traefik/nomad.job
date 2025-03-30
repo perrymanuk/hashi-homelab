@@ -3,7 +3,7 @@ job "traefik-internal" {
   datacenters = ["dc1"]
   type = "system"
   meta {
-    version = "1"
+    version = "2" // Incremented version
   }
 
   group "lbs" {
@@ -73,7 +73,7 @@ data = <<EOH
     [entryPoints.websecure.http]
         middlewares=["allow-local-network@file"]
     [entryPoints.websecure.http.tls]
-      certResolver = "letsencrypt"
+      certResolver = "sample" # Changed from letsencrypt to sample for consistency
 
   [entryPoints.traefik]
     address = ":9002"
@@ -105,10 +105,10 @@ data = <<EOH
     datacenter = "homelab"
     endpointWaitTime = "15s"
 
-[certificatesResolvers.letsencrypt.acme]
+[certificatesResolvers.sample.acme] # Changed from letsencrypt to sample
   email = "me@you.com"
   storage = "acme.json"
-  [certificatesResolvers.letsencrypt.acme.httpChallenge]
+  [certificatesResolvers.sample.acme.httpChallenge] # Changed from letsencrypt to sample
     entryPoint = "web"
 
 [providers.file]
@@ -186,4 +186,3 @@ variable "tld" {
 variable "shared_dir" {
     type = string
 }
-

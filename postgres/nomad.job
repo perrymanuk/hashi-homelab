@@ -4,7 +4,7 @@ job "postgres" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"  // Incremented version number
   }
 
   group "db" {
@@ -29,7 +29,7 @@ job "postgres" {
       env {
         POSTGRES_DB       = "paperless"
         POSTGRES_USER     = "postgres"
-        POSTGRES_PASSWORD = "ChAnGeMe"
+        POSTGRES_PASSWORD = "${var.postgres_admin_password}"
         PGDATA            = "/appdata/postgres"
       }
 
@@ -58,8 +58,11 @@ variable "region" {
     type = string
 }
 
-
-
 variable "shared_dir" {
     type = string
+}
+
+variable "postgres_admin_password" {
+    type = string
+    description = "Admin password for PostgreSQL"
 }

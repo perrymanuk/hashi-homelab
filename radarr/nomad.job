@@ -4,7 +4,7 @@ job "radarr" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "5"  // Incremented version number
   }
 
   group "downloaders" {
@@ -33,6 +33,7 @@ job "radarr" {
         volumes = [
           "${var.downloads_dir}:/media/Movies",
           "${var.movies_dir}:/movies",
+          "local/config.xml:/config/config.xml",
         ]
       }
 
@@ -49,11 +50,28 @@ job "radarr" {
         PGID      = "65534"
       }
 
+      template {
+        data = <<EOH
+<Config>
+  <PostgresUser>postgres</PostgresUser>
+  <PostgresPassword>${var.postgres_admin_password}</PostgresPassword>
+  <PostgresPort>5432</PostgresPort>
+  <PostgresHost>postgres.service.consul</PostgresHost>
+  <PostgresMainDb>radarr_main</PostgresMainDb>
+  <PostgresLogDb>radarr_logs</PostgresLogDb>
+</Config>
+EOH
+        destination = "local/config.xml"
+        perms = "644"
+      }
+      
       service {
         port = "http"
         name = "radarr"
         tags = [
-          "traefik.enable=true"
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
         ]
         check {
           type     = "http"
@@ -89,4 +107,9 @@ variable "tv_dir" {
 
 variable "movies_dir" {
     type = string
+}
+
+variable "postgres_admin_password" {
+    type = string
+    description = "Admin password for PostgreSQL"
 }

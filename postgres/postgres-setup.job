@@ -1,0 +1,33 @@
+job "postgres-setup" {
+  type = "batch"
+  datacenters = ["dc1"]
+  
+  group "setup" {
+    task "create-dbs" {
+      driver = "docker"
+      
+      config {
+        image = "postgres:15"
+        command = "sh"
+        args = [
+          "-c",
+          "PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres.service.consul -U postgres -c \"CREATE DATABASE sonarr_main;\" -c \"CREATE DATABASE sonarr_logs;\" -c \"CREATE DATABASE radarr_main;\" -c \"CREATE DATABASE radarr_logs;\" -c \"CREATE DATABASE lidarr_main;\" -c \"CREATE DATABASE lidarr_logs;\" || echo 'Database may already exist'"
+        ]
+      }
+      
+      env {
+        POSTGRES_PASSWORD = "${var.postgres_pass}"
+      }
+      
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "postgres_pass" {
+  type = string
+  description = "Admin password for the PostgreSQL server"
+}

@@ -4,7 +4,7 @@ job "sonarr" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "6"  // Incremented version number
   }
 
   constraint {
@@ -31,6 +31,7 @@ job "sonarr" {
           "${var.shared_dir}sonarr:/config",
           "${var.downloads_dir}:/downloads",
           "${var.tv_dir}:/media/TV",
+          "local/config.xml:/config/config.xml",
         ]
       }
 
@@ -40,17 +41,26 @@ job "sonarr" {
         TZ = "Etc/UTC"
       }
 
+      template {
+        data = <<EOH
+<Config>
+  <PostgresUser>postgres</PostgresUser>
+  <PostgresPassword>${var.postgres_pass}</PostgresPassword>
+  <PostgresPort>5432</PostgresPort>
+  <PostgresHost>postgres.service.consul</PostgresHost>
+  <PostgresMainDb>sonarr_main</PostgresMainDb>
+  <PostgresLogDb>sonarr_logs</PostgresLogDb>
+</Config>
+EOH
+        destination = "local/config.xml"
+        perms = "644"
+      }
+
       service {
         port = "http"
-	name = "sonarr"
+        name = "sonarr"
         tags = [
           "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ]
         check {
           type     = "http"
@@ -86,4 +96,9 @@ variable "downloads_dir" {
 
 variable "tv_dir" {
     type = string
+}
+
+variable "postgres_pass" {
+    type = string
+    description = "Admin password for PostgreSQL"
 }

@@ -4,7 +4,7 @@ job "mariadb" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "2"  // Incremented version number
   }
 
   group "db" {
@@ -27,7 +27,7 @@ job "mariadb" {
       }
 
       env {
-        MARIADB_ROOT_PASSWORD = "ChAnGeMe"
+        MARIADB_ROOT_PASSWORD = "${var.db_password}"
       }
 
       service {
@@ -57,4 +57,9 @@ variable "region" {
 
 variable "shared_dir" {
     type = string
+}
+
+variable "db_password" {
+    type = string
+    description = "Password for MariaDB root user"
 }

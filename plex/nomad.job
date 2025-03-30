@@ -4,7 +4,7 @@ job "plex" {
   type        = "service"
 
   meta {
-    version = "1"
+    version = "3"  // Incremented version number
   }
 
   group "downloaders" {
@@ -16,14 +16,14 @@ job "plex" {
       }
     }
 
-#    volume "plex" {
-#      type      = "csi"
-#      read_only = false
-#
-#      source    = "plex2"
-#      access_mode = "single-node-writer"
-#      attachment_mode = "file-system"
-#    }
+    // Use a CSI volume specifically optimized for databases
+    volume "plex-db" {
+      type      = "csi"
+      read_only = false
+      source    = "plex-database"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
 
     task "plex" {
       driver = "docker"
@@ -36,22 +36,90 @@ job "plex" {
           "/tmp:/transcode",
           "${var.media_dir}:/data",
           "${var.shared_dir}plex_new:/config",
+          "local/optimize-db.sh:/etc/cont-init.d/99-optimize-db",
         ]
+        // No custom command - let the container start normally
       }
 
-#      volume_mount {
-#        volume      = "plex"
-#        destination = "/config"
-#        read_only   = false
-#      }
+      volume_mount {
+        volume      = "plex-db"
+        destination = "/opt/plex-db"
+        read_only   = false
+      }
+
+      // Setup script that runs as part of the container init system
+      template {
+        data = <<EOH
+#!/usr/bin/with-contenv bash
+
+echo "Setting up Plex database optimizations..."
+
+# Create necessary directory structure
+mkdir -p /opt/plex-db
+mkdir -p /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
+
+# Check if we have existing databases
+if [ ! -d "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases" ]; then
+  echo "No databases found, creating directory structure"
+  mkdir -p "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases"
+fi
+
+# Check if we need to move existing databases
+if [ -z "$(ls -A /opt/plex-db)" ]; then
+  echo "Database volume is empty, copying existing databases if any..."
+  if [ -n "$(ls -A /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases/)" ]; then
+    cp -a /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases/* /opt/plex-db/
+    echo "Copied existing databases to persistent volume"
+  fi
+fi
+
+# Set up link to optimized database storage
+rm -rf /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
+ln -sf /opt/plex-db /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
+
+# Install SQLite3 if needed
+if ! command -v sqlite3 &>/dev/null; then
+  echo "Installing SQLite3..."
+  apt-get update && apt-get install -y sqlite3
+fi
+
+# Set environment variables for SQLite
+export SQLITE_TMPDIR=/tmp/plex_sqlite
+mkdir -p $SQLITE_TMPDIR
+
+# Apply optimizations to all databases
+echo "Applying SQLite optimizations to databases..."
+find /opt/plex-db -name "*.db" -type f | while read db; do
+  echo "Optimizing $db"
+  sqlite3 "$db" <<EOF
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA temp_store = MEMORY;
+PRAGMA mmap_size = 268435456;
+PRAGMA cache_size = -8000;
+PRAGMA busy_timeout = 5000;
+ANALYZE;
+EOF
+done
+
+echo "Database optimizations complete"
+EOH
+        destination = "local/optimize-db.sh"
+        perms = "755"
+      }
+
+      env {
+        PLEX_CLAIM = ""  // Add your claim token if needed
+        ADVERTISE_IP = "http://192.168.50.5:32400/"  // Replace with your server IP
+        // Add any other environment variables needed
+      }
 
       service {
         port = "http"
-	name = "plex"
+        name = "plex"
         tags = [
           "traefik.enable=true"
         ]
-
         check {
           type     = "tcp"
           interval = "10s"

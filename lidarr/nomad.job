@@ -4,7 +4,7 @@ job "lidarr" {
   type        = "service"
 
   meta {
-    version = "2"
+    version = "6"  // Incremented version number
   }
 
   constraint {
@@ -40,6 +40,7 @@ job "lidarr" {
           "${var.downloads_dir}:/downloads",
           "${var.music_dir}:/music",
           "${var.music_dir}:/media/Music",
+          "local/config.xml:/config/config.xml",
         ]
       }
 
@@ -55,11 +56,28 @@ job "lidarr" {
         TZ = "Etc/UTC"
       }
 
+      template {
+        data = <<EOH
+<Config>
+  <PostgresUser>postgres</PostgresUser>
+  <PostgresPassword>${var.postgres_admin_password}</PostgresPassword>
+  <PostgresPort>5432</PostgresPort>
+  <PostgresHost>postgres.service.consul</PostgresHost>
+  <PostgresMainDb>lidarr_main</PostgresMainDb>
+  <PostgresLogDb>lidarr_logs</PostgresLogDb>
+</Config>
+EOH
+        destination = "local/config.xml"
+        perms = "644"
+      }
+
       service {
         port = "http"
-	name = "lidarr"
+        name = "lidarr"
         tags = [
-          "traefik.enable=true"
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample"
         ]
         check {
           type     = "tcp"
@@ -94,4 +112,9 @@ variable "downloads_dir" {
 
 variable "music_dir" {
     type = string
+}
+
+variable "postgres_admin_password" {
+    type = string
+    description = "Admin password for PostgreSQL"
 }
