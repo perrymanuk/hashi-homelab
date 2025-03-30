@@ -11,3 +11,4 @@ levant/*
 !levant/defaults.yml
 hosts
 *.swp
+.ra-aid
