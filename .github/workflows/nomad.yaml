@@ -1,3 +1,4 @@
+
 on:
   push:
     branches:
@@ -22,8 +23,9 @@ jobs:
         list-files: 'json'
         filters: |
           volumes:
+            # Keep broad for now, refine if needed
             - '**/volume.hcl'
-            - 'plex/plex-database-volume.hcl'
+            - 'media-stack/plex/plex-database-volume.hcl' # Updated path
 
     - uses: dorny/paths-filter@v3
       id: filter
@@ -31,27 +33,33 @@ jobs:
         list-files: 'json'
         filters: |
           nomadjobs:
-            - 'plex/*.job'
-            - 'sonarr/*.job'
-            - 'radarr/*.job'
-            - 'lidarr/*.job'
-            - 'postgres/*.job'
-            - 'paperless/*.job'
-            - 'mariadb/*.job'
-            - 'coredns/*.job'
-            - 'docker-registry/*.job'
-            - 'github-runner/*.job'
-            - 'iscsi-csi-plugin/*.job'
-            - 'keepalived/*.job'
-            - 'pihole/*.job'
-            - 'sabnzbd/*.job'
-            - 'sickchill/*.job'
-            - 'smtp/*.job'
-            - 'www/*.job'
-            - 'ollama/*.job'
-            - 'open-webui/*.job'
-            - 'paperless-ai/*.job'
-            - 'gcp-dns-updater/*.job' # Added gcp-dns-updater job
+            # Updated paths based on directory restructure
+            - 'media-stack/plex/*.job'
+            - 'media-stack/sonarr/*.job'
+            - 'media-stack/radarr/*.job'
+            - 'media-stack/lidarr/*.job'
+            - 'storage-backends/postgres/*.job'
+            - 'web-apps/paperless/*.job'
+            - 'storage-backends/mariadb/*.job'
+            - 'core-infra/coredns/*.job'
+            - 'developer-tools/docker-registry/*.job'
+            - 'developer-tools/github-runner/*.job'
+            - 'storage-backends/iscsi-csi-plugin/*.job'
+            - 'core-infra/keepalived/*.job'
+            - 'observability/pihole/*.job'
+            - 'media-stack/sabnzbd/*.job'
+            - 'media-stack/sickchill/*.job'
+            - 'core-infra/smtp/*.job'
+            - 'web-apps/www/*.job'
+            - 'ai-ml/ollama/*.job'
+            - 'ai-ml/open-webui/*.job'
+            - 'ai-ml/paperless-ai/*.job'
+            - 'misc/gcp-dns-updater/*.job'
+            # Added paths for core-infra services moved during restructure
+            - 'core-infra/tailscale-este/*.job'
+            - 'core-infra/traefik-forward-auth/*.job'
+            - 'core-infra/traefik-ingress/*.job'
+            - 'core-infra/nfs-csi-plugin/*.job'
 
   add_volumes:
     runs-on: self-hosted
