@@ -96,7 +96,7 @@ jobs:
       env:
         NOMAD_ADDR: 'http://nomad.service.home:4646'
         NOMAD_VAR_region: 'home'
-        NOMAD_VAR_tld: '${{ secrets.NOMAD_VAR_TLD }}'
+        NOMAD_VAR_tld: '${{ secrets.NOMAD_VAR_tld }}' # Corrected case
         NOMAD_VAR_shared_dir: '/home/shared/'
         NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
         NOMAD_VAR_music_dir: '/home/media/Music'
@@ -104,30 +104,40 @@ jobs:
         NOMAD_VAR_books_dir: '/home/media/Books'
         NOMAD_VAR_tv_dir: '/home/media/TV'
         NOMAD_VAR_media_dir: '/home/media'
-        NOMAD_VAR_auth: '${{ secrets.NOMAD_VAR_AUTH }}'
-        NOMAD_VAR_otr_pass: '${{ secrets.NOMAD_VAR_OTR_PASS }}'
-        NOMAD_VAR_web_pass: '${{ secrets.NOMAD_VAR_WEB_PASS }}'
-        NOMAD_VAR_hass_key: '${{ secrets.NOMAD_VAR_HASS_KEY }}'
-        NOMAD_VAR_github_pat: ${{ secrets.NOMAD_VAR_GITHUB_PAT }}
+        # NOMAD_VAR_auth: '${{ secrets.NOMAD_VAR_AUTH }}' # Removed
+        # NOMAD_VAR_otr_pass: '${{ secrets.NOMAD_VAR_OTR_PASS }}' # Removed
+        # NOMAD_VAR_web_pass: '${{ secrets.NOMAD_VAR_WEB_PASS }}' # Removed
+        NOMAD_VAR_hass_key: '${{ secrets.NOMAD_VAR_hass_key }}' # Corrected case
+        NOMAD_VAR_github_pat: ${{ secrets.NOMAD_VAR_github_pat }} # Corrected case
         NOMAD_VAR_datacenters_all: '["dc1", "public"]'
         NOMAD_VAR_datacenters_dc1: '["dc1"]'
         NOMAD_VAR_datacenters_public: '["public"]'
-        NOMAD_VAR_tailscale_auth: '${{ secrets.NOMAD_VAR_TAILSCALE_AUTH }}'
-        NOMAD_VAR_tailscale_auth_este: '${{ secrets.NOMAD_VAR_TAILSCALE_AUTH_ESTE }}'
-        NOMAD_VAR_oauth_client_id: '${{ secrets.NOMAD_VAR_OAUTH_CLIENT_ID }}'
-        NOMAD_VAR_oauth_client_secret: '${{ secrets.NOMAD_VAR_OAUTH_CLIENT_SECRET }}'
-        NOMAD_VAR_oauth_secret: '${{ secrets.NOMAD_VAR_OAUTH_SECRET }}'
-        NOMAD_VAR_oauth_emails: '${{ secrets.NOMAD_VAR_OAUTH_EMAILS }}'
-        NOMAD_VAR_pushover_token: '${{ secrets.NOMAD_VAR_PUSHOVER_TOKEN }}'
-        NOMAD_VAR_pushover_user_key: '${{ secrets.NOMAD_VAR_PUSHOVER_USER_KEY }}'
-        NOMAD_VAR_ssh_id: '${{ secrets.NOMAD_VAR_SSH_ID }}'
-        NOMAD_VAR_truenas_api_key: '${{ secrets.NOMAD_VAR_TRUENAS_API_KEY }}'
-        NOMAD_VAR_gh_access_token: '${{ secrets.NOMAD_VAR_GH_ACCESS_TOKEN }}'
-        NOMAD_VAR_postgres_admin_password: '${{ secrets.NOMAD_VAR_POSTGRES_ADMIN_PASSWORD }}'
-        NOMAD_VAR_paperless_admin_password: '${{ secrets.NOMAD_VAR_PAPERLESS_ADMIN_PASSWORD }}'
-        NOMAD_VAR_db_password: '${{ secrets.NOMAD_VAR_DB_PASSWORD }}'
+        NOMAD_VAR_tailscale_auth: '${{ secrets.NOMAD_VAR_tailscale_auth }}' # Corrected case
+        NOMAD_VAR_tailscale_auth_este: '${{ secrets.NOMAD_VAR_tailscale_auth_este }}' # Corrected case
+        NOMAD_VAR_oauth_client_id: '${{ secrets.NOMAD_VAR_oauth_client_id }}' # Corrected case
+        NOMAD_VAR_oauth_client_secret: '${{ secrets.NOMAD_VAR_oauth_client_secret }}' # Corrected case
+        NOMAD_VAR_oauth_secret: '${{ secrets.NOMAD_VAR_oauth_secret }}' # Corrected case
+        NOMAD_VAR_oauth_emails: '${{ secrets.NOMAD_VAR_oauth_emails }}' # Corrected case
+        # NOMAD_VAR_pushover_token: '${{ secrets.NOMAD_VAR_PUSHOVER_TOKEN }}' # Removed
+        NOMAD_VAR_pushover_user_key: '${{ secrets.NOMAD_VAR_pushover_user_key }}' # Corrected case
+        NOMAD_VAR_ssh_id: '${{ secrets.NOMAD_VAR_ssh_id }}' # Corrected case
+        NOMAD_VAR_truenas_api_key: '${{ secrets.NOMAD_VAR_truenas_api_key }}' # Corrected case
+        NOMAD_VAR_gh_access_token: '${{ secrets.NOMAD_VAR_gh_access_token }}' # Corrected case
+        # NOMAD_VAR_postgres_admin_password: '${{ secrets.NOMAD_VAR_POSTGRES_ADMIN_PASSWORD }}' # Removed
+        # NOMAD_VAR_paperless_admin_password: '${{ secrets.NOMAD_VAR_PAPERLESS_ADMIN_PASSWORD }}' # Removed
+        # NOMAD_VAR_db_password: '${{ secrets.NOMAD_VAR_DB_PASSWORD }}' # Removed
         NOMAD_VAR_ollama_data_dir: '/home/shared/ollama'
         NOMAD_VAR_ollama_base_url: 'http://ollama.service.consul:11434'
-        NOMAD_VAR_webui_secret_key: '${{ secrets.NOMAD_VAR_WEBUI_SECRET_KEY }}'
+        NOMAD_VAR_webui_secret_key: '${{ secrets.NOMAD_VAR_webui_secret_key }}' # Corrected case
         NOMAD_VAR_datacenter: 'dc1'
         NOMAD_VAR_dns_server_ip: '192.168.50.2'
+        # Added missing variables
+        NOMAD_VAR_aws_access_key: ${{ secrets.NOMAD_VAR_aws_access_key }}
+        NOMAD_VAR_aws_secret_key: ${{ secrets.NOMAD_VAR_aws_secret_key }}
+        NOMAD_VAR_bedrock_aws_region: ${{ secrets.NOMAD_VAR_bedrock_aws_region }}
+        NOMAD_VAR_gcp_dns_admin: ${{ secrets.NOMAD_VAR_gcp_dns_admin }}
+        NOMAD_VAR_gemini_api_key: ${{ secrets.NOMAD_VAR_gemini_api_key }}
+        NOMAD_VAR_litellm_master_key: ${{ secrets.NOMAD_VAR_litellm_master_key }}
+        NOMAD_VAR_manyfold_secret_key: ${{ secrets.NOMAD_VAR_manyfold_secret_key }}
+        NOMAD_VAR_postgres_pass: ${{ secrets.NOMAD_VAR_postgres_pass }}
+        NOMAD_VAR_truenas_iscsi_pass: ${{ secrets.NOMAD_VAR_truenas_iscsi_pass }}

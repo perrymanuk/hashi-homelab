@@ -31,3 +31,13 @@ sslkeys:##.........Generate certs if you have SSL enabled
 .PHONY: ssl-browser-cert
 ssl-browser-cert:##.........Generate certs if you have SSL enabled
 	sudo openssl pkcs12 -export -out browser_cert.p12 -inkey ssl/hetzner/server-key.pem -in ssl/hetzner/server.pem -certfile ssl/hetzner/nomad-ca.pem
+
+.PHONY: sync-secrets
+sync-secrets: ## Build and run the GitHub secret sync container
+	@echo "Building sync-secrets Docker image..."
+	docker build --no-cache -t sync-secrets:latest scripts/
+	@echo "Running sync-secrets container..."
+	docker run --rm \
+		-v $(CURDIR)/.envrc:/app/.envrc:ro \
+		-e GITHUB_TOKEN="$$NOMAD_VAR_github_pat" \
+		sync-secrets:latest
