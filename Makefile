@@ -41,3 +41,8 @@ sync-secrets: ## Build and run the GitHub secret sync container
 		-v $(CURDIR)/.envrc:/app/.envrc:ro \
 		-e GITHUB_TOKEN="$$NOMAD_VAR_github_pat" \
 		sync-secrets:latest
+
+.PHONY: build-gcp-dns-updater
+build-gcp-dns-updater: ## Build the gcp-dns-updater Docker image
+	@echo "Building gcp-dns-updater Docker image..."
+	docker build --platform linux/amd64 -t docker-registry.demonsafe.com/gcp-dns-updater:latest gcp-dns-updater/

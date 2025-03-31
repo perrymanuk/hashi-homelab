@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def get_env_vars():
     """Reads required environment variables and returns them."""
     project_id = os.environ.get('GCP_PROJECT_ID')
-    zone_name = os.environ.get('GCP_DNS_ZONE_NAME')
+    zone_name = os.environ.get('GCP_DNS_ZONE_NAME') # This will be the TLD like "demonsafe.com"
     record_name = os.environ.get('GCP_DNS_RECORD_NAME')
     key_b64 = os.environ.get('GCP_SERVICE_ACCOUNT_KEY_B64') # Changed variable name
 
@@ -37,7 +37,7 @@ def get_env_vars():
 def get_public_ip():
     """Fetches the public IPv4 address."""
     try:
-        response = requests.get('https://v4.ifconfig.co/ip', timeout=10)
+        response = requests.get('https://v4.ifconfig.me/ip', timeout=10)
         response.raise_for_status()  # Raise an exception for bad status codes
         ip_address = response.text.strip()
         logging.info(f"Successfully fetched public IP: {ip_address}")
@@ -81,16 +81,28 @@ def update_dns_record(client: dns.Client, project_id: str, zone_name: str, recor
     """
     Checks and updates/creates an A record for the given name in the specified zone,
     replacing a CNAME if necessary.
+
+    Args:
+        client: Authenticated DNS client.
+        project_id: GCP project ID.
+        zone_name: The domain TLD (e.g., "demonsafe.com"). This will be converted
+                   to the GCP zone name format (e.g., "demonsafe-com").
+        record_name: The specific record to update (e.g., "*.demonsafe.com").
+        ip_address: The public IP address to set.
     """
     try:
-        zone = client.zone(zone_name, project_id)
+        # Convert the TLD zone name (e.g., "demonsafe.com") to GCP zone name format (e.g., "demonsafe-com")
+        gcp_zone_name = zone_name.replace('.', '-')
+        logging.info(f"Targeting GCP DNS Zone: {gcp_zone_name}")
+
+        zone = client.zone(gcp_zone_name, project_id)
         if not zone.exists():
-            logging.error(f"DNS zone '{zone_name}' not found in project '{project_id}'.")
+            logging.error(f"DNS zone '{gcp_zone_name}' not found in project '{project_id}'.")
             return # Cannot proceed without the zone
 
         # Ensure record_name ends with a dot for FQDN matching
         fqdn = record_name if record_name.endswith('.') else f"{record_name}."
-        logging.info(f"Checking DNS records for: {fqdn} in zone {zone_name}")
+        logging.info(f"Checking DNS records for: {fqdn} in zone {gcp_zone_name}")
 
         record_sets = list(zone.list_resource_record_sets(filter_=f"name={fqdn}"))
 
@@ -142,27 +154,28 @@ def update_dns_record(client: dns.Client, project_id: str, zone_name: str, recor
 
         # Execute the changes if any were queued
         if needs_update:
-            logging.info(f"Executing DNS changes for {fqdn}...")
+            logging.info(f"Executing DNS changes for {fqdn} in zone {gcp_zone_name}...")
             changes.create()
             # Wait until the changes are finished.
             while changes.status != 'done':
                 logging.info(f"Waiting for DNS changes to complete (status: {changes.status})...")
                 time.sleep(5) # Wait 5 seconds before checking again
                 changes.reload()
-            logging.info(f"Successfully updated DNS record {fqdn} to {ip_address}.")
+            logging.info(f"Successfully updated DNS record {fqdn} to {ip_address} in zone {gcp_zone_name}.")
         else:
             # This case should only be hit if an A record existed and was correct
             logging.info("No DNS changes were necessary.")
 
     except GoogleAPIError as e:
-        logging.error(f"GCP API Error updating DNS record {fqdn}: {e}")
+        logging.error(f"GCP API Error updating DNS record {fqdn} in zone {gcp_zone_name}: {e}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred during DNS update for {fqdn}: {e}")
+        logging.error(f"An unexpected error occurred during DNS update for {fqdn} in zone {gcp_zone_name}: {e}")
 
 
 if __name__ == "__main__":
     logging.info("Starting DNS update script.")
     # Update variable name received from get_env_vars
+    # zone_name here is the TLD (e.g., "demonsafe.com")
     project_id, zone_name, record_name, key_b64 = get_env_vars()
     public_ip = get_public_ip()
 
@@ -170,6 +183,7 @@ if __name__ == "__main__":
         # Pass key_b64 and project_id to get_dns_client
         dns_client = get_dns_client(key_b64, project_id)
         if dns_client:
+            # Pass the TLD zone_name here; conversion happens inside update_dns_record
             update_dns_record(dns_client, project_id, zone_name, record_name, public_ip)
             logging.info("DNS update script finished.")
         else:

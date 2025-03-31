@@ -26,7 +26,7 @@ job "docker-registry" {
     volume "docker-registry" {
       type      = "csi"
       read_only = false
-      source    = "docker-registry"
+      source    = "docker-registry-data"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -51,7 +51,7 @@ job "docker-registry" {
       }
       service {
         port = "http"
-	name = "docker-registry"
+	      name = "docker-registry"
         tags = [
           "traefik.enable=true"
         ]
