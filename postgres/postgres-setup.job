@@ -2,6 +2,10 @@ job "postgres-setup" {
   type = "batch"
   datacenters = ["dc1"]
   
+  meta {
+    version = "2"
+  }
+  
   group "setup" {
     task "create-dbs" {
       driver = "docker"
@@ -11,7 +15,7 @@ job "postgres-setup" {
         command = "sh"
         args = [
           "-c",
-          "PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres.service.consul -U postgres -c \"CREATE DATABASE sonarr_main;\" -c \"CREATE DATABASE sonarr_logs;\" -c \"CREATE DATABASE radarr_main;\" -c \"CREATE DATABASE radarr_logs;\" -c \"CREATE DATABASE lidarr_main;\" -c \"CREATE DATABASE lidarr_logs;\" || echo 'Database may already exist'"
+          "PGPASSWORD=$POSTGRES_PASSWORD psql -h postgres.service.consul -U postgres -c \"DO \\$\\$ BEGIN CREATE DATABASE sonarr_main; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'sonarr_main exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE sonarr_logs; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'sonarr_logs exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE radarr_main; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'radarr_main exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE radarr_logs; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'radarr_logs exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE lidarr_main; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'lidarr_main exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE lidarr_logs; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'lidarr_logs exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE litellm; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'litellm exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE nextcloud; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'nextcloud exists'; END \\$\\$;\" -c \"DO \\$\\$ BEGIN CREATE DATABASE paperless; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'paperless exists'; END \\$\\$;\" "
         ]
       }
       
