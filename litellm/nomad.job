@@ -1,0 +1,211 @@
+job "litellm" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "ai" {
+    count = 1 
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "4000"
+      }
+    }
+
+    volume "litellm" {
+      type      = "csi"
+      read_only = false
+      source    = "litellm"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "litellm" {
+      driver = "docker"
+      config {
+        image = "ghcr.io/berriai/litellm:main-latest"
+        ports = ["http"]
+        volumes = [
+          "local/config.yaml:/app/config.yaml",
+        ]
+      }
+
+      volume_mount {
+        volume      = "litellm"
+        destination = "/data"
+        read_only   = false
+      }
+
+      env {
+        PORT = "${NOMAD_PORT_http}"
+        HOST = "0.0.0.0"
+        LITELLM_CONFIG_PATH = "/app/config.yaml"
+        OLLAMA_BASE_URL = "${var.ollama_base_url}"
+        AWS_ACCESS_KEY_ID = "${var.aws_access_key}"
+        AWS_SECRET_ACCESS_KEY = "${var.aws_secret_key}"
+        AWS_REGION = "${var.bedrock_aws_region}"
+        GOOGLE_API_KEY = "${var.gemini_api_key}"
+        LITELLM_MASTER_KEY = "${var.litellm_master_key}"
+        DATABASE_URL = "postgresql://postgres:${var.postgres_pass}@postgres.service.consul:5432/litellm"
+        STORE_MODEL_IN_DB="True"
+      }
+
+      template {
+        data = <<EOH
+model_list:
+  # Ollama models
+  - model_name: ollama/llama2
+    litellm_params:
+      model: ollama/llama2
+      api_base: ${var.ollama_base_url}
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: ollama/llama2
+      api_base: ${var.ollama_base_url}
+  
+  # AWS Bedrock - Claude 3.7 Sonnet
+  - model_name: anthropic.claude-3-7-sonnet-20250219-v1:0
+    litellm_params:
+      model: bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0
+      model_id: eu.anthropic.claude-3-7-sonnet-20250219-v1:0
+      bedrock_aws_region: ${var.bedrock_aws_region}
+  
+  # Google Gemini Pro 2.5
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro-exp-03-25
+      api_key: ${var.gemini_api_key}
+
+litellm_settings:
+  drop_params: True
+  cache: True
+  cache_params:
+    type: redis
+    host: litellm-redis.service.consul
+    port: 6379
+    password: ""
+
+environment_variables:
+  AWS_ACCESS_KEY_ID: ${var.aws_access_key}
+  AWS_SECRET_ACCESS_KEY: ${var.aws_secret_key}
+  AWS_REGION: ${var.bedrock_aws_region}
+  GOOGLE_API_KEY: ${var.gemini_api_key}
+  LITELLM_MASTER_KEY: ${var.litellm_master_key}
+  DATABASE_URL: postgresql://postgres:${var.postgres_pass}@postgres.service.consul:5432/litellm
+EOH
+        destination = "local/config.yaml"
+        env         = false
+      }
+
+      service {
+        port = "http"
+        name = "litellm"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/health"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+
+  group "redis-cache" {
+    network {
+      port "redis" {
+        to = 6379
+      }
+    }
+
+    service {
+      name = "litellm-redis"
+      port = "redis"
+      check {
+        type     = "tcp"
+        interval = "10s"
+        timeout  = "2s"
+      }
+    }
+
+    task "redis" {
+      driver = "docker"
+      config {
+        image = "redis:7-alpine"
+        platform = "linux/amd64"
+        ports = ["redis"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "tld" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "ollama_base_url" {
+    type = string
+    description = "Base URL for the Ollama service"
+    default = "http://ollama.service.consul:11434"
+}
+
+variable "aws_access_key" {
+    type = string
+    description = "AWS Access Key ID for Bedrock access"
+}
+
+variable "aws_secret_key" {
+    type = string
+    description = "AWS Secret Access Key for Bedrock access"
+}
+
+variable "bedrock_aws_region" {
+    type = string
+    description = "AWS Region for Bedrock"
+    default = "eu-central-1"
+}
+
+variable "gemini_api_key" {
+    type = string
+    description = "Google API Key for Gemini access"
+}
+
+variable "litellm_master_key" {
+    type = string
+    description = "Master key for LiteLLM authentication"
+}
+
+variable "postgres_pass" {
+    type = string
+    description = "Password for PostgreSQL database"
+}
