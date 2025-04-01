@@ -4,7 +4,8 @@ job "paperless" {
   type        = "service"
 
   meta {
-    version = "2"  // Incremented version number
+      job_file = "nomad_jobs/personal-cloud/paperless/nomad.job"
+version = "2"  // Incremented version number
   }
 
   constraint {

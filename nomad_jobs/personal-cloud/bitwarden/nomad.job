@@ -4,7 +4,8 @@ job "bitwarden" {
   type        = "service"
 
   meta {
-    version = "3"
+      job_file = "nomad_jobs/personal-cloud/bitwarden/nomad.job"
+version = "3"
   }
 
   constraint {

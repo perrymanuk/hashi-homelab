@@ -3,7 +3,8 @@ job "traefik-internal" {
   datacenters = ["dc1"]
   type = "system"
   meta {
-    version = "2" // Incremented version
+      job_file = "nomad_jobs/core-infra/traefik/nomad.job"
+version = "2" // Incremented version
   }
 
   group "lbs" {

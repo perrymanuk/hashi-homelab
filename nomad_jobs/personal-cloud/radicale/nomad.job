@@ -4,7 +4,8 @@ job "radicale" {
   type        = "service"
 
   meta {
-    version = "1"
+      job_file = "nomad_jobs/personal-cloud/radicale/nomad.job"
+version = "1"
   }
 
   constraint {

@@ -4,7 +4,8 @@ job "sickchill" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/media-stack/sickchill/nomad.job"
+version = "2"
   }
 
   constraint {

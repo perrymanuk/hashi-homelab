@@ -1,5 +1,9 @@
 job "democratic-csi-iscsi-controller" {
-  datacenters = ["dc1"]
+  
+  meta {
+  job_file = "nomad_jobs/core-infra/iscsi-csi-plugin/controller.job"
+  }
+datacenters = ["dc1"]
 
   group "controller" {
     task "plugin" {

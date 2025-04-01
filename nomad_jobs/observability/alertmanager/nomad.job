@@ -3,7 +3,8 @@ job "alertmanager" {
   type = "service"
 
   meta {
-    version = "1"
+      job_file = "nomad_jobs/observability/alertmanager/nomad.job"
+version = "1"
   }
 
 

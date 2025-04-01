@@ -4,7 +4,8 @@ job "tautulli" {
   type        = "service"
 
   meta {
-    version = "1"
+      job_file = "nomad_jobs/media-stack/tautulli/nomad.job"
+version = "1"
   }
 
   constraint {

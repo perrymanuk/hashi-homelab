@@ -4,7 +4,8 @@ job "ombi" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/media-stack/ombi/nomad.job"
+version = "2"
   }
 
   constraint {

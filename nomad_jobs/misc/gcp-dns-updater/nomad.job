@@ -1,5 +1,9 @@
 job "gcp-dns-updater" {
-  datacenters = ["dc1"] # Assuming a default datacenter, adjust if needed
+  
+  meta {
+  job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
+  }
+datacenters = ["dc1"] # Assuming a default datacenter, adjust if needed
   type        = "batch"
 
   # Configuration now sourced from environment variables via Go templating

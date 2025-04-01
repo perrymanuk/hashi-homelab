@@ -4,7 +4,8 @@ job "postgres" {
   type        = "service"
 
   meta {
-    version = "2"  // Incremented version number
+      job_file = "nomad_jobs/storage-backends/postgres/nomad.job"
+version = "2"  // Incremented version number
   }
 
   group "db" {

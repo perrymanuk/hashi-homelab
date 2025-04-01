@@ -4,7 +4,8 @@ job "nextcloud" {
   type        = "service"
 
   meta {
-    version = "4"
+      job_file = "nomad_jobs/personal-cloud/nextcloud/nomad.job"
+version = "4"
   }
 
   constraint {

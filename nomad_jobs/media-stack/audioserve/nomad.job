@@ -4,7 +4,8 @@ job "audioserve" {
   type        = "service"
 
   meta {
-    version = "1"
+      job_file = "nomad_jobs/media-stack/audioserve/nomad.job"
+version = "1"
   }
 
   constraint {

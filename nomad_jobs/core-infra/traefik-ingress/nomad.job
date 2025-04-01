@@ -3,7 +3,8 @@ job "traefik-ingress" {
   datacenters = ["public"]
   type = "service"
   meta {
-    version = "1"
+      job_file = "nomad_jobs/core-infra/traefik-ingress/nomad.job"
+version = "1"
   }
 
   group "lbs" {

@@ -1,5 +1,9 @@
 job "loki" {
-  region      = var.region
+  
+  meta {
+  job_file = "nomad_jobs/observability/loki/nomad.job"
+  }
+region      = var.region
   datacenters = ["dc1"]
   type        = "service"
 

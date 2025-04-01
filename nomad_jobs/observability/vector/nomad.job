@@ -1,5 +1,9 @@
 job "vector" {
-  datacenters = ["dc1"]
+  
+  meta {
+  job_file = "nomad_jobs/observability/vector/nomad.job"
+  }
+datacenters = ["dc1"]
   region = var.region
   type = "system"
   group "vector" {

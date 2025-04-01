@@ -4,7 +4,8 @@ job "owntracks-recorder" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/smart-home/owntracks-recorder/nomad.job"
+version = "2"
   }
 
   constraint {

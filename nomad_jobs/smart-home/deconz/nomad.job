@@ -4,7 +4,8 @@ job "deconz" {
   type        = "service"
 
   meta {
-    service_owner = "@pmanuk"
+      job_file = "nomad_jobs/smart-home/deconz/nomad.job"
+service_owner = "@pmanuk"
     version = "1"
   }
 

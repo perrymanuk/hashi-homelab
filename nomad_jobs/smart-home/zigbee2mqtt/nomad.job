@@ -10,7 +10,8 @@ job "zigbee2mqtt" {
   }
 
   meta {
-    service_owner = "@pmanuk"
+      job_file = "nomad_jobs/smart-home/zigbee2mqtt/nomad.job"
+service_owner = "@pmanuk"
     version = "15"
   }
 

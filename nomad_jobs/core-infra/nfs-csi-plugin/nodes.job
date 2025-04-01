@@ -1,5 +1,9 @@
 job "plugin-nfs-nodes" {
-  datacenters = ["dc1"]
+  
+  meta {
+  job_file = "nomad_jobs/core-infra/nfs-csi-plugin/nodes.job"
+  }
+datacenters = ["dc1"]
   # you can run node plugins as service jobs as well, but this ensures
   # that all nodes in the DC have a copy.
   type = "system"

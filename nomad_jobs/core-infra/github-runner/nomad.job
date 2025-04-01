@@ -3,7 +3,8 @@ job "github-runner" {
   type        = "service"
 
   meta {
-    version = "0"
+      job_file = "nomad_jobs/core-infra/github-runner/nomad.job"
+version = "0"
   }
 
   group "runners" {

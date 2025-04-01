@@ -1,5 +1,9 @@
 job "democratic-csi-iscsi-node" {
-  datacenters = ["dc1"]
+  
+  meta {
+  job_file = "nomad_jobs/core-infra/iscsi-csi-plugin/node.job"
+  }
+datacenters = ["dc1"]
   priority = 100
   # you can run node plugins as service jobs as well, but this ensures
   # that all nodes in the DC have a copy

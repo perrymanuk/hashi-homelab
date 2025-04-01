@@ -4,7 +4,8 @@ job "litellm" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/ai-ml/litellm/nomad.job"
+version = "2"
   }
 
   constraint {

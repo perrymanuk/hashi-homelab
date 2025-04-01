@@ -5,7 +5,8 @@ job "coredns" {
   priority    = 100
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/core-infra/coredns/nomad.job"
+version = "2"
   }
 
   constraint {

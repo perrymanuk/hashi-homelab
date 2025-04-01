@@ -3,7 +3,8 @@ job "uploader" {
   datacenters = ["dc1"]
   type = "service"
   meta {
-    version = "3"
+      job_file = "nomad_jobs/misc/uploader/nomad.job"
+version = "3"
   }
 
   group "webserver" {

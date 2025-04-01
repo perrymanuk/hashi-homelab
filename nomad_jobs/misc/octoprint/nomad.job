@@ -4,7 +4,8 @@ job "octoprint" {
   type        = "service"
 
   meta {
-    version = "4"
+      job_file = "nomad_jobs/misc/octoprint/nomad.job"
+version = "4"
   }
 
   constraint {

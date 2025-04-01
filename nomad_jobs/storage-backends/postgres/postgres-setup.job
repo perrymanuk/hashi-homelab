@@ -3,7 +3,8 @@ job "postgres-setup" {
   datacenters = ["dc1"]
   
   meta {
-    version = "2"
+      job_file = "nomad_jobs/storage-backends/postgres/postgres-setup.job"
+version = "2"
   }
   
   group "setup" {

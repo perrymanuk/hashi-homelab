@@ -1,5 +1,9 @@
 job "blackbox-exporter" {
-  region      = var.region
+  
+  meta {
+  job_file = "nomad_jobs/observability/blackbox-exporter/nomad.job"
+  }
+region      = var.region
   datacenters = ["dc1"]
   type = "system"
 

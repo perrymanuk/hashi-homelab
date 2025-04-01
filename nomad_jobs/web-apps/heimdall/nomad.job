@@ -4,7 +4,8 @@ job "heimdall" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/web-apps/heimdall/nomad.job"
+version = "2"
   }
 
   constraint {

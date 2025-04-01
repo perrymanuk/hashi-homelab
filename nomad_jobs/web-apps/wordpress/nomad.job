@@ -1,5 +1,9 @@
 job "wordpress" {
-  region = var.region
+  
+  meta {
+  job_file = "nomad_jobs/web-apps/wordpress/nomad.job"
+  }
+region = var.region
   datacenters = ["dc1"]
 
   constraint {

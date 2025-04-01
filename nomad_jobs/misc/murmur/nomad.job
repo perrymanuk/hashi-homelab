@@ -4,7 +4,8 @@ job "murmur" {
   type        = "service"
 
   meta {
-    service_owner = "@pmanuk"
+      job_file = "nomad_jobs/misc/murmur/nomad.job"
+service_owner = "@pmanuk"
     version = "2"
   }
 

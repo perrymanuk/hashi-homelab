@@ -1,5 +1,9 @@
 job "gitea" {
-  region = var.region
+  
+  meta {
+  job_file = "nomad_jobs/misc/gitea/nomad.job"
+  }
+region = var.region
   datacenters = ["dc1"]
   type = "service"
     group "svc" {

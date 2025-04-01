@@ -1,5 +1,9 @@
 job "plugin-nfs-controller" {
-  datacenters = ["dc1"]
+  
+  meta {
+  job_file = "nomad_jobs/core-infra/nfs-csi-plugin/controller.job"
+  }
+datacenters = ["dc1"]
   group "controller" {
     task "plugin" {
       driver = "docker"

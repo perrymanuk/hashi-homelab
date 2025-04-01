@@ -4,7 +4,8 @@ job "adb" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/misc/adb/nomad.job"
+version = "2"
   }
 
   constraint {

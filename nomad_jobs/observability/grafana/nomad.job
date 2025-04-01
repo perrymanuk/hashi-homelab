@@ -4,7 +4,8 @@ job "grafana" {
   type        = "service"
 
   meta {
-    version = "2"
+      job_file = "nomad_jobs/observability/grafana/nomad.job"
+version = "2"
   }
 
   constraint {
