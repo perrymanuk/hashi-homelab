@@ -3,43 +3,41 @@
 
 include ./.bootstrap.mk
 
-# Define the parent directories where service jobs reside
-SERVICE_DIRS = core-infra observability storage-backends media-stack smart-home personal-cloud ai-ml web-apps misc developer-tools utilities
-
-# Define base deployments using their new paths
-base_deployments = core-infra/coredns storage-backends/docker-registry core-infra/haproxy
+# Define base deployments using their service names
+base_deployments = coredns docker-registry haproxy
 
 #help: # Placeholder for potential future help generation
 
-# Find the nomad job file for a given service name ($*) within SERVICE_DIRS
+# Find the nomad job file for a given service name ($1) within nomad_jobs/ structure
 # Usage: $(call find_job_file, service_name)
-find_job_file = $(shell find $(SERVICE_DIRS) -maxdepth 2 -type f \( -name '$1.job' -o -name '$1.nomad' \) -print -quit)
+# Example: $(call find_job_file, coredns) -> nomad_jobs/core-infra/coredns/coredns.job (or .nomad)
+find_job_file = $(shell find nomad_jobs/ -mindepth 2 -maxdepth 3 -type f \( -name '$1.job' -o -name '$1.nomad' \) -print -quit)
 
 .PHONY: dc1-%
-dc1-%: ## Deploy specific job to dc1 (searches within structured dirs)
+dc1-%: ## Deploy specific job to dc1 (searches within nomad_jobs/ structure)
 	@JOB_FILE=$(call find_job_file,$*); \
 	if [ -z "$$JOB_FILE" ]; then \
-		echo "Error: Could not find nomad job file for '$*' in $(SERVICE_DIRS)."; \
+		echo "Error: Could not find nomad job file for '$*' in nomad_jobs/."; \
 		exit 1; \
 	fi; \
 	echo "Found job file: $$JOB_FILE"; \
 	nomad job run -var datacenters='["dc1"]' $$JOB_FILE
 
 .PHONY: all-%
-all-%: ## Deploy specific job to all DCs (searches within structured dirs)
+all-%: ## Deploy specific job to all DCs (searches within nomad_jobs/ structure)
 	@JOB_FILE=$(call find_job_file,$*); \
 	if [ -z "$$JOB_FILE" ]; then \
-		echo "Error: Could not find nomad job file for '$*' in $(SERVICE_DIRS)."; \
+		echo "Error: Could not find nomad job file for '$*' in nomad_jobs/."; \
 		exit 1; \
 	fi; \
 	echo "Found job file: $$JOB_FILE"; \
 	nomad job run -var datacenters='["dc1", "hetzner"]' $$JOB_FILE
 
 .PHONY: deploy-%
-deploy-%: ## Deploy specific job from sub folder (searches within structured dirs)
+deploy-%: ## Deploy specific job (searches within nomad_jobs/ structure)
 	@JOB_FILE=$(call find_job_file,$*); \
 	if [ -z "$$JOB_FILE" ]; then \
-		echo "Error: Could not find nomad job file for '$*' in $(SERVICE_DIRS)."; \
+		echo "Error: Could not find nomad job file for '$*' in nomad_jobs/."; \
 		exit 1; \
 	fi; \
 	echo "Found job file: $$JOB_FILE"; \
@@ -48,7 +46,15 @@ deploy-%: ## Deploy specific job from sub folder (searches within structured dir
 .PHONY: deploy-base
 deploy-base: ## Deploys base jobs (coredns, docker-registry, haproxy) to dc1
 	@echo "Deploying base services to dc1: $(base_deployments)"
-	$(foreach var,$(base_deployments), nomad job run -var datacenters='["dc1"]' $(var)/nomad.job;)
+	$(foreach var,$(base_deployments), \
+	    @JOB_FILE=$$(call find_job_file,$(var)); \
+	    if [ -z "$$JOB_FILE" ]; then \
+	        echo "Error: Could not find nomad job file for base deployment '$(var)' in nomad_jobs/."; \
+	        exit 1; \
+	    fi; \
+	    echo "Deploying $(var) from $$JOB_FILE..."; \
+	    nomad job run -var datacenters='["dc1"]' $$JOB_FILE; \
+	)
 
 .PHONY: sslkeys
 sslkeys: ## Generate certs if you have SSL enabled
@@ -71,13 +77,10 @@ sync-secrets: ## Build and run the GitHub secret sync container
 .PHONY: build-gcp-dns-updater
 build-gcp-dns-updater: ## Build the gcp-dns-updater Docker image
 	@echo "Building gcp-dns-updater Docker image..."
-	# Assumes gcp-dns-updater is moved to misc/
-	docker build --platform linux/amd64 -t docker-registry.demonsafe.com/gcp-dns-updater:latest misc/gcp-dns-updater/
+	# Assumes gcp-dns-updater is in nomad_jobs/misc/gcp-dns-updater/
+	docker build --platform linux/amd64 -t docker-registry.demonsafe.com/gcp-dns-updater:latest nomad_jobs/misc/gcp-dns-updater/
 
 # Example deployment target for gcp-dns-updater (if needed, uncomment and adjust)
 #.PHONY: deploy-gcp-dns-updater
-#deploy-gcp-dns-updater: ## Deploy gcp-dns-updater job
-#	@echo "Deploying gcp-dns-updater..."
-#	# Assumes gcp-dns-updater is moved to misc/
-#	nomad job run misc/gcp-dns-updater/nomad.job
-
+#deploy-gcp-dns-updater: ## Deploy gcp-dns-updater job using generic target
+#	$(MAKE) deploy-gcp-dns-updater

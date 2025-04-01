@@ -24,8 +24,8 @@ jobs:
         filters: |
           volumes:
             # Keep broad for now, refine if needed
-            - '**/volume.hcl'
-            - 'media-stack/plex/plex-database-volume.hcl' # Updated path
+            - 'nomad_jobs/**/volume.hcl' # Updated path
+            - 'nomad_jobs/media-stack/plex/plex-database-volume.hcl' # Updated path
 
     - uses: dorny/paths-filter@v3
       id: filter
@@ -34,32 +34,32 @@ jobs:
         filters: |
           nomadjobs:
             # Updated paths based on directory restructure
-            - 'media-stack/plex/*.job'
-            - 'media-stack/sonarr/*.job'
-            - 'media-stack/radarr/*.job'
-            - 'media-stack/lidarr/*.job'
-            - 'storage-backends/postgres/*.job'
-            - 'web-apps/paperless/*.job'
-            - 'storage-backends/mariadb/*.job'
-            - 'core-infra/coredns/*.job'
-            - 'developer-tools/docker-registry/*.job'
-            - 'developer-tools/github-runner/*.job'
-            - 'storage-backends/iscsi-csi-plugin/*.job'
-            - 'core-infra/keepalived/*.job'
-            - 'observability/pihole/*.job'
-            - 'media-stack/sabnzbd/*.job'
-            - 'media-stack/sickchill/*.job'
-            - 'core-infra/smtp/*.job'
-            - 'web-apps/www/*.job'
-            - 'ai-ml/ollama/*.job'
-            - 'ai-ml/open-webui/*.job'
-            - 'ai-ml/paperless-ai/*.job'
-            - 'misc/gcp-dns-updater/*.job'
+            - 'nomad_jobs/media-stack/plex/*.job'
+            - 'nomad_jobs/media-stack/sonarr/*.job'
+            - 'nomad_jobs/media-stack/radarr/*.job'
+            - 'nomad_jobs/media-stack/lidarr/*.job'
+            - 'nomad_jobs/storage-backends/postgres/*.job'
+            - 'nomad_jobs/web-apps/paperless/*.job'
+            - 'nomad_jobs/storage-backends/mariadb/*.job'
+            - 'nomad_jobs/core-infra/coredns/*.job'
+            - 'nomad_jobs/developer-tools/docker-registry/*.job'
+            - 'nomad_jobs/developer-tools/github-runner/*.job'
+            - 'nomad_jobs/storage-backends/iscsi-csi-plugin/*.job'
+            - 'nomad_jobs/core-infra/keepalived/*.job'
+            - 'nomad_jobs/observability/pihole/*.job'
+            - 'nomad_jobs/media-stack/sabnzbd/*.job'
+            - 'nomad_jobs/media-stack/sickchill/*.job'
+            - 'nomad_jobs/core-infra/smtp/*.job'
+            - 'nomad_jobs/web-apps/www/*.job'
+            - 'nomad_jobs/ai-ml/ollama/*.job'
+            - 'nomad_jobs/ai-ml/open-webui/*.job'
+            - 'nomad_jobs/ai-ml/paperless-ai/*.job'
+            - 'nomad_jobs/misc/gcp-dns-updater/*.job'
             # Added paths for core-infra services moved during restructure
-            - 'core-infra/tailscale-este/*.job'
-            - 'core-infra/traefik-forward-auth/*.job'
-            - 'core-infra/traefik-ingress/*.job'
-            - 'core-infra/nfs-csi-plugin/*.job'
+            - 'nomad_jobs/core-infra/tailscale-este/*.job'
+            - 'nomad_jobs/core-infra/traefik-forward-auth/*.job'
+            - 'nomad_jobs/core-infra/traefik-ingress/*.job'
+            - 'nomad_jobs/core-infra/nfs-csi-plugin/*.job'
 
   add_volumes:
     runs-on: self-hosted
