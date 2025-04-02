@@ -1,10 +1,17 @@
 FROM python:3.13-slim
 
+# Set the working directory in the container
 WORKDIR /app
 
+# Copy the requirements file into the container at /app
 COPY requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+# Using --no-cache-dir to reduce image size
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY sync_secrets.py .
+# Copy the current directory contents into the container at /app
+COPY update_dns.py .
 
-ENTRYPOINT ["python", "sync_secrets.py"]
+# Define the command to run the application
+CMD ["python", "update_dns.py"]

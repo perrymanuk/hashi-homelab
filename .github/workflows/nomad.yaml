@@ -60,6 +60,8 @@ jobs:
             - 'nomad_jobs/core-infra/traefik-forward-auth/*.job'
             - 'nomad_jobs/core-infra/traefik-ingress/*.job'
             - 'nomad_jobs/core-infra/nfs-csi-plugin/*.job'
+            # Add Firecrawl job path
+            - 'nomad_jobs/web-apps/firecrawl/*.job'
 
   add_volumes:
     runs-on: self-hosted

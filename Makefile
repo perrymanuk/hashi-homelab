@@ -74,11 +74,17 @@ sync-secrets: ## Build and run the GitHub secret sync container
 		-e GITHUB_TOKEN="$$NOMAD_VAR_github_pat" \
 		sync-secrets:latest
 
+.PHONY: build-update-metadata
+build-update-metadata: ## Build the update-metadata Docker image
+	@echo "Building update-metadata Docker image..."
+	# Assumes update-metadata is in docker_images/update-metadata/
+	docker build --platform linux/amd64 -t update-metadata:latest docker_images/update-metadata/
+
 .PHONY: build-gcp-dns-updater
-build-gcp-dns-update: ## Build the gcp-dns-update Docker image
+build-gcp-dns-updater: ## Build the gcp-dns-updater Docker image
 	@echo "Building gcp-dns-updater Docker image..."
-	# Assumes gcp-dns-updater is in docker_images/gcp-dns-update/
-	docker build --platform linux/amd64 -t docker-registry.demonsafe.com/gcp-dns-update:latest docker_images/gcp-dns-update/
+	# Assumes gcp-dns-updater is in docker_images/gcp-dns-updater/
+	docker build --platform linux/amd64 -t docker.$$NOMAD_VAR_tld/gcp-dns-updater:latest docker_images/gcp-dns-updater/
 
 # Example deployment target for gcp-dns-updater (if needed, uncomment and adjust)
 #.PHONY: deploy-gcp-dns-updater

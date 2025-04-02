@@ -1,2 +1,3 @@
-PyGithub
-hcl2
+google-cloud-dns
+requests
+google-auth

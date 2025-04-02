@@ -5,7 +5,8 @@ import logging
 import sys
 import base64
 import json
-import time  # Moved import to top
+import time
+import socket # Added import
 
 # Import GCP specific libraries
 from google.cloud import dns
@@ -179,6 +180,26 @@ if __name__ == "__main__":
     project_id, zone_name, record_name, key_b64 = get_env_vars()
     public_ip = get_public_ip()
 
+    # DNS Pre-check logic
+    if public_ip:
+        hostname_to_check = 'asdf.demonsafe.com' # Define the specific hostname to check
+        logging.info(f"Performing pre-check for hostname: {hostname_to_check}")
+        try:
+            resolved_ip = socket.gethostbyname(hostname_to_check)
+            logging.info(f"Resolved IP for {hostname_to_check}: {resolved_ip}")
+            if resolved_ip == public_ip:
+                logging.info(f'DNS record for {hostname_to_check} ({resolved_ip}) already matches public IP ({public_ip}). No update needed.')
+                sys.exit(0) # Exit cleanly if IP matches
+            else:
+                logging.info(f'Resolved IP for {hostname_to_check} ({resolved_ip}) does not match public IP ({public_ip}). Proceeding with potential update.')
+        except socket.gaierror as e:
+            # Log a warning if DNS resolution fails, but continue the script
+            logging.warning(f'Could not resolve IP for {hostname_to_check}: {e}. Proceeding with potential update.')
+        except Exception as e:
+            # Catch other potential socket errors
+            logging.warning(f'An unexpected error occurred during DNS pre-check for {hostname_to_check}: {e}. Proceeding with potential update.')
+
+    # Proceed with DNS update logic only if public IP was obtained and pre-check didn't exit
     if public_ip:
         # Pass key_b64 and project_id to get_dns_client
         dns_client = get_dns_client(key_b64, project_id)

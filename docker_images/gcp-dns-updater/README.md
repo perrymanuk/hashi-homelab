@@ -1,56 +1,101 @@
-# GitHub Secret Synchronization Script (Containerized)
+# GCP Dynamic DNS Updater Service
 
-## Purpose
+This service periodically checks the public IPv4 address of the node it's running on and updates a specified A record in a Google Cloud DNS managed zone. It's designed to run as a Nomad job within the Hashi-Homelab environment, utilizing a **pre-built Docker image**.
 
-This script (`sync_secrets.py`), running inside a Docker container, reads environment variables defined in the project's root `.envrc` file and synchronizes them as GitHub secrets to the `perrymanuk/hashi-homelab` repository using the `PyGithub` library.
+## Features
 
-## Requirements
+*   Fetches the current public IPv4 address from `https://v4.ifconfig.co/ip`.
+*   Uses the `google-cloud-dns` Python SDK to interact with Google Cloud DNS.
+*   Authenticates using a GCP Service Account key provided via an environment variable.
+*   Checks the specified DNS record:
+    *   If it's a CNAME, it deletes the CNAME record.
+    *   If it's an A record, it updates the IP address if it has changed.
+    *   If it doesn't exist (or after deleting a CNAME), it creates the A record with the specified TTL.
+*   Runs periodically via a Nomad job, executing the Python script within the pre-built Docker container.
 
-*   **Docker:** Docker must be installed and running to build and execute the container.
-*   **`NOMAD_VAR_github_pat` Environment Variable:** A GitHub Personal Access Token (PAT) with the `repo` scope must be available as an environment variable named `NOMAD_VAR_github_pat` in the **host shell** where you run the `make` command. The Makefile target (`sync-secrets`) will handle passing this token into the container under the name `GITHUB_TOKEN` for the script to use.
-*   **`.envrc` File:** An `.envrc` file must exist at the project root (`/Users/perry.manuk/git/perrymanuk/hashi-homelab/.envrc`) containing the secrets to sync.
+## Prerequisites
 
-## Usage
+1.  **Docker:** Docker must be installed locally to build the service image.
+2.  **GCP Service Account:** You need a Google Cloud Platform service account with the necessary permissions to manage DNS records.
+    *   Go to the GCP Console -> IAM & Admin -> Service Accounts.
+    *   Create a new service account (e.g., `gcp-dns-updater-sa`).
+    *   Grant this service account the `DNS Administrator` role (`roles/dns.admin`) on the project containing your managed zone.
+    *   Create a JSON key file for this service account and download it securely. You will need the *contents* of this file, not the file itself.
+3.  **Nomad Environment:** A running Nomad cluster where this job can be scheduled. The Nomad clients must have Docker installed and configured.
 
-1.  **Ensure `NOMAD_VAR_github_pat` is set:** Export your GitHub PAT in your current host shell session:
-    ```bash
-    export NOMAD_VAR_github_pat="your_github_pat_here"
-    ```
-2.  **Navigate to the project root directory:**
-    ```bash
-    cd /Users/perry.manuk/git/perrymanuk/hashi-homelab
-    ```
-3.  **Run the Makefile target:**
-    ```bash
-    make sync-secrets
-    ```
+## Configuration
 
-This command will:
-    *   Build the Docker image defined in `scripts/Dockerfile`.
-    *   Run a container from the image.
-    *   Mount the host's `.envrc` file into the container.
-    *   Pass the **host's** `NOMAD_VAR_github_pat` environment variable into the container as `GITHUB_TOKEN`.
-    *   Execute the `sync_secrets.py` script within the container.
+The service is configured via environment variables passed to the Nomad task, which are then consumed by the `update_dns.py` script running inside the Docker container:
 
-The script will output the status of each secret synchronization attempt (created, updated, or failed).
+*   `GCP_DNS_ZONE_NAME`: The name of the managed zone in GCP DNS (e.g., `demonsafe-com`). The script derives the Project ID from the credentials.
+*   `GCP_DNS_RECORD_NAME`: The DNS record name to update (e.g., `*.demonsafe.com`). **Note:** The script expects the base name; the trailing dot is handled internally if needed by the SDK.
+*   `RECORD_TTL`: (Optional) The Time-To-Live (in seconds) for the created/updated A record. Defaults to 300 if not set.
+*   `GCP_PROJECT_ID`: The Google Cloud Project ID containing the DNS zone.
+*   `GCP_SERVICE_ACCOUNT_KEY_B64`: **Required.** The base64-encoded *content* of the GCP service account JSON key file.
 
-**Important:** Running the script will overwrite any existing secrets in the GitHub repository that have the same name as variables found in the `.envrc` file.
+**Generating the Base64 Key:**
 
-## `.envrc` Format
+You need to encode the *content* of your downloaded JSON key file into a single-line base64 string.
 
-The script expects the `.envrc` file to follow this format:
-
+On Linux/macOS, you can use:
 ```bash
-export VARIABLE_NAME=value
-export ANOTHER_VARIABLE='value with spaces'
-export YET_ANOTHER="double quoted value"
-# This is a comment and will be ignored
+base64 -w 0 < /path/to/your/gcp_key.json
+```
+*(Ensure you use `-w 0` or an equivalent flag for your `base64` command to prevent line wrapping)*
 
-# Empty lines are also ignored
-export SECRET_KEY=a_very_secret_value_here
+Copy the resulting string.
+
+**Setting Environment Variables in Nomad:**
+
+These variables are defined within the `env` block of the `nomad.job` file using Go templating to read runtime environment variables provided by the Nomad agent (which in turn are often sourced from the deployment mechanism, like GitHub Actions):
+
+```hcl
+# Example within nomad.job task config
+env {
+  GCP_DNS_ZONE_NAME = <<EOH
+{{ env "NOMAD_VAR_tld" | replace "." "-" }}
+EOH
+  GCP_DNS_RECORD_NAME = <<EOH
+*.{{ env "NOMAD_VAR_tld" }}
+EOH
+  GCP_SERVICE_ACCOUNT_KEY_B64 = <<EOH
+{{ env "NOMAD_VAR_gcp_dns_admin" }}
+EOH
+  GCP_PROJECT_ID = <<EOH
+{{ env "NOMAD_VAR_gcp_project_id" }}
+EOH
+  # RECORD_TTL = "300" # Optional, defaults to 300 in the script
+}
 ```
 
-*   Lines must start with `export`.
-*   Variable names and values are separated by `=`.
-*   Values can be unquoted, single-quoted (`'...'`), or double-quoted (`"..."`). Quotes are stripped before syncing.
-*   Lines starting with `#` (comments) and empty lines are ignored.
+**Important:** The actual values for `NOMAD_VAR_tld`, `NOMAD_VAR_gcp_dns_admin`, and `NOMAD_VAR_gcp_project_id` **must** be provided securely to the Nomad agent's environment during deployment (e.g., via GitHub Actions secrets mapped in the workflow, or using Vault integration), not hardcoded directly in the job file.
+
+## Deployment
+
+1.  **Ensure Prerequisites:** Verify the service account is created, you have the base64 encoded key, and Docker is running.
+2.  **Build the Docker Image:** From the root of the `hashi-homelab` repository, run the make target:
+    ```bash
+    make build-gcp-dns-updater
+    ```
+    This builds the required Docker image tagged `gcp-dns-updater:latest` using the `gcp-dns-updater/Dockerfile`.
+3.  **Deploy the Nomad Job:**
+    *   Ensure the required environment variables (`NOMAD_VAR_tld`, `NOMAD_VAR_gcp_dns_admin`, `NOMAD_VAR_gcp_project_id`) are available to the Nomad agent running the job. This is typically handled by the CI/CD pipeline (like the GitHub Actions workflow in this repo) or Vault integration.
+    *   Deploy using the Nomad CLI (ensure you are in the repository root or adjust paths). This job will use the `gcp-dns-updater:latest` image built in the previous step:
+        ```bash
+        # The job will read variables from its environment
+        nomad job run gcp-dns-updater/nomad.job
+        ```
+    *   Alternatively, if using the project's Makefile structure:
+        ```bash
+        # Assumes the Makefile's deploy target doesn't need extra vars
+        # and that required env vars are set in the deployment runner
+        make deploy-gcp-dns-updater
+        ```
+
+## Files
+
+*   `update_dns.py`: The core Python script for updating DNS (runs inside the container).
+*   `requirements.txt`: Python dependencies (installed during Docker build).
+*   `Dockerfile`: Defines how to build the service's Docker image.
+*   `nomad.job`: Nomad job definition for periodic execution using the `gcp-dns-updater:latest` Docker image.
+*   `README.md`: This documentation file.
