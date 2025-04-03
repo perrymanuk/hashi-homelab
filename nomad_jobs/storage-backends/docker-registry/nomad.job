@@ -35,7 +35,7 @@ version = "2"
     task "docker-registry" {
       driver = "docker"
       config {
-        image = "registry:2.8.3"
+        image = "registry:3.0.0"
         ports = ["http"]
         network_mode = "host"
       }
