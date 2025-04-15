@@ -47,7 +47,7 @@ region = var.region
       }
 
       config {
-        image = "mysql:9.2"
+        image = "mysql:9.3"
         volumes = [
           "${var.shared_dir}wordpress-db:/var/lib/mysql",
         ]
