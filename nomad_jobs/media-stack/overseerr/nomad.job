@@ -1,0 +1,75 @@
+job "overseerr" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/overseerr/nomad.job"
+    version = "1"
+  }
+
+  group "media" {
+    count = 1 
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = 5055
+      }
+    }
+
+    volume "overseerr" {
+      type      = "csi"
+      read_only = false
+      source    = "overseerr"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "overseerr" {
+      driver = "docker"
+      config {
+        image = "sctx/overseerr:latest"
+        ports = ["http"]
+      }
+
+      volume_mount {
+        volume      = "overseerr"
+        destination = "/app/config"
+        read_only   = false
+      }
+
+      env {
+        TZ = "Etc/UTC"
+        LOG_LEVEL = "info"
+      }
+      
+      service {
+        port = "http"
+        name = "overseerr"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "tld" {
+    type = string
+}
