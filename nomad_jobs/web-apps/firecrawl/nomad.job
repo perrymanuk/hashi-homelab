@@ -1,0 +1,53 @@
+job "firecrawl" {
+  region      = "global"
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/web-apps/firecrawl/nomad.job" 
+    version  = "0.1.2" 
+  }
+
+  group "firecrawl" {
+    count = 1
+
+    network {
+      mode = "host"
+      port "http" {
+        to     = 3002
+      }
+    }
+
+    task "firecrawl" {
+      driver = "docker"
+
+      config {
+        image = "mendable/firecrawl:0.1.23" 
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 500 # MHz
+        memory = 512 # MiB
+      }
+
+      env {
+        PORT = "3002"
+      }
+
+      service {
+        name = "firecrawl"
+        port = "http"
+        tags = ["traefik.enable=true"]
+
+        check {
+          type     = "http" # Changed from tcp
+          path     = "/"    # Added health check path
+          port     = "http"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+    }
+  }
+}
