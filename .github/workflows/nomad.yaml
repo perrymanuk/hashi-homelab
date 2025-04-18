@@ -147,7 +147,6 @@ jobs:
         NOMAD_VAR_truenas_iscsi_pass: ${{ secrets.NOMAD_VAR_truenas_iscsi_pass }}
         # Added gcp_project_id
         NOMAD_VAR_gcp_project_id: ${{ secrets.NOMAD_VAR_gcp_project_id }}
-        # Added from .envrc based on research note 29
-        NOMAD_VAR_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: ${{ secrets.NOMAD_VAR_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 }}
+        # GitHub PAT is now stored securely in secrets
         NOMAD_VAR_truenass_iscsi_pass: ${{ secrets.NOMAD_VAR_truenass_iscsi_pass }} # Note potential typo in name
         NOMAD_VAR_dns_zone: ${{ secrets.NOMAD_VAR_dns_zone }}
