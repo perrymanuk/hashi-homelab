@@ -39,7 +39,7 @@ job "neo4j" {
       driver = "docker"
 
       config {
-        image = "neo4j:5.18"
+        image = "neo4j:5.26"
         ports = ["http", "https", "bolt"]
       }
 
