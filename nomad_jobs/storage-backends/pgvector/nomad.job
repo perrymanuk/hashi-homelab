@@ -1,0 +1,70 @@
+job "pgvector" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/storage-backends/pgvector/nomad.job"
+    version = "1"  // Initial version
+  }
+
+  group "db" {
+    network {
+      mode = "host"
+      port "pgvector" {
+        static = "5432"  // Using a different port from standard PostgreSQL
+        host_network = "lan"
+      }
+    }
+    
+    task "pgvector" {
+      driver = "docker"
+
+      config {
+        image = "pgvector/pgvector:pg16"  // Using the official pgvector image with PostgreSQL 16
+        volumes = [
+          "${var.shared_dir}pgvector-data:/var/lib/postgresql/data",
+        ]
+        ports = ["pgvector"]
+      }
+
+      env {
+        POSTGRES_DB       = "vectordb"
+        POSTGRES_USER     = "postgres"
+        POSTGRES_PASSWORD = "${var.pgvector_admin_password}"
+        PGDATA            = "/var/lib/postgresql/data"
+      }
+
+      service {
+        name = "${NOMAD_JOB_NAME}"
+        tags = ["pgvector", "database", "vector-database"]
+        port = "pgvector"
+
+        check {
+          type     = "tcp"
+          port     = "pgvector"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = "500"  // Slightly more CPU as vector operations can be demanding
+        memory = "1024" // More memory for vector operations
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
+
+variable "pgvector_admin_password" {
+    type = string
+    description = "Admin password for pgvector PostgreSQL instance"
+}

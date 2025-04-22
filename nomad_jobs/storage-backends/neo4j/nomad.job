@@ -1,0 +1,84 @@
+job "neo4j" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "service"
+
+  meta {
+    job_file = "nomad_jobs/storage-backends/neo4j/nomad.job"
+    version = "1"
+  }
+
+  group "neo4j" {
+    count = 1
+
+    network {
+      mode = "host"
+      port "http" {
+        static = 7474
+        host_network = "lan"
+      }
+      port "https" {
+        static = 7473
+        host_network = "lan"
+      }
+      port "bolt" {
+        static = 7687
+        host_network = "lan"
+      }
+    }
+
+    volume "neo4j-data" {
+      type            = "csi"
+      read_only       = false
+      source          = "neo4j-data"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "neo4j" {
+      driver = "docker"
+
+      config {
+        image = "neo4j:5.18"
+        ports = ["http", "https", "bolt"]
+      }
+
+      volume_mount {
+        volume      = "neo4j-data"
+        destination = "/data"
+        read_only   = false
+      }
+
+      env {
+        NEO4J_AUTH = "neo4j/ChAnGeMe"
+        NEO4J_PLUGINS = "[\"apoc\"]"
+        NEO4J_apoc_export_file_enabled = "true"
+        NEO4J_apoc_import_file_enabled = "true"
+        NEO4J_apoc_import_file_use__neo4j__config = "true"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 1600
+      }
+
+      service {
+        name = "neo4j"
+        tags = ["graph-db", "ai"]
+        port = "bolt"
+
+        check {
+          type     = "tcp"
+          port     = "bolt"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+    }
+  }
+
+}
+variable "region" {
+  type = string
+  default = "global"
+}

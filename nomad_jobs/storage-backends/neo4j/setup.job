@@ -1,0 +1,45 @@
+job "neo4j-setup" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "batch"
+
+  meta {
+    job_file = "nomad_jobs/storage-backends/neo4j/setup.job"
+    version = "2"
+  }
+
+  group "setup" {
+    task "neo4j-init" {
+      driver = "docker"
+
+      config {
+        image = "neo4j:5.18"
+        command = "cypher-shell"
+        args = [
+          "-a", "neo4j.service.consul:7687",
+          "-u", "neo4j", 
+          "-p", "ChAnGeMe",
+          "CREATE CONSTRAINT cognee_node_id IF NOT EXISTS FOR (n:CogneeNode) REQUIRE n.id IS UNIQUE;"
+        ]
+      }
+
+      template {
+        data = <<EOH
+NEO4J_PASSWORD="changeme"
+EOH
+        destination = "secrets/neo4j-config.env"
+        env = true
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+
+}
+variable "region" {
+  type = string
+  default = "global"
+}

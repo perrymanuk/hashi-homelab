@@ -1,0 +1,167 @@
+job "pgvector-client-example" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "batch"
+
+  meta {
+    job_file = "nomad_jobs/ai-ml/pgvector-client/nomad.job"
+    version = "1"  // Initial version
+  }
+
+  group "client" {
+    task "embedding-example" {
+      driver = "docker"
+
+      config {
+        image = "python:3.11-slim"
+        command = "python"
+        args = [
+          "/local/embedding-example.py"
+        ]
+      }
+
+      env {
+        PGVECTOR_HOST     = "pgvector.service.consul"
+        PGVECTOR_PORT     = "5433"
+        PGVECTOR_USER     = "postgres"
+        PGVECTOR_PASSWORD = "${var.pgvector_pass}"
+        PGVECTOR_DB       = "embeddings"
+      }
+
+      template {
+        data = <<EOH
+#!/usr/bin/env python3
+import os
+import time
+import psycopg2
+import numpy as np
+from psycopg2.extras import execute_values
+
+# PostgreSQL connection parameters
+pg_host = os.environ.get('PGVECTOR_HOST', 'pgvector.service.consul')
+pg_port = os.environ.get('PGVECTOR_PORT', '5433')
+pg_user = os.environ.get('PGVECTOR_USER', 'postgres')
+pg_password = os.environ.get('PGVECTOR_PASSWORD', '')
+pg_db = os.environ.get('PGVECTOR_DB', 'embeddings')
+
+# Function to create random embeddings for demo purposes
+def create_random_embedding(dim=1536):
+    """Create a random normalized embedding vector."""
+    vec = np.random.randn(dim)
+    # Normalize to unit vector (common practice for embeddings)
+    vec = vec / np.linalg.norm(vec)
+    return vec.tolist()
+
+# Connect to PostgreSQL with pgvector
+print(f"Connecting to pgvector at {pg_host}:{pg_port}")
+conn = psycopg2.connect(
+    host=pg_host,
+    port=pg_port,
+    user=pg_user,
+    password=pg_password,
+    dbname=pg_db
+)
+
+cursor = conn.cursor()
+
+# Ensure pgvector extension is enabled
+print("Ensuring pgvector extension is enabled...")
+cursor.execute("CREATE EXTENSION IF NOT EXISTS vector")
+
+# Create a table for storing document embeddings
+print("Creating documents table...")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS documents (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        embedding VECTOR(1536) NOT NULL,
+        metadata JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+""")
+
+# Create an index for efficient similarity search
+print("Creating vector index (this might take a while for large tables)...")
+try:
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS documents_embedding_idx
+        ON documents
+        USING ivfflat (embedding vector_cosine_ops)
+        WITH (lists = 100)
+    """)
+except Exception as e:
+    print(f"Warning: Could not create index: {e}")
+    print("Continuing without index...")
+
+# Sample documents
+print("Inserting sample documents...")
+documents = [
+    "The quick brown fox jumps over the lazy dog",
+    "Machine learning models can process vector embeddings efficiently",
+    "PostgreSQL with pgvector extension provides vector similarity search",
+    "Vector databases are essential for modern AI applications",
+    "Semantic search uses embeddings to find relevant results"
+]
+
+# Generate random embeddings and insert documents
+data = []
+for doc in documents:
+    embedding = create_random_embedding()
+    data.append((doc, embedding, {"source": "example"}))
+
+execute_values(
+    cursor,
+    """
+    INSERT INTO documents (content, embedding, metadata)
+    VALUES %s
+    RETURNING id
+    """,
+    data,
+    template="(%s, %s::vector, %s)"
+)
+
+print(f"Inserted {len(documents)} documents with embeddings")
+
+# Perform a similarity search
+print("\nPerforming similarity search...")
+query_embedding = create_random_embedding()
+
+cursor.execute("""
+    SELECT id, content, 1 - (embedding <=> %s) AS similarity
+    FROM documents
+    ORDER BY embedding <=> %s
+    LIMIT 3
+""", (query_embedding, query_embedding))
+
+results = cursor.fetchall()
+print("\nTop 3 most similar documents:")
+for id, content, similarity in results:
+    print(f"ID: {id}, Similarity: {similarity:.4f}")
+    print(f"Content: {content}")
+    print("-" * 50)
+
+# Commit and close
+conn.commit()
+cursor.close()
+conn.close()
+print("Example completed successfully!")
+EOH
+        destination = "local/embedding-example.py"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "pgvector_pass" {
+    type = string
+    description = "Admin password for pgvector PostgreSQL server"
+}

@@ -1,0 +1,74 @@
+job "qdrant" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "service"
+
+  meta {
+    job_file = "nomad_jobs/storage-backends/qdrant/nomad.job"
+    version = "1"
+  }
+
+  group "qdrant" {
+    count = 1
+
+    network {
+      mode = "host"
+      port "http" {
+        static = 6333
+        to = 6333
+        host_network = "lan"
+      }
+      port "grpc" {
+        static = 6334
+        to = 6334
+        host_network = "lan"
+      }
+    }
+
+    volume "qdrant-data" {
+      type = "csi"
+      read_only = false
+      source = "qdrant-data"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "qdrant" {
+      driver = "docker"
+
+      config {
+        image = "qdrant/qdrant:latest"
+        ports = ["http", "grpc"]
+      }
+
+      volume_mount {
+        volume      = "qdrant-data"
+        destination = "/qdrant/storage"
+        read_only   = false
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+
+      service {
+        name = "qdrant"
+        tags = ["vector-db", "ai", "http"]
+        port = "http"
+
+        check {
+          type     = "tcp"
+          port     = "http"
+          interval = "30s"
+          timeout  = "2s"
+        }
+      }
+    }
+  }
+
+}
+variable "region" {
+  type = string
+  default = "global"
+}

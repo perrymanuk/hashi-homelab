@@ -25,6 +25,7 @@ In the future I would like to provide a ready to boot image for a raspberry pi w
 * Keepalived: Assign a floating IP for DNS to not loose it if a node goes down.
 * Monitoring: Prometheus, Alertmanager, Telegraf, Blackbox-exporter, and Grafana  
 * Container Registry: Docker-Registry  *...because sometimes you don't want to rely on Docker Hub being up*  
+* Vector Database: PostgreSQL with pgvector extension for AI/ML vector embeddings storage and similarity search
 
 ### Setup
 

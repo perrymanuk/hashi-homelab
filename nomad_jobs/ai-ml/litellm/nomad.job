@@ -5,7 +5,7 @@ job "litellm" {
 
   meta {
       job_file = "nomad_jobs/ai-ml/litellm/nomad.job"
-version = "2"
+      version = "3"
   }
 
   constraint {
@@ -19,7 +19,7 @@ version = "2"
     network {
       port "http" {
         host_network = "lan"
-        to = "4000"
+        to = "4000"  # LiteLLM default port is 8000
       }
     }
 
@@ -29,6 +29,13 @@ version = "2"
       source    = "litellm"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
     }
 
     task "litellm" {
@@ -57,8 +64,9 @@ version = "2"
         AWS_REGION = "${var.bedrock_aws_region}"
         GOOGLE_API_KEY = "${var.gemini_api_key}"
         LITELLM_MASTER_KEY = "${var.litellm_master_key}"
+        #LITELLM_SALT_KEY = "${var.litellm_salt_key}"  # Added salt key for credential encryption
         DATABASE_URL = "postgresql://postgres:${var.postgres_pass}@postgres.service.consul:5432/litellm"
-        STORE_MODEL_IN_DB="True"
+        STORE_MODEL_IN_DB = "True"
       }
 
       template {
@@ -69,6 +77,7 @@ model_list:
     litellm_params:
       model: ollama/llama2
       api_base: ${var.ollama_base_url}
+
   - model_name: gpt-3.5-turbo
     litellm_params:
       model: ollama/llama2
@@ -77,15 +86,18 @@ model_list:
   # AWS Bedrock - Claude 3.7 Sonnet
   - model_name: anthropic.claude-3-7-sonnet-20250219-v1:0
     litellm_params:
-      model: bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0
-      model_id: eu.anthropic.claude-3-7-sonnet-20250219-v1:0
+      model: bedrock/eu.anthropic.claude-3-7-sonnet-20250219-v1:0
+      aws_access_key_id: ${var.aws_access_key}
+      aws_secret_access_key: ${var.aws_secret_key}
       bedrock_aws_region: ${var.bedrock_aws_region}
   
   # Google Gemini Pro 2.5
-  - model_name: gemini-2.5-pro
+  - model_name: gemini
     litellm_params:
-      model: gemini/gemini-2.5-pro-exp-03-25
       api_key: ${var.gemini_api_key}
+      vertex_project: "htg-infra"
+      vertex_location: "us-central1"
+
 
 litellm_settings:
   drop_params: True
@@ -95,6 +107,13 @@ litellm_settings:
     host: litellm-redis.service.consul
     port: 6379
     password: ""
+  # Log and trace settings
+  streaming: True
+  logging: True
+  # Added user management settings
+  user_api_key_backend: "postgres"
+  use_queue: True
+  num_workers: 4
 
 environment_variables:
   AWS_ACCESS_KEY_ID: ${var.aws_access_key}
@@ -102,6 +121,7 @@ environment_variables:
   AWS_REGION: ${var.bedrock_aws_region}
   GOOGLE_API_KEY: ${var.gemini_api_key}
   LITELLM_MASTER_KEY: ${var.litellm_master_key}
+  LITELLM_SALT_KEY: ${var.litellm_salt_key}
   DATABASE_URL: postgresql://postgres:${var.postgres_pass}@postgres.service.consul:5432/litellm
 EOH
         destination = "local/config.yaml"
@@ -115,16 +135,15 @@ EOH
           "traefik.enable=true"
         ]
         check {
-          type     = "http"
-          path     = "/health"
+          type     = "tcp"
           interval = "10s"
           timeout  = "2s"
         }
       }
 
       resources {
-        cpu    = 500
-        memory = 1024
+        cpu    = 800
+        memory = 1536
       }
     }
   }
@@ -150,7 +169,6 @@ EOH
       driver = "docker"
       config {
         image = "redis:7-alpine"
-        platform = "linux/amd64"
         ports = ["redis"]
       }
 
@@ -204,6 +222,11 @@ variable "gemini_api_key" {
 variable "litellm_master_key" {
     type = string
     description = "Master key for LiteLLM authentication"
+}
+
+variable "litellm_salt_key" {
+    type = string
+    description = "Salt key for encrypting provider credentials"
 }
 
 variable "postgres_pass" {
