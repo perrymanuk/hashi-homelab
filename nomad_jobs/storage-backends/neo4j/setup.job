@@ -13,7 +13,7 @@ job "neo4j-setup" {
       driver = "docker"
 
       config {
-        image = "neo4j:5.18"
+        image = "neo4j:5.26"
         command = "cypher-shell"
         args = [
           "-a", "neo4j.service.consul:7687",
