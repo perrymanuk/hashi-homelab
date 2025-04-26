@@ -4,8 +4,8 @@ job "crawl4ai" {
   type        = "service"
 
   meta {
-    job_file = "nomad_jobs/web-apps/crawl4ai/nomad.job"
-    version  = "1"
+    job_file = "nomad_jobs/ai-ml/crawl4ai/nomad.job"
+    version  = "2"
   }
 
   constraint {
@@ -94,6 +94,7 @@ llm:
 redis:
   host: "redis.service.consul"
   port: 6379
+  key_prefix: "crawl4ai:"
 
 # Rate Limiting Configuration
 rate_limit:
@@ -103,7 +104,7 @@ rate_limit:
     html: "120/minute" 
     screenshot: "30/minute"
     pdf: "15/minute"
-  storage_uri: "redis://redis.service.consul:6379"
+  storage_uri: "redis://redis.service.consul:6379/2"
 
 # Security Configuration
 security:

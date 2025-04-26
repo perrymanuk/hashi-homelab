@@ -5,7 +5,7 @@ job "paperless" {
 
   meta {
       job_file = "nomad_jobs/personal-cloud/paperless/nomad.job"
-version = "2"  // Incremented version number
+    version = "4"  // Incremented version number
   }
 
   constraint {
@@ -24,10 +24,6 @@ version = "2"  // Incremented version number
       }
       port "gotenberg" {
         static = "3000"
-        host_network = "lan"
-      }
-      port "redis" {
-        static = "6379"
         host_network = "lan"
       }
       port "paperless" {
@@ -63,12 +59,13 @@ version = "2"  // Incremented version number
       }
 
       template {
-data = <<EOH
+        data = <<EOH
 PAPERLESS_DBHOST="postgres.service.consul"
 PAPERLESS_DBPASS="${var.postgres_admin_password}"
 PAPERLESS_DBUSER="postgres"
 PAPERLESS_DBENGINE="postgres"
-PAPERLESS_REDIS="redis://paperless-redis.service.consul:6379"
+PAPERLESS_REDIS="redis://redis.service.consul:6379/1"
+PAPERLESS_REDIS_PREFIX="paperless"
 PAPERLESS_TIKA_ENABLED="true"
 PAPERLESS_TIKA_ENDPOINT="http://paperless-tika.service.consul:9998"
 PAPERLESS_TIKA_GOTENBERG_ENDPOINT="http://paperless-gotenberg.service.consul:3000"
@@ -134,35 +131,6 @@ EOH
       resources {
         cpu    = 500
         memory = 512
-      }
-    }
-    task "redis" {
-      driver = "docker"
-
-      config {
-        image = "redis"
-        ports = ["redis"]
-        volumes = [
-          "${var.shared_dir}paperless-redis:/data",
-        ]
-      }
-
-      service {
-        name = "${NOMAD_JOB_NAME}-${NOMAD_TASK_NAME}"
-        tags = ["${NOMAD_TASK_NAME}"]
-        port = "redis"
-
-        check {
-          type     = "tcp"
-          port     = "redis"
-          interval = "30s"
-          timeout  = "2s"
-        }
-      }
-
-      resources {
-        cpu    = 200
-        memory = 256
       }
     }
   }

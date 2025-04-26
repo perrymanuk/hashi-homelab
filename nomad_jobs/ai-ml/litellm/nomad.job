@@ -5,7 +5,7 @@ job "litellm" {
 
   meta {
       job_file = "nomad_jobs/ai-ml/litellm/nomad.job"
-      version = "3"
+      version = "4"
   }
 
   constraint {
@@ -104,9 +104,10 @@ litellm_settings:
   cache: True
   cache_params:
     type: redis
-    host: litellm-redis.service.consul
+    host: redis.service.consul
     port: 6379
     password: ""
+    namespace: litellm
   # Log and trace settings
   streaming: True
   logging: True
@@ -144,37 +145,6 @@ EOH
       resources {
         cpu    = 800
         memory = 1536
-      }
-    }
-  }
-
-  group "redis-cache" {
-    network {
-      port "redis" {
-        to = 6379
-      }
-    }
-
-    service {
-      name = "litellm-redis"
-      port = "redis"
-      check {
-        type     = "tcp"
-        interval = "10s"
-        timeout  = "2s"
-      }
-    }
-
-    task "redis" {
-      driver = "docker"
-      config {
-        image = "redis:7-alpine"
-        ports = ["redis"]
-      }
-
-      resources {
-        cpu    = 200
-        memory = 32
       }
     }
   }
