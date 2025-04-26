@@ -2,7 +2,7 @@ job "gcp-dns-updater" {
   
   meta {
     job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
-    version  = "1"
+    version  = "2"
   }
   type        = "batch"
   periodic {
