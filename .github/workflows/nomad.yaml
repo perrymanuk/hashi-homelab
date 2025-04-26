@@ -1,4 +1,3 @@
-
 on:
   push:
     branches:
@@ -39,7 +38,6 @@ jobs:
             - 'nomad_jobs/media-stack/radarr/*.job'
             - 'nomad_jobs/media-stack/lidarr/*.job'
             - 'nomad_jobs/storage-backends/postgres/*.job'
-            - 'nomad_jobs/web-apps/paperless/*.job'
             - 'nomad_jobs/storage-backends/mariadb/*.job'
             - 'nomad_jobs/core-infra/coredns/*.job'
             - 'nomad_jobs/developer-tools/docker-registry/*.job'
@@ -53,14 +51,11 @@ jobs:
             - 'nomad_jobs/web-apps/www/*.job'
             - 'nomad_jobs/ai-ml/ollama/*.job'
             - 'nomad_jobs/ai-ml/open-webui/*.job'
-            - 'nomad_jobs/ai-ml/paperless-ai/*.job'
             - 'nomad_jobs/misc/gcp-dns-updater/*.job'
-            # Added paths for core-infra services moved during restructure
             - 'nomad_jobs/core-infra/tailscale-este/*.job'
             - 'nomad_jobs/core-infra/traefik-forward-auth/*.job'
             - 'nomad_jobs/core-infra/traefik-ingress/*.job'
             - 'nomad_jobs/core-infra/nfs-csi-plugin/*.job'
-            # Add Firecrawl job path
             - 'nomad_jobs/web-apps/firecrawl/*.job'
 
   add_volumes:
@@ -76,7 +71,10 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # v4
 
-    - uses: lucasmelin/setup-nomad@v2
+    - name: Setup Nomad
+      uses: hashicorp/setup-nomad@v3
+      with:
+        nomad-version: "1.7.5"
 
     - name: deploy
       shell: bash
@@ -98,7 +96,10 @@ jobs:
     - name: 'Checkout'
       uses: 'actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683' # v4
 
-    - uses: lucasmelin/setup-nomad@v2
+    - name: Setup Nomad
+      uses: hashicorp/setup-nomad@v3
+      with:
+        nomad-version: "1.7.5"
 
     - name: deploy
       shell: bash
