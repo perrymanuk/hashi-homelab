@@ -1,0 +1,38 @@
+job "pgvector-setup" {
+  type = "batch"
+  datacenters = ["dc1"]
+  
+  meta {
+    job_file = "nomad_jobs/storage-backends/pgvector/pgvector-setup.job"
+    version = "1"
+  }
+  
+  group "setup" {
+    task "initialize-pgvector" {
+      driver = "docker"
+      
+      config {
+        image = "pgvector/pgvector:pg16"
+        command = "sh"
+        args = [
+          "-c",
+          "PGPASSWORD=$PGVECTOR_PASSWORD psql -h 192.168.50.120 -p 5432 -U postgres -d cognee_db -c \"CREATE EXTENSION IF NOT EXISTS vector;\" && PGPASSWORD=$PGVECTOR_PASSWORD psql -h 192.168.50.120 -p 5432 -U postgres -c \"DO \\$\\$ BEGIN CREATE DATABASE embeddings; EXCEPTION WHEN duplicate_database THEN RAISE NOTICE 'embeddings database exists'; END \\$\\$;\" && PGPASSWORD=$PGVECTOR_PASSWORD psql -h 192.168.50.120 -p 5432 -U postgres -d embeddings -c \"CREATE EXTENSION IF NOT EXISTS vector;\""
+        ]
+      }
+      
+      env {
+        PGVECTOR_PASSWORD = "${var.pgvector_pass}"
+      }
+      
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "pgvector_pass" {
+  type = string
+  description = "Admin password for the pgvector PostgreSQL server"
+}

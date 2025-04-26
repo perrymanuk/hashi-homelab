@@ -1,0 +1,88 @@
+job "cognee" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "service"
+
+  meta {
+    job_file = "nomad_jobs/ai-ml/cognee/nomad.job"
+    version = "1"
+  }
+
+  group "cognee-ai" {
+    count = 1
+
+    network {
+      port "http" { to = 8000 }
+#      port "mcp" { to = 3000 }
+    }
+
+    task "cognee-service" {
+      driver = "docker"
+
+      config {
+        dns_servers = ["192.168.50.2"]
+        image = "cognee/cognee:latest"
+        ports = ["http"]
+      }
+
+      env {
+        # --- LLM Configuration ---
+        LLM_PROVIDER            = "openai"
+        LLM_MODEL               = "vertex_ai/gemini-1.5-pro-latest"
+        LLM_API_KEY             = ""
+        LLM_ENDPOINT            = "https://litellm.demonsafe.com"
+
+        # --- Embedding Configuration ---
+        EMBEDDING_PROVIDER      = "openai"
+        EMBEDDING_MODEL         = "text-embedding-ada-002"
+        EMBEDDING_API_KEY       = ""
+
+        # --- Relational Database (PostgreSQL) ---
+        DB_PROVIDER             = "postgres"
+        DB_HOST                 = "pgvector.service.consul"
+        DB_PORT                 = "5432"
+        DB_USERNAME             = "postgres"
+        DB_PASSWORD             = "ChAnGeMe"
+        DB_NAME                 = "cognee_metadata_db"
+
+        # --- Vector Database (Qdrant) ---
+        #VECTOR_DB_PROVIDER      = "qdrant"
+        #VECTOR_DB_URL           = "http://qdrant.service.consul:6333"
+
+        # --- Graph Database (Neo4j) ---
+        GRAPH_DATABASE_PROVIDER = "neo4j"
+        GRAPH_DATABASE_URL      = "bolt://neo4j.service.consul:7687"
+        GRAPH_DATABASE_USERNAME = "neo4j"
+        GRAPH_DATABASE_PASSWORD = "ChAnGeMe"
+
+        # --- General Settings ---
+        HOST                    = "0.0.0.0"
+        ENVIRONMENT             = "production"
+        DEBUG                   = "false"
+      }
+
+      resources {
+        cpu    = 100
+        memory = 2048
+      }
+
+      service {
+        name     = "cognee"
+        tags     = ["traefik.enable=true"]
+        port     = "http"
+
+        check {
+          type     = "tcp"
+          port     = "http"
+          interval = "15s"
+          timeout  = "3s"
+        }
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+  default = "global"
+}
