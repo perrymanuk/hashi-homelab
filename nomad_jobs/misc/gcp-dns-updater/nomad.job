@@ -1,7 +1,8 @@
 job "gcp-dns-updater" {
   
   meta {
-  job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
+    job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
+    version  = "1"
   }
   type        = "batch"
   periodic {
@@ -11,7 +12,6 @@ job "gcp-dns-updater" {
 
   group "updater" {
     count = 1
-
     restart {
       attempts = 2
       interval = "1m"

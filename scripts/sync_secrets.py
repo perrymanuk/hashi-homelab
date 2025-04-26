@@ -6,7 +6,7 @@ import logging
 from github import Github, GithubException
 
 # Constants
-ENVRC_PATH = '/app/.envrc'  # Path inside the container
+ENVRC_PATH = './.envrc'  # Path inside the container
 REPO_NAME = 'hashi-homelab' # Just the repo name
 
 # Setup logging
