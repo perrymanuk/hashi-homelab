@@ -4,8 +4,8 @@ job "ollama" {
   type        = "service"
 
   meta {
-      job_file = "nomad_jobs/ai-ml/ollama/nomad.job"
-version = "2"
+    job_file = "nomad_jobs/ai-ml/ollama/nomad.job"
+    version = "2"
   }
 
   group "web" {

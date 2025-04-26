@@ -34,11 +34,13 @@ jobs:
           nomadjobs:
             # Updated paths based on directory restructure
             - 'nomad_jobs/media-stack/plex/*.job'
-            - 'nomad_jobs/media-stack/sonarr/*.job'
+            - 'nomad_jobs/media-stack/sickchill/*.job'
             - 'nomad_jobs/media-stack/radarr/*.job'
             - 'nomad_jobs/media-stack/lidarr/*.job'
             - 'nomad_jobs/storage-backends/postgres/*.job'
             - 'nomad_jobs/storage-backends/mariadb/*.job'
+            - 'nomad_jobs/storage-backends/redis/*.job'
+            - 'nomad_jobs/storage-backends/pgvector/*.job'
             - 'nomad_jobs/core-infra/coredns/*.job'
             - 'nomad_jobs/developer-tools/docker-registry/*.job'
             - 'nomad_jobs/developer-tools/github-runner/*.job'
@@ -53,9 +55,9 @@ jobs:
             - 'nomad_jobs/ai-ml/open-webui/*.job'
             - 'nomad_jobs/misc/gcp-dns-updater/*.job'
             - 'nomad_jobs/core-infra/tailscale-este/*.job'
-            - 'nomad_jobs/core-infra/traefik-forward-auth/*.job'
             - 'nomad_jobs/core-infra/traefik-ingress/*.job'
             - 'nomad_jobs/core-infra/nfs-csi-plugin/*.job'
+            - 'nomad_jobs/core-infra/iscsi-csi-plugin/*.job'
             - 'nomad_jobs/web-apps/firecrawl/*.job'
 
   add_volumes:

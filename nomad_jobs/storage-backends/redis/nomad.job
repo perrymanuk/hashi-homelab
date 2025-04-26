@@ -1,0 +1,106 @@
+job "redis" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/storage-backends/redis/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "db" {
+    count = 1
+
+    network {
+      mode = "host"
+      port "redis" {
+        static       = 6379
+        host_network = "lan"
+      }
+    }
+
+    volume "redis" {
+      type            = "csi"
+      read_only       = false
+      source          = "redis-data"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "redis"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chmod 777 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "redis" {
+      driver = "docker"
+
+      config {
+        image = "redis:7.2.4-alpine"
+        ports = ["redis"]
+      }
+
+      volume_mount {
+        volume      = "redis"
+        destination = "/data"
+        read_only   = false
+      }
+
+      env {
+        # Save settings - save to disk every 60 seconds if at least 1 change
+        REDIS_SAVE_TO_DISK = "60 1"
+        # Set appendonly for durability
+        REDIS_APPENDONLY = "yes"
+      }
+
+      service {
+        name = "redis"
+        port = "redis"
+
+        check {
+          type     = "tcp"
+          port     = "redis"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 300
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
