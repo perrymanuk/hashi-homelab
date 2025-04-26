@@ -5,23 +5,22 @@ job "pgvector" {
 
   meta {
     job_file = "nomad_jobs/storage-backends/pgvector/nomad.job"
-    version = "1"  // Initial version
+    version = "1"
   }
 
   group "db" {
     network {
       mode = "host"
       port "pgvector" {
-        static = "5432"  // Using a different port from standard PostgreSQL
+        static = "5432"  
         host_network = "lan"
       }
     }
     
     task "pgvector" {
       driver = "docker"
-
       config {
-        image = "pgvector/pgvector:pg16"  // Using the official pgvector image with PostgreSQL 16
+        image = "pgvector/pgvector:pg16"
         volumes = [
           "${var.shared_dir}pgvector-data:/var/lib/postgresql/data",
         ]
@@ -49,22 +48,13 @@ job "pgvector" {
       }
 
       resources {
-        cpu    = "500"  // Slightly more CPU as vector operations can be demanding
-        memory = "1024" // More memory for vector operations
+        cpu    = "100"
+        memory = "256"
       }
     }
   }
 }
 
-variable "region" {
-    type = string
-}
-
-variable "shared_dir" {
-    type = string
-}
-
-variable "pgvector_admin_password" {
-    type = string
-    description = "Admin password for pgvector PostgreSQL instance"
-}
+variable "region" {}
+variable "shared_dir" {}
+variable "pgvector_admin_password" {}

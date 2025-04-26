@@ -3,15 +3,10 @@ job "gcp-dns-updater" {
   meta {
   job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
   }
-datacenters = ["dc1"] # Assuming a default datacenter, adjust if needed
   type        = "batch"
-
-  # Configuration now sourced from environment variables via Go templating
-
   periodic {
-    # Run every 15 minutes
     crons = ["*/15 * * * *"]
-    prohibit_overlap = true # Prevent jobs from running concurrently if one takes longer than 15 mins
+    prohibit_overlap = true 
   }
 
   group "updater" {
@@ -21,46 +16,36 @@ datacenters = ["dc1"] # Assuming a default datacenter, adjust if needed
       attempts = 2
       interval = "1m"
       delay = "15s"
-      mode = "delay" # delay between attempts
+      mode = "delay" 
     }
 
     task "update-dns" {
       driver = "docker"
 
       config {
-        # Point to the custom Docker image built for this service
-        image = "docker-registry.demonsafe.com/gcp-dns-updater:latest" # Ensure this matches the image name used in the build process
+        image = "docker-registry.demonsafe.com/gcp-dns-updater:latest" 
         dns_servers = ["192.168.50.2"]
-        # CMD is defined in the Dockerfile, so no command override needed here.
       }
 
-      # Define environment variables needed by the script, sourced from runtime environment variables
       template {
         data = <<-EOH
-# Environment variables sourced from Nomad host environment
-# Note: GCP_DNS_ZONE_NAME will receive the TLD (e.g., 'demonsafe.com')
-# The Python script is responsible for converting it to GCP zone format ('demonsafe-com')
 GCP_DNS_ZONE_NAME = ${dns_zone}
 GCP_DNS_RECORD_NAME = *.${var.tld}
 GCP_SERVICE_ACCOUNT_KEY_B64 = ${gcp_dns_admin}
 GCP_PROJECT_ID = ${gcp_project_id}
 EOH
         env         = true
-        destination = "secrets/file.env" # Changed destination as per instruction
+        destination = "secrets/file.env" 
       }
 
-      # Template block for entrypoint removed - dependencies are now built into the Docker image.
-      # Artifact blocks were previously removed.
-
       resources {
-        cpu    = 100 # MHz
-        memory = 64  # MB - Reduced as pip install no longer happens at runtime
+        cpu    = 100 
+        memory = 16  
       }
     }
   }
 }
-# Variable blocks removed as configuration is now passed via environment variables
-#
+
 variable "gcp_project_id" {}
 variable "dns_zone" {}
 variable "tld" {}
