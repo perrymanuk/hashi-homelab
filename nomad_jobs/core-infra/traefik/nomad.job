@@ -44,7 +44,7 @@ version = "2" // Incremented version
       }
 
       config {
-        image = "traefik:v3.3"
+        image = "traefik:v3.4"
         ports = ["http", "admin"]
         network_mode = "host"
         volumes = [
