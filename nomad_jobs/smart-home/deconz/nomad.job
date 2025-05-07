@@ -46,7 +46,7 @@ service_owner = "@pmanuk"
     task "deconz" {
       driver = "docker"
       config {
-        image = "deconzcommunity/deconz:2.30.0"
+        image = "deconzcommunity/deconz:2.30.1"
         force_pull = true
         ports = ["web", "ws"]
         privileged = true
