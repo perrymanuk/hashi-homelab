@@ -60,7 +60,7 @@ job "redis" {
       driver = "docker"
 
       config {
-        image = "redis:7.4.3-alpine"
+        image = "redis:7.4.4-alpine"
         ports = ["redis"]
       }
 
