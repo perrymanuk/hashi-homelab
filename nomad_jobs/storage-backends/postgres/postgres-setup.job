@@ -12,7 +12,7 @@ version = "2"
       driver = "docker"
       
       config {
-        image = "postgres:15"
+        image = "postgres:17"
         command = "sh"
         args = [
           "-c",
