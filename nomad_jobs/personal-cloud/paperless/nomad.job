@@ -35,7 +35,7 @@ job "paperless" {
     task "paperless" {
       driver = "docker"
       config {
-        image = "ghcr.io/paperless-ngx/paperless-ngx:2.17.0"
+        image = "ghcr.io/paperless-ngx/paperless-ngx:2.17.1"
         dns_servers = ["192.168.50.2"]
         network_mode = "host"
         ports = ["paperless"]
