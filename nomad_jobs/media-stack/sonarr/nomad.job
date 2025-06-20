@@ -26,7 +26,7 @@ version = "6"  // Incremented version number
     task "sonarr" {
       driver = "docker"
       config {
-        image = "linuxserver/sonarr:4.0.14"
+        image = "linuxserver/sonarr:4.0.15"
         ports = ["http"]
         volumes = [
           "${var.shared_dir}sonarr:/config",
