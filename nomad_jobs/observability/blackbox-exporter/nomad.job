@@ -32,7 +32,7 @@ region      = var.region
       }
 
       config {
-        image = "prom/blackbox-exporter:v0.26.0"
+        image = "prom/blackbox-exporter:v0.27.0"
         network_mode = "host"
         args = [
           "--config.file=/local/config.yaml",
