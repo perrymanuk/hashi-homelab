@@ -62,7 +62,7 @@ version = "1"
       }
 
       config {
-        image = "traefik:v3.4"
+        image = "traefik:v3.5"
         ports = ["http", "mqtt", "mumble", "https", "admin"]
         network_mode = "host"
         volumes = [
