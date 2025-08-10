@@ -5,7 +5,7 @@ job "tailscale" {
 
   meta {
       job_file = "nomad_jobs/core-infra/tailscale/nomad.job"
-version = "1"
+      version = "2"
   }
 
   constraint {
