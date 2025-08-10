@@ -48,3 +48,4 @@ One of the more specific parts of the setup that you may need to adjust is I use
 
 Services are exposed by their task name in the nomad job and whatever you configure your TLD to be in the `.envrc`. Currently I have this setup to deploy an instance of traefik to a single VM in a public cloud where I use it to route to my services I want to expose via [tailscale](http://www.tailscale.com). 
 
+ 
