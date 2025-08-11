@@ -29,7 +29,7 @@ version = "3"  // Incremented version number
     task "plex" {
       driver = "docker"
       config {
-        image = "plexinc/pms-docker:1.32.6.7557-1cf77d501"
+        image = "plexinc/pms-docker:1.42.1.10060-4e8b05daf"
         network_mode = "host"
         privileged = "true"
         force_pull = "true"
@@ -37,7 +37,7 @@ version = "3"  // Incremented version number
           "/tmp:/transcode",
           "${var.media_dir}:/data",
           "${var.shared_dir}plex_new:/config",
-          "local/optimize-db.sh:/etc/cont-init.d/99-optimize-db",
+          "local/optimize-db.sh:/etc/cont-init.d/30-optimize-db",
         ]
         // No custom command - let the container start normally
       }
@@ -52,31 +52,30 @@ version = "3"  // Incremented version number
       template {
         data = <<EOH
 #!/usr/bin/with-contenv bash
+set -euo pipefail
 
 echo "Setting up Plex database optimizations..."
 
 # Create necessary directory structure
 mkdir -p /opt/plex-db
-mkdir -p /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
-
-# Check if we have existing databases
-if [ ! -d "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases" ]; then
-  echo "No databases found, creating directory structure"
-  mkdir -p "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases"
-fi
+DB_DIR="/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases"
+mkdir -p "$DB_DIR"
 
 # Check if we need to move existing databases
-if [ -z "$(ls -A /opt/plex-db)" ]; then
+if [ -z "$(ls -A /opt/plex-db 2>/dev/null || true)" ]; then
   echo "Database volume is empty, copying existing databases if any..."
-  if [ -n "$(ls -A /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases/)" ]; then
-    cp -a /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases/* /opt/plex-db/
+  if [ -d "$DB_DIR" ] && [ -n "$(ls -A "$DB_DIR" 2>/dev/null || true)" ]; then
+    cp -a "$DB_DIR"/* /opt/plex-db/
     echo "Copied existing databases to persistent volume"
   fi
 fi
 
-# Set up link to optimized database storage
-rm -rf /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
-ln -sf /opt/plex-db /config/Library/Application\ Support/Plex\ Media\ Server/Plug-in\ Support/Databases
+# Set up link to optimized database storage (only if not already linked)
+if [ ! -L "$DB_DIR" ] || [ "$(readlink "$DB_DIR")" != "/opt/plex-db" ]; then
+  echo "Setting up database symlink..."
+  rm -rf "$DB_DIR"
+  ln -sf /opt/plex-db "$DB_DIR"
+fi
 
 # Install SQLite3 if needed
 if ! command -v sqlite3 &>/dev/null; then
@@ -86,11 +85,11 @@ fi
 
 # Set environment variables for SQLite
 export SQLITE_TMPDIR=/tmp/plex_sqlite
-mkdir -p $SQLITE_TMPDIR
+mkdir -p "$SQLITE_TMPDIR"
 
 # Apply optimizations to all databases
 echo "Applying SQLite optimizations to databases..."
-find /opt/plex-db -name "*.db" -type f | while read db; do
+find /opt/plex-db -name "*.db" -type f 2>/dev/null | while read -r db; do
   echo "Optimizing $db"
   sqlite3 "$db" <<EOF
 PRAGMA journal_mode = WAL;
@@ -112,7 +111,10 @@ EOH
       env {
         PLEX_CLAIM = ""  // Add your claim token if needed
         ADVERTISE_IP = "http://192.168.50.5:32400/"  // Replace with your server IP
-        // Add any other environment variables needed
+        PLEX_UID = "1000"
+        PLEX_GID = "1000"
+        CHANGE_CONFIG_DIR_OWNERSHIP = "false"
+        // Skip first run setup if config exists
       }
 
       service {
