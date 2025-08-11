@@ -29,7 +29,7 @@ version = "3"  // Incremented version number
     task "plex" {
       driver = "docker"
       config {
-        image = "plexinc/pms-docker:1.42.1.10060-4e8b05daf"
+        image = "plexinc/pms-docker@sha256:4e704a2172129d8a6bc5b05ea201945b329bb6512f48a4e92ed4a4a787c35462"
         network_mode = "host"
         privileged = "true"
         force_pull = "true"

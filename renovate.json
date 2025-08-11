@@ -36,7 +36,7 @@
         "(^|/)*\\.job$"
       ],
       "matchStrings": [
-        "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\n"
+        "\\s*image\\s*=\\s*\"(?<depName>.*?)[@:](?<currentValue>.*?)\"\\n"
       ],
       "datasourceTemplate": "docker"
     }
