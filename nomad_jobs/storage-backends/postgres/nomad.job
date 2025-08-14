@@ -20,7 +20,7 @@ version = "2"  // Incremented version number
       driver = "docker"
 
       config {
-        image = "postgres:15.13"
+        image = "postgres:15.14"
         volumes = [
           "${var.shared_dir}paperless-postgres:/appdata/postgres",
         ]
