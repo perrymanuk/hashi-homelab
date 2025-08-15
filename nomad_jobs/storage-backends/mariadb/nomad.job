@@ -20,7 +20,7 @@ version = "2"  // Incremented version number
       driver = "docker"
 
       config {
-        image = "mariadb:11"
+        image = "mariadb:12"
         volumes = [
           "${var.shared_dir}shared-mariadb:/var/lib/mysql",
         ]
