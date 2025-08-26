@@ -1,6 +1,6 @@
 job "open-webui" {
   region = var.region
-  datacenters = [var.datacenter]
+  datacenters = ["dc1"]
   type        = "service"
 
   meta {
