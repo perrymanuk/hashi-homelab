@@ -23,24 +23,220 @@ job "gcp-dns-updater" {
       driver = "docker"
 
       config {
-        image = "docker-registry.demonsafe.com/gcp-dns-updater:latest" 
+        image = "python:3.13-slim"
         dns_servers = ["192.168.50.2"]
+        command = "sh"
+        args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests && python /local/update_dns.py"]
       }
 
       template {
         data = <<-EOH
-GCP_DNS_ZONE_NAME = ${dns_zone}
+GCP_DNS_ZONE_NAME = ${var.dns_zone}
 GCP_DNS_RECORD_NAME = *.${var.tld}
-GCP_SERVICE_ACCOUNT_KEY_B64 = ${gcp_dns_admin}
-GCP_PROJECT_ID = ${gcp_project_id}
+GCP_SERVICE_ACCOUNT_KEY_B64 = ${var.gcp_dns_admin}
+GCP_PROJECT_ID = ${var.gcp_project_id}
 EOH
         env         = true
         destination = "secrets/file.env" 
       }
 
+      template {
+        data = <<-EOF
+import os
+import requests
+import logging
+import sys
+import base64
+import binascii
+import json
+import time
+
+from google.cloud import dns
+from google.oauth2 import service_account
+from google.api_core.exceptions import GoogleAPIError
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_env_vars():
+    """Reads required environment variables and returns them."""
+    project_id = os.environ.get('GCP_PROJECT_ID')
+    zone_name = os.environ.get('GCP_DNS_ZONE_NAME')
+    record_name = os.environ.get('GCP_DNS_RECORD_NAME')
+    key_b64 = os.environ.get('GCP_SERVICE_ACCOUNT_KEY_B64')
+
+    if not all([project_id, zone_name, record_name, key_b64]):
+        missing = [var for var, val in [
+            ('GCP_PROJECT_ID', project_id),
+            ('GCP_DNS_ZONE_NAME', zone_name),
+            ('GCP_DNS_RECORD_NAME', record_name),
+            ('GCP_SERVICE_ACCOUNT_KEY_B64', key_b64)
+        ] if not val]
+        logging.error(f"Missing required environment variables: {', '.join(missing)}")
+        sys.exit(1)
+
+    return project_id, zone_name, record_name, key_b64
+
+def get_public_ip():
+    """Fetches the public IPv4 address."""
+    try:
+        response = requests.get('https://v4.ifconfig.me/ip', timeout=10)
+        response.raise_for_status()
+        ip_address = response.text.strip()
+        logging.info(f"Successfully fetched public IP: {ip_address}")
+        return ip_address
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching public IP: {e}")
+        sys.exit(1)
+
+def get_dns_client(key_b64: str, project_id: str):
+    """Creates and returns a DNS client authenticated with a base64 encoded service account key."""
+    try:
+        logging.info("Decoding base64 service account key...")
+        logging.info(f"Original key length: {len(key_b64)}")
+        logging.info(f"Key content (first 50 chars): {key_b64[:50]}{'...' if len(key_b64) > 50 else ''}")
+        
+        # Clean the base64 string - remove any whitespace/newlines
+        key_b64 = key_b64.strip().replace('\n', '').replace('\r', '').replace(' ', '')
+        logging.info(f"Cleaned key length: {len(key_b64)}")
+        logging.info(f"Cleaned key content (first 50 chars): {key_b64[:50]}{'...' if len(key_b64) > 50 else ''}")
+        
+        # Check if this looks like a valid base64 string
+        if len(key_b64) < 100:
+            logging.warning(f"Service account key seems too short ({len(key_b64)} chars). Expected several thousand characters.")
+            logging.warning(f"Full key content: '{key_b64}'")
+            logging.error("The GCP_SERVICE_ACCOUNT_KEY_B64 environment variable appears to contain invalid or incomplete data.")
+            sys.exit(1)
+        
+        # Fix base64 padding if needed
+        missing_padding = len(key_b64) % 4
+        if missing_padding:
+            padding_needed = 4 - missing_padding
+            key_b64 += '=' * padding_needed
+            logging.info(f"Added {padding_needed} padding characters")
+        
+        logging.info(f"Final key length: {len(key_b64)}")
+        decoded_key = base64.b64decode(key_b64, validate=True)
+        logging.info("Base64 key decoded successfully.")
+
+        logging.info("Parsing service account key JSON...")
+        key_info = json.loads(decoded_key)
+        logging.info("Service account key JSON parsed successfully.")
+
+        credentials = service_account.Credentials.from_service_account_info(key_info)
+        client = dns.Client(project=project_id, credentials=credentials)
+        logging.info(f"Successfully created DNS client for project {project_id}")
+        return client
+
+    except binascii.Error as e:
+        logging.error(f"Failed to decode base64 service account key: {e}")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse service account key JSON: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Failed to create DNS client from service account info: {e}")
+        sys.exit(1)
+
+def update_dns_record(client: dns.Client, project_id: str, zone_name: str, record_name: str, ip_address: str):
+    """Updates DNS record."""
+    try:
+        # Use zone_name directly as it should already be the correct GCP zone name
+        gcp_zone_name = zone_name
+        logging.info(f"Targeting GCP DNS Zone: {gcp_zone_name}")
+
+        zone = client.zone(gcp_zone_name, project_id)
+        if not zone.exists():
+            logging.error(f"DNS zone '{gcp_zone_name}' not found in project '{project_id}'.")
+            return
+
+        fqdn = record_name if record_name.endswith('.') else f"{record_name}."
+        logging.info(f"Checking DNS records for: {fqdn} in zone {gcp_zone_name}")
+
+        record_sets = list(zone.list_resource_record_sets())
+
+        existing_a_record = None
+        existing_cname_record = None
+
+        for record_set in record_sets:
+            if record_set.record_type == 'A' and record_set.name == fqdn:
+                existing_a_record = record_set
+                logging.info(f"Found existing A record: {existing_a_record.name} -> {existing_a_record.rrdatas}")
+            elif record_set.record_type == 'CNAME' and record_set.name == fqdn:
+                existing_cname_record = record_set
+                logging.info(f"Found existing CNAME record: {existing_cname_record.name} -> {existing_cname_record.rrdatas}")
+
+        changes = zone.changes()
+        needs_update = False
+
+        if existing_cname_record:
+            logging.warning(f"Deleting existing CNAME record {fqdn} to replace with A record.")
+            changes.delete_record_set(existing_cname_record)
+            needs_update = True
+            existing_a_record = None
+
+        new_a_record = zone.resource_record_set(fqdn, "A", 300, [ip_address])
+
+        if existing_a_record:
+            if existing_a_record.rrdatas == [ip_address]:
+                logging.info(f"Existing A record {fqdn} already points to {ip_address}. No update needed.")
+                return
+            else:
+                logging.info(f"Existing A record {fqdn} points to {existing_a_record.rrdatas}. Updating to {ip_address}.")
+                changes.delete_record_set(existing_a_record)
+                changes.add_record_set(new_a_record)
+                needs_update = True
+        elif not existing_cname_record:
+            logging.info(f"No existing A or CNAME record found for {fqdn}. Creating new A record pointing to {ip_address}.")
+            changes.add_record_set(new_a_record)
+            needs_update = True
+        elif existing_cname_record:
+             logging.info(f"Adding A record for {fqdn} pointing to {ip_address} after CNAME deletion.")
+             changes.add_record_set(new_a_record)
+
+        if needs_update:
+            logging.info(f"Executing DNS changes for {fqdn} in zone {gcp_zone_name}...")
+            changes.create()
+            while changes.status != 'done':
+                logging.info(f"Waiting for DNS changes to complete (status: {changes.status})...")
+                time.sleep(5)
+                changes.reload()
+            logging.info(f"Successfully updated DNS record {fqdn} to {ip_address} in zone {gcp_zone_name}.")
+        else:
+            logging.info("No DNS changes were necessary.")
+
+    except GoogleAPIError as e:
+        logging.error(f"GCP API Error updating DNS record {fqdn} in zone {gcp_zone_name}: {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred during DNS update for {fqdn} in zone {gcp_zone_name}: {e}")
+
+if __name__ == "__main__":
+    logging.info("Starting DNS update script.")
+    project_id, zone_name, record_name, key_b64 = get_env_vars()
+    logging.info(f"Environment variables loaded - zone_name: '{zone_name}', record_name: '{record_name}'")
+    public_ip = get_public_ip()
+
+    if public_ip:
+        dns_client = get_dns_client(key_b64, project_id)
+        if dns_client:
+            update_dns_record(dns_client, project_id, zone_name, record_name, public_ip)
+            logging.info("DNS update script finished.")
+        else:
+            logging.error("Exiting due to DNS client initialization failure.")
+            sys.exit(1)
+    else:
+        logging.error("Exiting due to inability to fetch public IP.")
+        sys.exit(1)
+    
+    # Sleep to allow log viewing before container exits
+    logging.info("Sleeping for 10 seconds to allow log viewing...")
+    time.sleep(10)
+EOF
+        destination = "local/update_dns.py"
+      }
+
       resources {
         cpu    = 100 
-        memory = 16  
+        memory = 128  
       }
     }
   }
