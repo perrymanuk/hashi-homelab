@@ -49,7 +49,8 @@ version = "2" // Incremented version
         network_mode = "host"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
-          "${var.shared_dir}traefik-ingress/acme.json:/acme.json"
+          "${var.shared_dir}traefik-ingress/acme.json:/acme.json",
+          "${var.shared_dir}traefik-ingress:/etc/traefik/dynamic"
         ]
       }
 
@@ -72,7 +73,7 @@ data = <<EOH
   [entryPoints.websecure]
     address = ":443"
     [entryPoints.websecure.http]
-        middlewares=["allow-local-network@file"]
+        middlewares=["home-ip-whitelist@file"]
     [entryPoints.websecure.http.tls]
       certResolver = "sample" # Changed from letsencrypt to sample for consistency
 
@@ -113,7 +114,7 @@ data = <<EOH
     entryPoint = "web"
 
 [providers.file]
-  filename = "/local/dynamic.toml"
+  directory = "/etc/traefik/dynamic"
   watch = true
 EOH
         destination = "local/traefik.toml"
@@ -130,7 +131,7 @@ data = <<EOH
     sourceRange = ["66.133.109.36/32", "66.133.109.35/32", "172.65.32.248/32"]  # Let's Encrypt IPs
 
   [http.middlewares.allow-local-network.ipWhiteList]
-    sourceRange = ["192.168.50.0/24", "10.0.0.0/16", "172.17.0.0/16"]  # Adjust for your local network
+    sourceRange = ["192.168.50.0/24", "10.0.0.0/16"]  # Local network only - dynamic IP from file
 
   [http.middlewares.deny-all.ipWhiteList]
     sourceRange = ["127.0.0.1/32"]  # Blocks everything except localhost
@@ -142,7 +143,7 @@ data = <<EOH
     realm = "Restricted Area"
 
   [http.middlewares.ip-or-auth.chain]
-    middlewares = ["allow-local-network", "basic-auth"]
+    middlewares = ["home-ip-whitelist@file", "allow-local-network", "basic-auth"]
 
 [http.routers]
   [http.routers.http-certs]
@@ -154,7 +155,7 @@ data = <<EOH
   [http.routers.https-local]
     entryPoints = ["websecure"]
     rule = "HostRegexp(`{any:.+}`)"  # Matches any domain
-    middlewares = ["allow-local-network"]
+    middlewares = ["home-ip-whitelist@file"]
     service = "beefcake"
     [http.routers.https-local.tls]
 
@@ -163,7 +164,7 @@ data = <<EOH
     [[http.services.beefcake.loadBalancer.servers]]
       url = "http://192.168.50.208:80"
 EOH
-        destination = "local/dynamic.toml"
+        destination = "/etc/traefik/dynamic/static-config.toml"
         env         = false
         change_mode = "noop"
       }

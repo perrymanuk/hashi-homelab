@@ -26,7 +26,10 @@ job "gcp-dns-updater" {
         image = "python:3.13-slim"
         dns_servers = ["192.168.50.2"]
         command = "sh"
-        args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests && python /local/update_dns.py"]
+        args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests pyyaml && python /local/update_dns.py"]
+        volumes = [
+          "${var.shared_dir}traefik-ingress:/shared/traefik-ingress"
+        ]
       }
 
       template {
@@ -137,6 +140,38 @@ def get_dns_client(key_b64: str, project_id: str):
         logging.error(f"Failed to create DNS client from service account info: {e}")
         sys.exit(1)
 
+def update_traefik_whitelist(ip_address: str):
+    """Updates Traefik IP whitelist configuration."""
+    try:
+        logging.info(f"Updating Traefik whitelist with IP: {ip_address}")
+        
+        traefik_config = {
+            "http": {
+                "middlewares": {
+                    "home-ip-whitelist": {
+                        "ipAllowList": {
+                            "sourceRange": [
+                                f"{ip_address}/32",
+                                "192.168.0.0/16",
+                                "10.0.0.0/8",
+                                "172.16.0.0/12"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+        
+        config_path = "/shared/traefik-ingress/dynamic-whitelist.yml"
+        import yaml
+        with open(config_path, 'w') as f:
+            yaml.dump(traefik_config, f, default_flow_style=False)
+        
+        logging.info(f"Successfully updated Traefik whitelist configuration at {config_path}")
+        
+    except Exception as e:
+        logging.error(f"Failed to update Traefik whitelist: {e}")
+
 def update_dns_record(client: dns.Client, project_id: str, zone_name: str, record_name: str, ip_address: str):
     """Updates DNS record."""
     try:
@@ -219,7 +254,8 @@ if __name__ == "__main__":
         dns_client = get_dns_client(key_b64, project_id)
         if dns_client:
             update_dns_record(dns_client, project_id, zone_name, record_name, public_ip)
-            logging.info("DNS update script finished.")
+            update_traefik_whitelist(public_ip)
+            logging.info("DNS and Traefik whitelist update script finished.")
         else:
             logging.error("Exiting due to DNS client initialization failure.")
             sys.exit(1)
@@ -246,3 +282,4 @@ variable "gcp_project_id" {}
 variable "dns_zone" {}
 variable "tld" {}
 variable "gcp_dns_admin" {}
+variable "shared_dir" {}
