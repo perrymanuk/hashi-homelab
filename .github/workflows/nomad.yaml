@@ -74,7 +74,7 @@ jobs:
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # v4
 
     - name: Connect to Tailscale
-      uses: tailscale/github-action@v2
+      uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
@@ -106,7 +106,7 @@ jobs:
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # v4
 
     - name: Connect to Tailscale
-      uses: tailscale/github-action@v2
+      uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
