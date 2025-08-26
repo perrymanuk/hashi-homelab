@@ -6,7 +6,7 @@ on:
 jobs:
   # JOB to run change detection
   changes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: read
     outputs:
@@ -61,7 +61,7 @@ jobs:
             - 'nomad_jobs/web-apps/firecrawl/*.job'
 
   add_volumes:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.volumes != '[]'
     continue-on-error: true
@@ -72,6 +72,13 @@ jobs:
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # v4
+
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+        tags: tag:github-actions
 
     - name: Setup Nomad
       uses: hashicorp/setup-nomad@v3
@@ -86,7 +93,7 @@ jobs:
         NOMAD_ADDR: 'http://nomad.service.home:4646'
 
   deploy_jobs:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: changes
     if: needs.changes.outputs.jobs != '[]'
     continue-on-error: true
@@ -97,6 +104,13 @@ jobs:
     steps:
     - name: 'Checkout'
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # v4
+
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+        tags: tag:github-actions
 
     - name: Setup Nomad
       uses: hashicorp/setup-nomad@v3
