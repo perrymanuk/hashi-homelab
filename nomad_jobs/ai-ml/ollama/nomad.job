@@ -33,6 +33,8 @@ job "ollama" {
         # Make the GPU visible to this container.
         NVIDIA_VISIBLE_DEVICES       = "all"
         NVIDIA_DRIVER_CAPABILITIES   = "compute,utility"
+        # Pre-pull models on startup
+        OLLAMA_MODELS               = "llama3.2:3b,codellama:7b"
       }
 
       service {
