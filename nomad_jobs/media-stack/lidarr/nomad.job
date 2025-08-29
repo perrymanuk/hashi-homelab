@@ -41,7 +41,7 @@ version = "6"  // Incremented version number
     task "lidarr" {
       driver = "docker"
       config {
-        image = "linuxserver/lidarr:2.12.4"
+        image = "linuxserver/lidarr:2.13.3"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [
