@@ -13,3 +13,4 @@ hosts
 *.swp
 .ra-aid
 CLAUDE.md
+ansible/configs/*
