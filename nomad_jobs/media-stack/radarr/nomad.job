@@ -25,6 +25,13 @@ version = "6"  // Incremented version number
       attachment_mode = "file-system"
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "radarr" {
       driver = "docker"
       config {

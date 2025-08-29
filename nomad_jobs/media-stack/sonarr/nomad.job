@@ -23,6 +23,13 @@ version = "6"  // Incremented version number
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "sonarr" {
       driver = "docker"
       config {

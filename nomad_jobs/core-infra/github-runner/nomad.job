@@ -29,6 +29,13 @@ version = "0"
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "runner" {
       driver = "docker"
       kill_timeout = "25s"

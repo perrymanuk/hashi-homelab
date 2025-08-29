@@ -44,6 +44,13 @@ version = "1"
       attachment_mode = "file-system"
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "pihole" {
       driver = "docker"
       config {

@@ -24,6 +24,13 @@ version = "2"
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "jackett" {
       driver = "docker"
       config {

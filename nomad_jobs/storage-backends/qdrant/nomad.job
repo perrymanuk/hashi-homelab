@@ -33,6 +33,13 @@ job "qdrant" {
       attachment_mode = "file-system"
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "qdrant" {
       driver = "docker"
 

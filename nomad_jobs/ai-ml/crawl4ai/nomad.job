@@ -31,6 +31,13 @@ job "crawl4ai" {
       attachment_mode = "file-system"
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "prep-disk" {
       driver = "docker"
       
@@ -55,6 +62,13 @@ job "crawl4ai" {
         hook    = "prestart"
         sidecar = false
       }
+    }
+
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
     }
 
     task "crawl4ai" {

@@ -19,6 +19,13 @@ job "gcp-dns-updater" {
       mode = "delay" 
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "update-dns" {
       driver = "docker"
 

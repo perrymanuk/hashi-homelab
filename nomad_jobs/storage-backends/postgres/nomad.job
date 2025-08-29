@@ -16,6 +16,13 @@ version = "2"  // Incremented version number
         host_network = "lan"
       }
     }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "postgres" {
       driver = "docker"
 

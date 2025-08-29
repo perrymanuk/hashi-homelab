@@ -9,6 +9,13 @@ version = "2"
   }
 
   group "keepalived" {
+    
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "keepalived" {
       driver = "docker"
       config {

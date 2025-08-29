@@ -29,6 +29,13 @@ region      = var.region
       attachment_mode = "file-system"
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "prep-disk" {
       driver = "docker"
       volume_mount {
@@ -50,6 +57,13 @@ region      = var.region
         hook    = "prestart"
         sidecar = false
       }
+    }
+
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
     }
 
     task "loki" {

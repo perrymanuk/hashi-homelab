@@ -32,6 +32,13 @@ job "paperless" {
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "paperless" {
       driver = "docker"
       config {
@@ -78,6 +85,13 @@ EOH
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "tika" {
       driver = "docker"
 
@@ -103,6 +117,13 @@ EOH
         cpu    = 500
         memory = 512
       }
+    }
+
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
     }
 
     task "gotenberg" {

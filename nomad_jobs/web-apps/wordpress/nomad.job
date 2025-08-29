@@ -31,6 +31,13 @@ region = var.region
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "mysql" {
       driver = "docker"
 
@@ -80,6 +87,13 @@ region = var.region
       }
     }
 
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
     task "await-wordpress" {
       driver = "docker"
 
@@ -99,6 +113,13 @@ region = var.region
         hook    = "prestart"
         sidecar = false
       }
+    }
+
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
     }
 
     task "wordpress" {
