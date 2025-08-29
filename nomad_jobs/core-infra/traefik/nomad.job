@@ -142,6 +142,7 @@ data = <<EOH
     ]
     realm = "Restricted Area"
 
+
   [http.middlewares.ip-or-auth.chain]
     middlewares = ["home-ip-whitelist@file", "allow-local-network", "basic-auth"]
 

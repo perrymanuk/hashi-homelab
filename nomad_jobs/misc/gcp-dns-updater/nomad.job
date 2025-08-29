@@ -162,10 +162,15 @@ def update_traefik_whitelist(ip_address: str):
             }
         }
         
-        config_path = "/shared/traefik-ingress/dynamic-whitelist.yml"
-        import yaml
+        config_path = "/shared/traefik-ingress/dynamic-whitelist.toml"
+        
+        # Write as TOML format
+        toml_content = f"""[http.middlewares.home-ip-whitelist.ipAllowList]
+sourceRange = ["{ip_address}/32", "192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12"]
+"""
+        
         with open(config_path, 'w') as f:
-            yaml.dump(traefik_config, f, default_flow_style=False)
+            f.write(toml_content)
         
         logging.info(f"Successfully updated Traefik whitelist configuration at {config_path}")
         
