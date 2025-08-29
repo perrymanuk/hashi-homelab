@@ -79,6 +79,7 @@ jobs:
         oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
         tags: tag:github-actions
+        args: --accept-dns=true
 
     - name: Setup Nomad
       uses: hashicorp/setup-nomad@v1.0.0
@@ -111,6 +112,7 @@ jobs:
         oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
         tags: tag:github-actions
+        args: --accept-dns=true
 
     - name: Setup Nomad
       uses: hashicorp/setup-nomad@v1.0.0
