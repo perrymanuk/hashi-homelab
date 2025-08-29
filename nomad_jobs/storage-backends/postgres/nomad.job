@@ -5,7 +5,7 @@ job "postgres" {
 
   meta {
       job_file = "nomad_jobs/storage-backends/postgres/nomad.job"
-version = "4"  // Incremented version number
+version = "5"  // Fixed postgres password variable
   }
 
   group "db" {
@@ -37,7 +37,7 @@ version = "4"  // Incremented version number
       env {
         POSTGRES_DB       = "paperless"
         POSTGRES_USER     = "postgres"
-        POSTGRES_PASSWORD = "${var.postgres_admin_password}"
+        POSTGRES_PASSWORD = "${var.postgres_pass}"
         PGDATA            = "/appdata/postgres"
       }
 

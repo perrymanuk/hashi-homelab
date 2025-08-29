@@ -5,7 +5,7 @@ job "pgvector" {
 
   meta {
     job_file = "nomad_jobs/storage-backends/pgvector/nomad.job"
-    version = "3"
+    version = "4"
   }
 
   group "db" {
@@ -37,7 +37,7 @@ job "pgvector" {
       env {
         POSTGRES_DB       = "vectordb"
         POSTGRES_USER     = "postgres"
-        POSTGRES_PASSWORD = "${var.pgvector_admin_password}"
+        POSTGRES_PASSWORD = "${var.postgres_pass}"
         PGDATA            = "/var/lib/postgresql/data"
       }
 
