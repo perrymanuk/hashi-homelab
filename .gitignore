@@ -14,3 +14,4 @@ hosts
 .ra-aid
 CLAUDE.md
 ansible/configs/*
+scripts/*

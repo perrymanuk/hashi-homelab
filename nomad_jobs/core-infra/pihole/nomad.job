@@ -6,7 +6,7 @@ job "pihole" {
 
   meta {
       job_file = "nomad_jobs/core-infra/pihole/nomad.job"
-version = "1"
+version = "2"
   }
 
   constraint {

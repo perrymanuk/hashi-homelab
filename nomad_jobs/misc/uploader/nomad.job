@@ -4,7 +4,7 @@ job "uploader" {
   type = "service"
   meta {
       job_file = "nomad_jobs/misc/uploader/nomad.job"
-version = "3"
+version = "4"
   }
 
   group "webserver" {

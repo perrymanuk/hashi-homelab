@@ -5,7 +5,7 @@ job "plex" {
 
   meta {
       job_file = "nomad_jobs/media-stack/plex/nomad.job"
-version = "3"  // Incremented version number
+version = "4"  // Incremented version number
   }
 
   group "downloaders" {

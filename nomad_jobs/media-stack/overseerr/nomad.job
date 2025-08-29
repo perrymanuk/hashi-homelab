@@ -5,7 +5,7 @@ job "overseerr" {
 
   meta {
     job_file = "nomad_jobs/media-stack/overseerr/nomad.job"
-    version = "1"
+    version = "2"
   }
 
   group "media" {

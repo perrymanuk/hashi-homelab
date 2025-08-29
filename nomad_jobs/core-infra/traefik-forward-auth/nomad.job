@@ -5,7 +5,7 @@ job "traefik-forward-auth" {
 
   meta {
       job_file = "nomad_jobs/core-infra/traefik-forward-auth/nomad.job"
-version = "2"
+version = "3"
   }
 
   group "downloaders" {

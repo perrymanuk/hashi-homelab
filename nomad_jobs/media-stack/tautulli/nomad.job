@@ -5,7 +5,7 @@ job "tautulli" {
 
   meta {
       job_file = "nomad_jobs/media-stack/tautulli/nomad.job"
-version = "1"
+version = "2"
   }
 
   constraint {

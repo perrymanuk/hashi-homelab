@@ -5,7 +5,7 @@ job "pgvector" {
 
   meta {
     job_file = "nomad_jobs/storage-backends/pgvector/nomad.job"
-    version = "1"
+    version = "2"
   }
 
   group "db" {

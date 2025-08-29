@@ -6,7 +6,7 @@ job "deconz" {
   meta {
       job_file = "nomad_jobs/smart-home/deconz/nomad.job"
 service_owner = "@pmanuk"
-    version = "1"
+    version = "2"
   }
 
   constraint {

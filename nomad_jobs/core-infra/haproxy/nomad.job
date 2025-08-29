@@ -5,7 +5,7 @@ job "haproxy" {
 
   meta {
       job_file = "nomad_jobs/core-infra/haproxy/nomad.job"
-version = "3"
+version = "5"
   }
 
   group "lbs" {

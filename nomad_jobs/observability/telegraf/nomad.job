@@ -5,7 +5,7 @@ job "telegraf" {
   priority = 100
   meta {
       job_file = "nomad_jobs/observability/telegraf/nomad.job"
-version = "2"
+version = "3"
   }
   group "telegraf-exporter" {
 

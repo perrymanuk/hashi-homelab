@@ -4,7 +4,7 @@ job "traefik-internal" {
   type = "system"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "2" // Incremented version
+version = "3" // Incremented version
   }
 
   group "lbs" {

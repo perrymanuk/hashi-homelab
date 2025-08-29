@@ -5,7 +5,7 @@ job "crawl4ai" {
 
   meta {
     job_file = "nomad_jobs/ai-ml/crawl4ai/nomad.job"
-    version  = "2"
+    version  = "3"
   }
 
   constraint {

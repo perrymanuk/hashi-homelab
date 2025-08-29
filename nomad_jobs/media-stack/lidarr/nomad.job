@@ -5,7 +5,7 @@ job "lidarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/lidarr/nomad.job"
-version = "6"  // Incremented version number
+version = "7"  // Incremented version number
   }
 
   constraint {
