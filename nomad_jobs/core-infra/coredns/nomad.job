@@ -6,7 +6,7 @@ job "coredns" {
 
   meta {
       job_file = "nomad_jobs/core-infra/coredns/nomad.job"
-version = "4"
+version = "3"
   }
 
   constraint {
@@ -29,9 +29,8 @@ version = "4"
     }
 
     update {
-      max_parallel     = 1
-      min_healthy_time = "30s"
-      auto_revert      = true
+      max_parallel = 1
+      stagger      = "30s"
     }
 
     task "coredns" {
