@@ -6,7 +6,7 @@ job "home-assistant" {
   meta {
       job_file = "nomad_jobs/smart-home/home-assistant/nomad.job"
 service_owner = "@pmanuk"
-    version = "3"
+    version = "4"
   }
 
   constraint {

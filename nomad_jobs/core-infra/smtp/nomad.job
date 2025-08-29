@@ -5,7 +5,7 @@ job "smtp" {
 
   meta {
       job_file = "nomad_jobs/core-infra/smtp/nomad.job"
-version = "6"
+version = "7"
   }
 
   group "mail" {

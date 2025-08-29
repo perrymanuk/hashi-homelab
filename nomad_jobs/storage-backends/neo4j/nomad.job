@@ -5,7 +5,7 @@ job "neo4j" {
 
   meta {
     job_file = "nomad_jobs/storage-backends/neo4j/nomad.job"
-    version = "2"
+    version = "3"
   }
 
   group "neo4j" {

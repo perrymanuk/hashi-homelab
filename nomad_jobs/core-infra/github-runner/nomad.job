@@ -4,7 +4,7 @@ job "github-runner" {
 
   meta {
       job_file = "nomad_jobs/core-infra/github-runner/nomad.job"
-version = "2"
+version = "3"
   }
 
   group "runners" {

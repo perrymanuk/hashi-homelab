@@ -5,7 +5,7 @@ job "litellm" {
 
   meta {
       job_file = "nomad_jobs/ai-ml/litellm/nomad.job"
-      version = "5"
+      version = "6"
   }
 
   constraint {

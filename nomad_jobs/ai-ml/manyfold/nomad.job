@@ -5,7 +5,7 @@ job "manyfold" {
 
   meta {
       job_file = "nomad_jobs/ai-ml/manyfold/nomad.job"
-version = "3"
+version = "4"
   }
 
   constraint {

@@ -5,7 +5,7 @@ job "octoprint" {
 
   meta {
       job_file = "nomad_jobs/misc/octoprint/nomad.job"
-version = "5"
+version = "6"
   }
 
   constraint {
