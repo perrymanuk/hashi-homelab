@@ -91,7 +91,7 @@ jobs:
       run: |
         nomad volume create ${{ matrix.job }}
       env:
-        NOMAD_ADDR: 'http://nomad.service.home:4646'
+        NOMAD_ADDR: '${{ secrets.NOMAD_ADDR }}'
 
   deploy_jobs:
     runs-on: ubuntu-latest
@@ -124,7 +124,7 @@ jobs:
       run: |
         nomad job run ${{ matrix.job }} # Removed -var flags
       env:
-        NOMAD_ADDR: 'http://nomad.service.home:4646'
+        NOMAD_ADDR: '${{ secrets.NOMAD_ADDR }}'
         NOMAD_VAR_region: 'home'
         NOMAD_VAR_tld: '${{ secrets.NOMAD_VAR_tld }}' # Corrected case
         NOMAD_VAR_shared_dir: '/home/shared/'
