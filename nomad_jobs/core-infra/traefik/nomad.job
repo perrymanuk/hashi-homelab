@@ -1,14 +1,20 @@
-job "traefik-internal" {
+job "traefik" {
   region = var.region
   datacenters = ["dc1"]
-  type = "system"
+  type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "4" // Incremented version
+version = "5" // Changed to service job with new VIPs
   }
 
   group "lbs" {
     count = 1
+    
+    constraint {
+      attribute = "${attr.unique.network.ip-address}"
+      operator  = "="
+      value     = "${var.ingress_ip}"
+    }
     network {
       port "http" {
         host_network = "lan"
@@ -24,6 +30,7 @@ version = "4" // Incremented version
       min_healthy_time = "30s"
       auto_revert      = true
     }
+    
     task "traefik" {
       driver = "docker"
       service {
@@ -187,5 +194,9 @@ variable "tld" {
 }
 
 variable "shared_dir" {
+    type = string
+}
+
+variable "ingress_ip" {
     type = string
 }

@@ -1,12 +1,12 @@
 job "coredns" {
   region = var.region
   datacenters = ["dc1"]
-  type        = "system"
-  priority    = 100
+  type = "service"
+  priority = 100
 
   meta {
       job_file = "nomad_jobs/core-infra/coredns/nomad.job"
-version = "3"
+      version = "5"
   }
 
   constraint {
@@ -15,7 +15,14 @@ version = "3"
     value     = "true"
   }
 
-  group "infrastructure" {
+  group "dns" {
+    count = 2
+    
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
+    
     network {
       mode = "host"
       port "dns" {
@@ -29,15 +36,60 @@ version = "3"
     }
 
     update {
-      max_parallel = 1
-      stagger      = "30s"
+      max_parallel     = 1
+      min_healthy_time = "60s"
+      auto_revert      = true
+      auto_promote     = true
+      canary           = 2
+    }
+
+    task "keepalived-dns" {
+      driver = "docker"
+      
+      lifecycle {
+        hook = "prestart"
+        sidecar = true
+      }
+      
+      config {
+        image = "osixia/keepalived:2.0.20"
+        network_mode = "host"
+        force_pull = false
+        volumes = [
+          "local/:/container/environment/01-custom"
+        ]
+        cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
+      }
+      
+      template {
+        destination = "local/env.yaml"
+        change_mode = "restart"
+        splay       = "1m"
+        data        = <<EOH
+KEEPALIVED_VIRTUAL_IPS:
+  - 192.168.50.2/24
+  - 192.168.50.3/24
+KEEPALIVED_UNICAST_PEERS:
+{{- range service "coredns" }}
+  - {{ .Address }}
+{{- end }}
+KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+EOH
+      }
+      
+      resources {
+        cpu    = 100
+        memory = 32
+      }
     }
 
     task "coredns" {
       driver = "docker"
+      
       config {
         image = "coredns/coredns:1.12.3"
         network_mode = "host"
+        force_pull = false
         ports = ["dns", "metrics"]
         args = ["-conf", "/local/coredns/corefile"]
       }
@@ -52,14 +104,15 @@ version = "3"
           timeout  = "2s"
         }
       }
+      
       service {
         port = "metrics"
-	      name = "coredns"
+        name = "coredns"
         tags = ["metrics", "coredns"]
       }
 
       template {
-data = <<EOH
+        data = <<EOH
 . {
   bind {{ env "NOMAD_IP_dns" }} 192.168.50.2 192.168.50.3
   forward . 8.8.8.8
@@ -98,10 +151,9 @@ EOH
         change_signal = "SIGHUP"
         left_delimiter  = "{{"
         right_delimiter = "}}"
-
       }
 
-template {
+      template {
         change_mode   = "signal"
         change_signal = "SIGUSR1"
         destination = "local/coredns/zones/db.home.lab"
@@ -132,7 +184,7 @@ lab.${var.tld}.         IN A   192.168.50.2
 EOH
       }
 
-template {
+      template {
         change_mode   = "signal"
         change_signal = "SIGUSR1"
         destination = "local/coredns/zones/db.k8s"
@@ -162,6 +214,7 @@ lab.k8s.                IN A   192.168.50.93
 
 EOH
       }
+      
       resources {
         cpu    = 100
         memory = 32
@@ -172,5 +225,3 @@ EOH
 
 variable "region" {}
 variable "tld" {}
-
-

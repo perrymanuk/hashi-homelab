@@ -169,3 +169,4 @@ jobs:
         # GitHub PAT is now stored securely in secrets
         NOMAD_VAR_truenass_iscsi_pass: ${{ secrets.NOMAD_VAR_truenass_iscsi_pass }} # Note potential typo in name
         NOMAD_VAR_dns_zone: ${{ secrets.NOMAD_VAR_dns_zone }}
+        NOMAD_VAR_ingress_ip: ${{ secrets.NOMAD_VAR_ingress_ip }}

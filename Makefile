@@ -74,6 +74,15 @@ sync-secrets: ## Build and run the GitHub secret sync container
 		-e GITHUB_TOKEN="$$NOMAD_VAR_github_pat" \
 		sync-secrets:latest
 
+.PHONY: sync-github-secrets
+sync-github-secrets: ## Sync NOMAD_VAR variables from .envrc to GitHub secrets using gh CLI
+	@echo "Syncing NOMAD_VAR variables from .envrc to GitHub secrets..."
+	@bash -c 'source .envrc && env | grep "^NOMAD_VAR_" | while IFS="=" read -r name value; do \
+		echo "Setting $$name"; \
+		echo "$$value" | gh secret set "$$name"; \
+	done'
+	@echo "✅ All NOMAD_VAR secrets synced to GitHub"
+
 .PHONY: build-update-metadata
 build-update-metadata: ## Build the update-metadata Docker image
 	@echo "Building update-metadata Docker image..."
