@@ -1,31 +1,81 @@
 job "alertmanager" {
+  region = var.region
   datacenters = ["dc1"]
   type = "service"
 
   meta {
-      job_file = "nomad_jobs/observability/alertmanager/nomad.job"
-version = "1"
+    job_file = "nomad_jobs/observability/alertmanager/nomad.job"
+    version = "2"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
 
   update {
-    stagger      = "10s"
-    max_parallel = 1
+    max_parallel     = 1
+    min_healthy_time = "30s"
+    healthy_deadline = "5m"
+    progress_deadline = "10m"
+    auto_revert      = true
+    canary           = 1
+    auto_promote     = true
   }
 
   group "alerting" {
+    count = 1
+    
     ephemeral_disk {
       sticky = true
     }
-    count = 1
+
+    volume "alertmanager" {
+      type      = "csi"
+      read_only = false
+      source    = "alertmanager"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
     network {
       port "http" {
         host_network = "tailscale"
         static = "9093"
       }
     }
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "alertmanager"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image        = "busybox:latest"
+        command      = "sh"
+        args         = ["-c", "chown -R 1000:2000 /volume/ && chmod -R 755 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "alertmanager" {
       driver = "docker"
+      user = "1000:2000"
+
+      volume_mount {
+        volume      = "alertmanager"
+        destination = "/alertmanager"
+        read_only   = false
+      }
       
       service {
          tags = [
@@ -51,7 +101,7 @@ version = "1"
         network_mode = "host"
         ports = ["http"]
         force_pull = true
-        args = ["--web.external-url", "http://alertmanager.${var.tld}", "--config.file", "/local/config.yml", "--storage.path", "/local/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
+        args = ["--web.external-url", "http://alertmanager.${var.tld}", "--config.file", "/local/config.yml", "--storage.path", "/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
       }
 
       template {
@@ -61,11 +111,25 @@ global:
   smtp_from: 'alertmanager@example.org'
 
 route:
-  receiver: 'pushover'
   group_by: ['alertname', 'cluster', 'service', 'service_name', 'service_id']
-  group_wait: 30s
-  group_interval: 30s
-  repeat_interval: 3h
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'pushover'
+  
+  routes:
+  - match:
+      severity: page
+    receiver: 'pushover'
+    group_wait: 5s
+    group_interval: 5s
+    repeat_interval: 30m
+  - match_re:
+      alertname: ".*Down.*"
+    receiver: 'pushover'
+    group_wait: 5s
+    group_interval: 5s
+    repeat_interval: 15m
 
 #  routes:
 #  - match_re:
@@ -99,6 +163,25 @@ receivers:
   pushover_configs:
   - token: ${var.pushover_token}
     user_key: ${var.pushover_user_key}
+    title: "🚨 {{ .GroupLabels.alertname }}"
+    message: |
+      {{ range .Alerts -}}
+      Status: {{ .Status }}
+      {{- if .Annotations.summary }}
+      Summary: {{ .Annotations.summary }}
+      {{- end }}
+      {{- if .Annotations.description }}
+      Description: {{ .Annotations.description }}
+      {{- end }}
+      {{- if .Labels.service }}
+      Service: {{ .Labels.service }}
+      {{- end }}
+      {{- if .Labels.instance }}
+      Instance: {{ .Labels.instance }}
+      {{- end }}
+      {{ end }}
+    priority: 1
+    sound: pushover
 
 EOH
 
@@ -107,14 +190,25 @@ EOH
       }
 
       resources {
-        cpu    = 20
-        memory = 24
-       
+        cpu    = 100
+        memory = 256
       }
     }
   }
 }
 
-variable "tld" {}
-variable "pushover_token" {}
-variable "pushover_user_key" {}
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "pushover_token" {
+  type = string
+}
+
+variable "pushover_user_key" {
+  type = string
+}
