@@ -55,6 +55,7 @@ jobs:
             - 'nomad_jobs/ai-ml/open-webui/*.job'
             - 'nomad_jobs/misc/gcp-dns-updater/*.job'
             - 'nomad_jobs/core-infra/tailscale-este/*.job'
+            - 'nomad_jobs/core-infra/traefik/*.job'
             - 'nomad_jobs/core-infra/traefik-ingress/*.job'
             - 'nomad_jobs/core-infra/nfs-csi-plugin/*.job'
             - 'nomad_jobs/core-infra/iscsi-csi-plugin/*.job'

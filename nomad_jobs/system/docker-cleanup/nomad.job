@@ -1,0 +1,68 @@
+job "docker-cleanup" {
+  region = var.region
+  datacenters = ["dc1"]
+  type = "sysbatch"
+
+  meta {
+    job_file = "nomad_jobs/system/docker-cleanup/nomad.job"
+    version = "1"
+  }
+
+  # Run weekly on Sundays at 2 AM
+  periodic {
+    crons            = ["0 2 * * 0"]
+    prohibit_overlap = true
+    time_zone        = "UTC"
+  }
+
+  group "cleanup" {
+    # sysbatch will automatically run on all eligible nodes
+
+    task "docker-prune" {
+      driver = "raw_exec"
+      
+      config {
+        command = "/bin/bash"
+        args    = ["-c", <<EOF
+          echo "Starting Docker cleanup on node: ${node.unique.name}"
+          echo "Current disk usage:"
+          df -h /
+          
+          echo "Docker system info before cleanup:"
+          docker system df
+          
+          echo "Running docker system prune..."
+          # Prune unused containers, networks, images (dangling), and build cache
+          docker system prune -f
+          
+          # Prune unused images (including non-dangling)
+          docker image prune -a -f --filter "until=168h"  # Remove images older than 1 week
+          
+          echo "Docker system info after cleanup:"
+          docker system df
+          
+          echo "Final disk usage:"
+          df -h /
+          
+          echo "Docker cleanup completed on node: ${node.unique.name}"
+        EOF
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+      }
+
+      # Only run on nodes that have docker command available
+      constraint {
+        attribute = "${attr.kernel.name}"
+        value     = "linux"
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
