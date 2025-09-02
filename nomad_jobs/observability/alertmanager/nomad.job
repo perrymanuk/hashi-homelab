@@ -5,7 +5,7 @@ job "alertmanager" {
 
   meta {
     job_file = "nomad_jobs/observability/alertmanager/nomad.job"
-    version = "3"
+    version = "11"
   }
 
   constraint {
@@ -98,6 +98,8 @@ job "alertmanager" {
       }
 
       template {
+        left_delimiter = "{{{"
+        right_delimiter = "}}}"
         data = <<EOH
 global:
   smtp_smarthost: 'smtp.service.home:25'
@@ -168,9 +170,10 @@ receivers:
   pushover_configs:
   - token: ${var.pushover_token}
     user_key: ${var.pushover_user_key}
-    title: "🚨 {{ .GroupLabels.alertname }}"
+    title: '🚨 {{ range .Alerts }}{{ .Labels.alertname }}{{ break }}{{ end }}'
     message: |
       {{ range .Alerts -}}
+      Alert: {{ .Labels.alertname }}
       Status: {{ .Status }}
       {{- if .Annotations.summary }}
       Summary: {{ .Annotations.summary }}
@@ -178,8 +181,8 @@ receivers:
       {{- if .Annotations.description }}
       Description: {{ .Annotations.description }}
       {{- end }}
-      {{- if .Labels.service }}
-      Service: {{ .Labels.service }}
+      {{- if .Labels.exported_job }}
+      Job: {{ .Labels.exported_job }}
       {{- end }}
       {{- if .Labels.instance }}
       Instance: {{ .Labels.instance }}

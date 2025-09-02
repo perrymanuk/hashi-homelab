@@ -50,7 +50,6 @@ jobs:
             - 'nomad_jobs/media-stack/sabnzbd/*.job'
             - 'nomad_jobs/media-stack/sickchill/*.job'
             - 'nomad_jobs/core-infra/smtp/*.job'
-            - 'nomad_jobs/web-apps/www/*.job'
             - 'nomad_jobs/ai-ml/ollama/*.job'
             - 'nomad_jobs/ai-ml/open-webui/*.job'
             - 'nomad_jobs/misc/gcp-dns-updater/*.job'
