@@ -68,7 +68,7 @@ version = "8"  // Incremented version number
         data = <<EOH
 <Config>
   <PostgresUser>postgres</PostgresUser>
-  <PostgresPassword>${var.postgres_admin_password}</PostgresPassword>
+  <PostgresPassword>${var.postgres_pass}</PostgresPassword>
   <PostgresPort>5432</PostgresPort>
   <PostgresHost>postgres.service.consul</PostgresHost>
   <PostgresMainDb>lidarr_main</PostgresMainDb>
@@ -121,7 +121,7 @@ variable "music_dir" {
     type = string
 }
 
-variable "postgres_admin_password" {
+variable "postgres_pass" {
     type = string
     description = "Admin password for PostgreSQL"
 }
