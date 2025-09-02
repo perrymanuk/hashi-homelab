@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "5" // Changed to service job with new VIPs
+version = "6" // Fixed Let's Encrypt certificate resolver configuration
   }
 
   group "lbs" {
@@ -82,7 +82,7 @@ data = <<EOH
     [entryPoints.websecure.http]
         middlewares=["home-ip-whitelist@file"]
     [entryPoints.websecure.http.tls]
-      certResolver = "sample" # Changed from letsencrypt to sample for consistency
+      certResolver = "letsencrypt"
 
   [entryPoints.traefik]
     address = ":9002"
@@ -114,10 +114,10 @@ data = <<EOH
     datacenter = "homelab"
     endpointWaitTime = "15s"
 
-[certificatesResolvers.sample.acme] # Changed from letsencrypt to sample
+[certificatesResolvers.letsencrypt.acme]
   email = "me@you.com"
   storage = "acme.json"
-  [certificatesResolvers.sample.acme.httpChallenge] # Changed from letsencrypt to sample
+  [certificatesResolvers.letsencrypt.acme.httpChallenge]
     entryPoint = "web"
 
 [providers.file]
