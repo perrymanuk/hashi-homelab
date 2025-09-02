@@ -9,7 +9,9 @@ This repo has gone through some major changes since the last update. I've comple
 
 ### Background
 
-The hashi-homelab was born of a desire to have a simple to maintain but very flexible homelab setup. The main goals were to keep the resources required to run the base lab setup small and to have all of the parts be easily exchangeable. For example I made the main ingress point to the service mesh a DNS round robin. While this isn't a setup I would ever use in production because it isn't the most dynamically flexible in terms of service discovery, it is however a very easy setup and if you want to launch a new mesh you just give it the Consul name `service-mesh` and run the job and then bam! Bob's your uncle.  
+The hashi-homelab was born of a desire to have a simple to maintain but very flexible homelab setup. While designed to work as a cohesive whole, each individual job can be taken and deployed on any Nomad cluster with minimal adjustments - they're built to be portable and self-contained.
+
+The main goals were to keep the resources required to run the base lab setup small and to have all of the parts be easily exchangeable.  
 
 `make deploy-base` will deploy coredns, docker-registry and haproxy - these are needed for everything else to work but aside from these you can pick and choose what to deploy with `make deploy-SERVICE_NAME` to deploy any of the 77 services organized across 10 categories. `make deploy-prometheus` or `make deploy-ollama` for example. You can also target specific datacenters with `make dc1-traefik` or `make all-postgres`.
 
