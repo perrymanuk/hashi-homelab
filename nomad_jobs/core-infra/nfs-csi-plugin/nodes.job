@@ -28,7 +28,8 @@ datacenters = ["dc1"]
         mount_dir = "/csi"
       }
       resources {
-        memory = 10
+        memory = 64
+        cpu = 100
       }
     }
   }

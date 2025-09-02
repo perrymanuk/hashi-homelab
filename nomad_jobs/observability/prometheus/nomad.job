@@ -5,7 +5,7 @@ job "prometheus" {
 
   meta {
     job_file = "nomad_jobs/observability/prometheus/nomad.job"
-version = "4"
+    version = "10"
   }
 
   constraint {
@@ -19,7 +19,6 @@ version = "4"
 
     network {
       port "http" {
-        host_network = "tailscale"
         static = "9090"
       }
     }
@@ -28,16 +27,10 @@ version = "4"
       type      = "csi"
       read_only = false
       source    = "prometheus"
-      access_mode = "single-node-writer"
+      access_mode = "multi-node-single-writer"
       attachment_mode = "file-system"
     }
 
-
-    update {
-      max_parallel     = 1
-      min_healthy_time = "30s"
-      auto_revert      = true
-    }
 
     task "prep-disk" {
       driver = "docker"
@@ -66,6 +59,8 @@ version = "4"
     update {
       max_parallel     = 1
       min_healthy_time = "30s"
+      healthy_deadline = "5m"
+      progress_deadline = "10m"
       auto_revert      = true
     }
 
@@ -83,11 +78,7 @@ version = "4"
         name = "prometheus"
         port = "http"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
+          "traefik.enable=true"
         ]
 
         check {
@@ -112,7 +103,7 @@ alerting:
   alertmanagers:
   - static_configs:
     - targets:
-       - alertmanager.service.home:9093
+       - alertmanager.service.consul:9093
 
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
@@ -178,7 +169,7 @@ scrape_configs:
 
     scheme: http
     static_configs:
-      - targets: ['hass.service.home:8123']
+      - targets: ['${var.hass_ip}:8123']
 
   - job_name: 'nomad'
     consul_sd_configs:
@@ -258,43 +249,29 @@ EOH
         data = <<EOH
 ---
 groups:
-- name: prometheus_alerts
+- name: basic_alerts
   rules:
-  - alert: Traefik Down
-    expr: absent(nomad_client_allocs_cpu_user{task="traefik"})
+  - alert: PrometheusDown
+    expr: absent(up{job="prometheus"})
     for: 2m
     labels:
       severity: page
+      alertname: "PrometheusDown"
     annotations:
-      description: "Traefik is down."
-  - alert: Sabnzbd Down
-    expr: absent(nomad_client_allocs_cpu_user{task="sabnzbd"})
+      summary: "Prometheus is down"
+      description: "Prometheus has been down for more than 2 minutes"
+      service: "prometheus"
+      
+  - alert: NomadClusterDown
+    expr: absent(up{job="nomad-client"})
     for: 2m
     labels:
       severity: page
+      alertname: "NomadClusterDown"
     annotations:
-      description: "Sabnzbd is down."
-  - alert: Plex Down
-    expr: absent(nomad_client_allocs_cpu_user{task="plex"})
-    for: 2m
-    labels:
-      severity: page
-    annotations:
-      description: "Plex is down."
-  - alert: Sickchill Down
-    expr: absent(nomad_client_allocs_cpu_user{task="sickchill"})
-    for: 2m
-    labels:
-      severity: page
-    annotations:
-      description: "sickchill is down."
-  - alert: Radarr Down
-    expr: absent(nomad_client_allocs_cpu_user{task="radarr"})
-    for: 2m
-    labels:
-      severity: page
-    annotations:
-      description: "Radarr is down."
+      summary: "Nomad cluster is unreachable"
+      description: "No Nomad metrics available - cluster may be down"
+      service: "nomad"
   # Alert for any instance that is unreachable for >5 minutes.
   - alert: InstanceDown
     expr: up == 0
@@ -314,6 +291,74 @@ groups:
       summary: "Host {{ $labels.host }} disk {{ $labels.device }} usage alert"
       description: "{{ $labels.host }} is using over 80% of its device: {{ $labels.device }}"
 
+- name: nomad_allocation_alerts
+  rules:
+  - alert: NomadJobFailureRate
+    expr: rate(nomad_nomad_job_summary_failed[5m]) > 0
+    for: 2m
+    labels:
+      severity: critical
+      alertname: "NomadJobFailureRate"
+    annotations:
+      summary: "Nomad job {{ $labels.exported_job }} is experiencing failures"
+      description: "Job {{ $labels.exported_job }} is failing allocations at a rate of {{ $value | printf \"%.2f\" }} per second"
+      service: "nomad"
+      
+  - alert: NomadJobLostRate
+    expr: rate(nomad_nomad_job_summary_lost[5m]) > 0
+    for: 2m
+    labels:
+      severity: warning
+      alertname: "NomadJobLostRate"
+    annotations:
+      summary: "Nomad job {{ $labels.exported_job }} is losing allocations"
+      description: "Job {{ $labels.exported_job }} is losing allocations at a rate of {{ $value | printf \"%.2f\" }} per second"
+      service: "nomad"
+      
+  - alert: NomadJobQueued
+    expr: nomad_nomad_job_summary_queued > 0
+    for: 5m
+    labels:
+      severity: warning
+      alertname: "NomadJobQueued"
+    annotations:
+      summary: "Nomad job {{ $labels.exported_job }} has queued allocations"
+      description: "Job {{ $labels.exported_job }} has {{ $value }} allocations queued for over 5 minutes"
+      service: "nomad"
+      
+  - alert: NomadAllocationsRestarting
+    expr: rate(nomad_client_allocs_restart[5m]) > 0.1
+    for: 2m
+    labels:
+      severity: warning
+      alertname: "NomadAllocationsRestarting"
+    annotations:
+      summary: "High allocation restart rate on {{ $labels.host }}"
+      description: "Allocation restart rate is {{ $value }} per second on {{ $labels.host }}"
+      service: "nomad"
+      
+  - alert: NomadAllocationsOOMKilled
+    expr: increase(nomad_client_allocs_oom_killed[5m]) > 0
+    for: 0s
+    labels:
+      severity: critical
+      alertname: "NomadAllocationsOOMKilled"
+    annotations:
+      summary: "Allocation killed due to OOM on {{ $labels.host }}"
+      description: "{{ $value }} allocations were killed due to out-of-memory on {{ $labels.host }}"
+      service: "nomad"
+      
+  - alert: NomadHighMemoryUsage
+    expr: (nomad_client_allocs_memory_usage / nomad_client_allocs_memory_allocated) * 100 > 90
+    for: 5m
+    labels:
+      severity: warning
+      alertname: "NomadHighMemoryUsage"
+    annotations:
+      summary: "High memory usage for allocation {{ $labels.alloc }}"
+      description: "Allocation {{ $labels.alloc }} is using {{ $value }}% of allocated memory"
+      service: "nomad"
+
 EOH
       }
 
@@ -321,9 +366,10 @@ EOH
       config {
         image = "prom/prometheus:v3.4.2"
         network_mode = "host"
-        args = ["--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "900d"]
+        args = ["--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "90d"]
         force_pull = true
         ports = ["http"]
+        dns_servers = ["192.168.50.2"]
         volumes = [
           "local/alerts.yml:/prometheus/alerts.yml",
           "local/prometheus.yml:/prometheus/prometheus.yml",
@@ -343,5 +389,5 @@ EOH
 variable "region" {}
 variable "tld" {}
 variable "shared_dir" {}
-variable "auth" {}
 variable "hass_key" {}
+variable "hass_ip" {}

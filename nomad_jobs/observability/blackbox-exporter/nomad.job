@@ -20,7 +20,7 @@ region      = var.region
     task "blackbox_exporter" {
       driver = "docker"
       service {
-        tags = ["net-internal", "blackbox-exporter"]
+        tags = ["net-internal", "blackbox-exporter", "metrics"]
         name = "blackbox-exporter"
         port = "http"
 

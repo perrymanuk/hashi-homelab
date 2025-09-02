@@ -61,6 +61,7 @@ jobs:
             - 'nomad_jobs/core-infra/iscsi-csi-plugin/*.job'
             - 'nomad_jobs/web-apps/firecrawl/*.job'
             - 'nomad_jobs/observability/alertmanager/*.job'
+            - 'nomad_jobs/observability/prometheus/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -137,6 +138,7 @@ jobs:
         NOMAD_VAR_tv_dir: '/home/media/TV'
         NOMAD_VAR_media_dir: '/home/media'
         NOMAD_VAR_hass_key: '${{ secrets.NOMAD_VAR_hass_key }}' # Corrected case
+        NOMAD_VAR_hass_ip: '${{ secrets.NOMAD_VAR_hass_ip }}'
         NOMAD_VAR_github_pat: ${{ secrets.NOMAD_VAR_github_pat }} # Corrected case
         NOMAD_VAR_datacenters_all: '["dc1", "public"]'
         NOMAD_VAR_datacenters_dc1: '["dc1"]'

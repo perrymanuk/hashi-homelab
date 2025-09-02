@@ -5,7 +5,7 @@ job "alertmanager" {
 
   meta {
     job_file = "nomad_jobs/observability/alertmanager/nomad.job"
-    version = "2"
+    version = "3"
   }
 
   constraint {
@@ -20,8 +20,6 @@ job "alertmanager" {
     healthy_deadline = "5m"
     progress_deadline = "10m"
     auto_revert      = true
-    canary           = 1
-    auto_promote     = true
   }
 
   group "alerting" {
@@ -35,12 +33,11 @@ job "alertmanager" {
       type      = "csi"
       read_only = false
       source    = "alertmanager"
-      access_mode = "single-node-writer"
+      access_mode = "multi-node-single-writer"
       attachment_mode = "file-system"
     }
     network {
       port "http" {
-        host_network = "tailscale"
         static = "9093"
       }
     }
@@ -78,21 +75,17 @@ job "alertmanager" {
       }
       
       service {
-         tags = [
-           "traefik.enable=true",
-           "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=sample",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
-         ]
-         name = "alertmanager"
-         port = "http"
+        name = "alertmanager"
+        port = "http"
+        tags = [
+          "traefik.enable=true"
+        ]
 
-         check {
-           type     = "tcp"
-           port     = "http"
-           interval = "10s"
-           timeout  = "2s"
+        check {
+          type     = "tcp"
+          port     = "http"
+          interval = "10s"
+          timeout  = "2s"
         }
       }
 
@@ -101,7 +94,7 @@ job "alertmanager" {
         network_mode = "host"
         ports = ["http"]
         force_pull = true
-        args = ["--web.external-url", "http://alertmanager.${var.tld}", "--config.file", "/local/config.yml", "--storage.path", "/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
+        args = ["--web.external-url", "https://alertmanager.${var.tld}", "--config.file", "/local/config.yml", "--storage.path", "/alertmanager", "--web.listen-address", "0.0.0.0:9093"]
       }
 
       template {
@@ -118,6 +111,18 @@ route:
   receiver: 'pushover'
   
   routes:
+  - match:
+      severity: critical
+    receiver: 'pushover'
+    group_wait: 5s
+    group_interval: 5s
+    repeat_interval: 15m
+  - match:
+      severity: warning
+    receiver: 'pushover'
+    group_wait: 30s
+    group_interval: 30s
+    repeat_interval: 1h
   - match:
       severity: page
     receiver: 'pushover'

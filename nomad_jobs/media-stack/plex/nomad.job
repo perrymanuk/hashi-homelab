@@ -5,7 +5,7 @@ job "plex" {
 
   meta {
       job_file = "nomad_jobs/media-stack/plex/nomad.job"
-version = "5"  // Incremented version number
+version = "6"  // Incremented version number
   }
 
   group "downloaders" {
@@ -139,7 +139,7 @@ EOH
 
       resources {
         cpu    = 4000
-        memory = 3072
+        memory = 4096
       }
     }
   }

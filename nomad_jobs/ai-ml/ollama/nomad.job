@@ -59,7 +59,7 @@ job "ollama" {
 
       resources {
         cpu    = "200"
-        memory = "60000"
+        memory = "30000"
       }
     }
   }
