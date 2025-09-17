@@ -12,7 +12,7 @@ job "ollama" {
     network {
       mode = "host"
       port "web" {
-        to = "11434"
+        static = "11434"
         host_network = "lan"
       }
     }

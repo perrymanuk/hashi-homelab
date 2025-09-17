@@ -92,6 +92,8 @@ job "prometheus" {
 
       # main configuration file
       template {
+        left_delimiter = "[["
+        right_delimiter = "]]"
         data = <<EOH
 global:
   scrape_interval:     60s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
@@ -119,7 +121,7 @@ scrape_configs:
     scrape_interval: 5s
     metrics_path: /metrics
     consul_sd_configs:
-      - server: '{{ env "NOMAD_IP_http" }}:8500'
+      - server: '[[ env "NOMAD_IP_http" ]]:8500'
         tags: ['metrics']
         scheme: http
     relabel_configs:
@@ -143,7 +145,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     consul_sd_configs:
-      - server: '{{ env "NOMAD_IP_http" }}:8500'
+      - server: '[[ env "NOMAD_IP_http" ]]:8500'
         services: ['nomad-client']
         scheme: http
     relabel_configs:
@@ -173,7 +175,7 @@ scrape_configs:
 
   - job_name: 'nomad'
     consul_sd_configs:
-    - server: '{{ env "NOMAD_IP_http" }}:8500'
+    - server: '[[ env "NOMAD_IP_http" ]]:8500'
       services: ['nomad-client']
       tags: ['http']
       scheme: http
@@ -274,13 +276,22 @@ groups:
       service: "nomad"
   # Alert for any instance that is unreachable for >5 minutes.
   - alert: InstanceDown
-    expr: up == 0
+    expr: up{job!="hass"} == 0
     for: 5m
     labels:
       severity: page
     annotations:
       summary: "Instance {{ $labels.instance }} down"
       description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+  
+  - alert: HomeAssistantDown
+    expr: up{job="hass"} == 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Home Assistant is down"  
+      description: "Home Assistant at {{ $labels.instance }} has been down for more than 10 minutes."
   # Alert for any device that is over 80% capacity  
   - alert: DiskUsage
     expr: avg(disk_used_percent) by (host, device) > 80
