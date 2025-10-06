@@ -87,7 +87,7 @@ EOH
       driver = "docker"
       
       config {
-        image = "coredns/coredns:1.12.4"
+        image = "coredns/coredns:1.13.0"
         network_mode = "host"
         force_pull = false
         ports = ["dns", "metrics"]
