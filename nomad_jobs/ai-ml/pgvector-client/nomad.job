@@ -13,7 +13,7 @@ job "pgvector-client-example" {
       driver = "docker"
 
       config {
-        image = "python:3.13-slim"
+        image = "python:3.14-slim"
         command = "python"
         args = [
           "/local/embedding-example.py"

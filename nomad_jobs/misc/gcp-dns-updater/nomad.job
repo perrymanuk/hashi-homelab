@@ -30,7 +30,7 @@ job "gcp-dns-updater" {
       driver = "docker"
 
       config {
-        image = "python:3.13-slim"
+        image = "python:3.14-slim"
         dns_servers = ["192.168.50.2"]
         command = "sh"
         args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests pyyaml && python /local/update_dns.py"]
