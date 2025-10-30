@@ -364,7 +364,7 @@ EOH
 
 
       config {
-        image = "prom/prometheus:v3.7.2"
+        image = "prom/prometheus:v3.7.3"
         network_mode = "host"
         args = ["--storage.tsdb.path", "/opt/prometheus", "--web.listen-address", "0.0.0.0:9090", "--storage.tsdb.retention.time", "90d"]
         force_pull = true
