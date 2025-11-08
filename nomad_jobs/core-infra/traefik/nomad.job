@@ -51,7 +51,7 @@ version = "6" // Fixed Let's Encrypt certificate resolver configuration
       }
 
       config {
-        image = "traefik:v3.5"
+        image = "traefik:v3.6"
         ports = ["http", "admin"]
         network_mode = "host"
         volumes = [
