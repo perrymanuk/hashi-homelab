@@ -70,7 +70,7 @@ region      = var.region
       user = "10001:10001"
       driver = "docker"
       config {
-        image = "grafana/loki:3.5.8"
+        image = "grafana/loki:3.6.0"
         args = [
           "-config.file",
           "local/loki/local-config.yaml",
