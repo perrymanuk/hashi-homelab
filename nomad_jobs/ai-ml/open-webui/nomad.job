@@ -20,7 +20,7 @@ job "open-webui" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/open-webui/open-webui:v0.6.36"
+        image = "ghcr.io/open-webui/open-webui:v0.6.37"
         dns_servers = [var.dns_server_ip]
         volumes = [
           "${var.shared_dir}open-webui:/app/backend/data",
