@@ -54,7 +54,7 @@ version = "6"
       }
 
       config {
-        image = "haproxy:3.2.9-alpine"
+        image = "haproxy:3.3.0-alpine"
         args = ["-W", "-f", "local/etc/haproxy.cfg"]
         network_mode = "host"
       }
