@@ -35,7 +35,7 @@ version = "4"
       }
 
       config {
-        image = "telegraf:1.36.4"
+        image = "telegraf:1.37.0"
         privileged = "true"
         ports = ["http"]
         args = [
