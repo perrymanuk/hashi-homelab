@@ -35,7 +35,7 @@ version = "8"  // Incremented version number
     task "radarr" {
       driver = "docker"
       config {
-        image = "linuxserver/radarr:5.28.0"
+        image = "linuxserver/radarr:6.0.4"
         dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
