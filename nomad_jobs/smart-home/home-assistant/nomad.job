@@ -50,7 +50,7 @@ service_owner = "@pmanuk"
     task "hass" {
       driver = "docker"
       config {
-        image = "homeassistant/home-assistant:2025.12.3"
+        image = "homeassistant/home-assistant:2025.12.4"
         network_mode = "host"
         privileged = "true"
         volumes = [
