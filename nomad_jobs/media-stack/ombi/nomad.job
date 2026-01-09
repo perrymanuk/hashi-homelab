@@ -43,7 +43,7 @@ version = "4"
     task "ombi" {
       driver = "docker"
       config {
-        image = "linuxserver/ombi:4.47.1"
+        image = "linuxserver/ombi:4.53.4"
         force_pull = "true"
         ports = ["http"]
       }
