@@ -37,6 +37,7 @@ jobs:
             - 'nomad_jobs/media-stack/sickchill/*.job'
             - 'nomad_jobs/media-stack/radarr/*.job'
             - 'nomad_jobs/media-stack/lidarr/*.job'
+            - 'nomad_jobs/media-stack/overseerr/*.job'
             - 'nomad_jobs/storage-backends/postgres/*.job'
             - 'nomad_jobs/storage-backends/mariadb/*.job'
             - 'nomad_jobs/storage-backends/redis/*.job'
