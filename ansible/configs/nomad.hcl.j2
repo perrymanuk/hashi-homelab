@@ -103,6 +103,7 @@ consul {
 
 plugin "docker" {
   config {
+    dns_servers = ["192.168.50.2", "192.168.50.1", "8.8.8.8"]
     allow_caps = ["CHOWN","DAC_OVERRIDE","FSETID","FOWNER","MKNOD","NET_RAW","SETGID","SETUID","SETFCAP","SETPCAP"," NET_BIND_SERVICE","SYS_CHROOT","KILL","AUDIT_WRITE","NET_ADMIN","NET_BROADCAST"]
     # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
     extra_labels = ["job_name", "task_group_name", "task_name", "namespace", "node_name"]
