@@ -70,7 +70,7 @@ variable "shared_dir" {
     type = string
 }
 
-variable "postgres_admin_password" {
+variable "postgres_pass" {
     type = string
     description = "Admin password for PostgreSQL"
 }
