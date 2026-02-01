@@ -3,8 +3,8 @@ external_id  = "prometheus"
 name         = "prometheus"
 type         = "csi"
 plugin_id    = "org.democratic-csi.iscsi"
-capacity_min = "10GiB"
-capacity_max = "20GiB"
+capacity_min = "50GiB"
+capacity_max = "50GiB"
 
 capability {
   access_mode     = "multi-node-single-writer"
