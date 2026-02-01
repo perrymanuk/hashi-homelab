@@ -48,18 +48,40 @@
           - multipath-tools
           - scsitools
 
-    - name: Ensure specific /etc/fstab entries
+    - name: Ensure /etc/docker directory exists
+      file:
+        path: /etc/docker
+        state: directory
+        mode: '0755'
+
+    - name: Configure Docker daemon with fallback DNS
+      copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "dns": ["192.168.50.2", "192.168.50.1", "8.8.8.8"]
+          }
+      notify: Restart Docker
+
+    - name: Remove old NFS fstab entries
       lineinfile:
         path: /etc/fstab
-        line: "{{ item }}"
-        insertafter: EOF
-      with_items:
-        - "192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,auto  0  1"
-        - "192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,auto  0  1"
-        - "192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,auto  0  1"
-        - "192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,auto  0  1"
-        - "192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,auto  0  1"
-      notify: Mount Filesystems
+        regexp: '^192\.168\.50\.208:/mnt/.*'
+        state: absent
+
+    - name: Add NFS fstab entries with proper options
+      blockinfile:
+        path: /etc/fstab
+        marker: "# {mark} ANSIBLE MANAGED NFS MOUNTS"
+        block: |
+          192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+          192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+          192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+          192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+          192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+      notify:
+        - Reload systemd fstab
+        - Mount Filesystems
 
     - name: Enable services
       systemd:
@@ -71,8 +93,17 @@
         - multipath-tools
 
   handlers:
+    - name: Reload systemd fstab
+      systemd:
+        daemon_reload: yes
+
     - name: Mount Filesystems
       command: mount -a
+
+    - name: Restart Docker
+      service:
+        name: docker
+        state: restarted
 
 - name: Update configuration, execute command, and install packages
   hosts: 
@@ -179,18 +210,21 @@
     - name: Apply Sysctl Changes
       command: sysctl -p /etc/sysctl.conf
 
-- name: Install and configure Tailscale 
+- name: Install and configure Tailscale
   hosts:
     - all
   become: yes
   remote_user: root
   gather_facts: yes
+  tags: tailscale
 
   vars:
     # Read authkey from environment variable; default to 'MISSING' if not set
     tailscale_auth_key: "{{ lookup('env', 'NOMAD_VAR_tailscale_auth') | default('MISSING') }}"
     # Optionally customize your Tailscale hostname
     tailscale_hostname: "{{ inventory_hostname }}"
+    # Tag to advertise (must match OAuth client tag)
+    tailscale_tags: "tag:nomad"
 
   tasks:
     - name: Download Tailscale GPG key via curl
@@ -217,7 +251,7 @@
     - name: Install Tailscale
       apt:
         name: tailscale
-        state: present
+        state: latest
 
     - name: Enable and start tailscaled service
       service:
@@ -232,6 +266,7 @@
         tailscale up
         --authkey={{ tailscale_auth_key }}
         --hostname={{ tailscale_hostname }}
+        --advertise-tags={{ tailscale_tags }}
         --reset
       register: tailscale_up
       changed_when: "'Success' in tailscale_up.stdout or 'Success' in tailscale_up.stderr or tailscale_up.rc == 0"
