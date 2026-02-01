@@ -39,8 +39,7 @@ version = "8"  // Incremented version number
         dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
-          "${var.downloads_dir}:/media/Movies",
-          "${var.movies_dir}:/movies",
+          "${var.movies_dir}:/media/Movies",
           "local/config.xml:/config/config.xml",
         ]
       }
@@ -54,7 +53,7 @@ version = "8"  // Incremented version number
       env {
         UMASK_SET = "022"
         TZ        = "UTC"
-        PGUID     = "65534"
+        PUID      = "65534"
         PGID      = "65534"
       }
 
@@ -77,12 +76,10 @@ EOH
         port = "http"
         name = "radarr"
         tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+          "traefik.enable=true"
         ]
         check {
-          type     = "http"
-          path     = "/"
+          type     = "tcp"
           interval = "10s"
           timeout  = "2s"
         }
