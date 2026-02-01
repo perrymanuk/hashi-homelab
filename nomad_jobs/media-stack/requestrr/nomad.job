@@ -1,0 +1,79 @@
+job "requestrr" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/requestrr/nomad.job"
+    version = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "media" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = 4545
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "requestrr" {
+      driver = "docker"
+
+      config {
+        image = "thomst08/requestrr:v2.1.9"
+        ports = ["http"]
+        volumes = [
+          "${var.shared_dir}requestrr:/root/config",
+        ]
+      }
+
+      env {
+        TZ = "Etc/UTC"
+      }
+
+      service {
+        port = "http"
+        name = "requestrr"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}

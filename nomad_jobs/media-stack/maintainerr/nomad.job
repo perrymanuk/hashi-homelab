@@ -1,0 +1,82 @@
+job "maintainerr" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/maintainerr/nomad.job"
+    version = "2"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "media" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = 6246
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "maintainerr" {
+      driver = "docker"
+
+      config {
+        image = "ghcr.io/maintainerr/maintainerr:latest"
+        ports = ["http"]
+        volumes = [
+          "${var.shared_dir}maintainerr:/opt/data",
+        ]
+      }
+
+      env {
+        TZ = "Etc/UTC"
+      }
+
+      user = "1000:1000"
+
+      service {
+        port = "http"
+        name = "maintainerr"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
