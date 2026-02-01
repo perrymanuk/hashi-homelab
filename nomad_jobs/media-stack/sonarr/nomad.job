@@ -5,7 +5,7 @@ job "sonarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/sonarr/nomad.job"
-version = "8"  // Incremented version number
+version = "10"  // Use /ping for health check (no auth required)
   }
 
   constraint {
@@ -18,7 +18,7 @@ version = "8"  // Incremented version number
     count = 1 
     network {
       port "http" {
-        host_network = "tailscale"
+        host_network = "lan"
         to = "8989"
       }
     }
@@ -34,6 +34,7 @@ version = "8"  // Incremented version number
       driver = "docker"
       config {
         image = "linuxserver/sonarr:4.0.16"
+        dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
           "${var.shared_dir}sonarr:/config",
@@ -72,7 +73,7 @@ EOH
         ]
         check {
           type     = "http"
-          path     = "/"
+          path     = "/ping"
           interval = "10s"
           timeout  = "2s"
         }

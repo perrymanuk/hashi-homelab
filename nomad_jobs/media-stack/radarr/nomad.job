@@ -5,7 +5,7 @@ job "radarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/radarr/nomad.job"
-version = "8"  // Incremented version number
+version = "9"  // Use /ping for health check
   }
 
   group "downloaders" {
@@ -79,7 +79,8 @@ EOH
           "traefik.enable=true"
         ]
         check {
-          type     = "tcp"
+          type     = "http"
+          path     = "/ping"
           interval = "10s"
           timeout  = "2s"
         }
