@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "7" // Fixed ACME HTTP-01 challenge by removing global HTTP redirect and using router-based redirect
+version = "8" // Added keepalived sidecar for Tailscale floating IP 192.168.50.50
   }
 
   group "lbs" {
@@ -31,6 +31,41 @@ version = "7" // Fixed ACME HTTP-01 challenge by removing global HTTP redirect a
       auto_revert      = true
     }
     
+    task "keepalived-traefik" {
+      driver = "docker"
+
+      lifecycle {
+        hook = "prestart"
+        sidecar = true
+      }
+
+      config {
+        image = "osixia/keepalived:2.0.20"
+        network_mode = "host"
+        force_pull = false
+        volumes = [
+          "local/:/container/environment/01-custom"
+        ]
+        cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
+      }
+
+      template {
+        destination = "local/env.yaml"
+        change_mode = "restart"
+        splay       = "1m"
+        data        = <<EOH
+KEEPALIVED_VIRTUAL_IPS:
+  - 192.168.50.50/24
+KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+EOH
+      }
+
+      resources {
+        cpu    = 100
+        memory = 32
+      }
+    }
+
     task "traefik" {
       driver = "docker"
       service {

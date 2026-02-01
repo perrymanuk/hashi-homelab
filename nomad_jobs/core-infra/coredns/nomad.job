@@ -6,7 +6,7 @@ job "coredns" {
 
   meta {
       job_file = "nomad_jobs/core-infra/coredns/nomad.job"
-      version = "6"
+      version = "8"
   }
 
   constraint {
@@ -177,9 +177,9 @@ ns2                      IN A   192.168.50.2
 
 {{- /*  Point domains to the floating IP from keepalived */}}
 ; services - A records
-lab.${var.tld}.         IN A   192.168.50.2
-*                       IN A   192.168.50.2
-@                       IN A   192.168.50.2
+lab.${var.tld}.         IN A   192.168.50.50
+*                       IN A   192.168.50.50
+@                       IN A   192.168.50.50
 
 EOH
       }
