@@ -54,13 +54,31 @@
         state: directory
         mode: '0755'
 
-    - name: Configure Docker daemon with fallback DNS
-      copy:
+    - name: Add NVIDIA Container Toolkit GPG key
+      apt_key:
+        url: https://nvidia.github.io/libnvidia-container/gpgkey
+        state: present
+        keyring: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      when: "'cheese' in group_names"
+
+    - name: Add NVIDIA Container Toolkit repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/libnvidia-container/stable/deb/$(ARCH) /"
+        state: present
+        filename: nvidia-container-toolkit
+      when: "'cheese' in group_names"
+
+    - name: Install NVIDIA Container Toolkit
+      apt:
+        name: nvidia-container-toolkit
+        state: present
+        update_cache: yes
+      when: "'cheese' in group_names"
+
+    - name: Configure Docker daemon with fallback DNS and nvidia runtime
+      template:
+        src: configs/docker-daemon.json.j2
         dest: /etc/docker/daemon.json
-        content: |
-          {
-            "dns": ["192.168.50.2", "192.168.50.1", "8.8.8.8"]
-          }
       notify: Restart Docker
 
     - name: Remove old NFS fstab entries

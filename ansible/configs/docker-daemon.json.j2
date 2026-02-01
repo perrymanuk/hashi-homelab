@@ -1,0 +1,10 @@
+{
+  "dns": ["192.168.50.2", "192.168.50.1", "8.8.8.8"]{% if 'cheese' in group_names %},
+  "runtimes": {
+    "nvidia": {
+      "args": [],
+      "path": "nvidia-container-runtime"
+    }
+  }
+{% endif %}
+}

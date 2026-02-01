@@ -1,0 +1,14 @@
+[Unit]
+Description=consul agent
+Requires=network-online.target tailscaled.service
+After=network-online.target tailscaled.service
+
+[Service]
+ExecStartPre=/bin/sleep 30
+EnvironmentFile=-/etc/default/consul
+Restart=always
+ExecStart=/usr/bin/consul agent -domain consul -ui -config-dir=/etc/consul.d
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+[Install]
+WantedBy=multi-user.target
