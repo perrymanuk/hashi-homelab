@@ -5,7 +5,7 @@ job "alertmanager" {
 
   meta {
     job_file = "nomad_jobs/observability/alertmanager/nomad.job"
-    version = "11"
+    version = "12"  // Reduced memory 256MB -> 64MB
   }
 
   constraint {
@@ -199,7 +199,7 @@ EOH
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 64
       }
     }
   }

@@ -5,7 +5,7 @@ job "redis" {
 
   meta {
     job_file = "nomad_jobs/storage-backends/redis/nomad.job"
-    version  = "3"
+    version  = "4"  // Reduced memory 512MB -> 128MB
   }
 
   constraint {
@@ -98,7 +98,7 @@ job "redis" {
 
       resources {
         cpu    = 300
-        memory = 512
+        memory = 128
       }
     }
   }

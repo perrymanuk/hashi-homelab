@@ -5,7 +5,7 @@ job "lidarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/lidarr/nomad.job"
-version = "8"  // Incremented version number
+version = "9"  // Reduced memory 1024MB -> 256MB
   }
 
   constraint {
@@ -95,7 +95,7 @@ EOH
 
       resources {
         cpu    = 100
-        memory = 1024
+        memory = 256
       }
     }
   }
