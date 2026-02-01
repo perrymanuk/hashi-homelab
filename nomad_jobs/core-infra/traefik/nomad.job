@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "6" // Fixed Let's Encrypt certificate resolver configuration
+version = "7" // Fixed ACME HTTP-01 challenge by removing global HTTP redirect and using router-based redirect
   }
 
   group "lbs" {
@@ -73,9 +73,7 @@ data = <<EOH
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
+    # No global redirect - handle via router to allow ACME challenges
 
   [entryPoints.websecure]
     address = ":443"
@@ -134,14 +132,8 @@ EOH
       template {
 data = <<EOH
 [http.middlewares]
-  [http.middlewares.allow-letsencrypt-ip.ipWhiteList]
-    sourceRange = ["66.133.109.36/32", "66.133.109.35/32", "172.65.32.248/32"]  # Let's Encrypt IPs
-
   [http.middlewares.allow-local-network.ipWhiteList]
-    sourceRange = ["192.168.50.0/24", "10.0.0.0/16"]  # Local network only - dynamic IP from file
-
-  [http.middlewares.deny-all.ipWhiteList]
-    sourceRange = ["127.0.0.1/32"]  # Blocks everything except localhost
+    sourceRange = ["192.168.50.0/24", "10.0.0.0/16"]  # Local network only
 
   [http.middlewares.basic-auth.basicAuth]
     users = [
@@ -153,12 +145,18 @@ data = <<EOH
   [http.middlewares.ip-or-auth.chain]
     middlewares = ["home-ip-whitelist@file", "allow-local-network", "basic-auth"]
 
+  [http.middlewares.redirect-to-https.redirectScheme]
+    scheme = "https"
+    permanent = true
+
 [http.routers]
-  [http.routers.http-certs]
+  # Redirect HTTP to HTTPS except for ACME challenges
+  [http.routers.http-redirect]
     entryPoints = ["web"]
-    rule = "PathPrefix(`/.well-known/acme-challenge/`)"
-    middlewares = ["allow-letsencrypt-ip"]
-    service = "noop"
+    rule = "PathPrefix(`/`) && !PathPrefix(`/.well-known/acme-challenge/`)"
+    middlewares = ["redirect-to-https"]
+    service = "noop@internal"
+    priority = 1
 
   [http.routers.https-local]
     entryPoints = ["websecure"]
