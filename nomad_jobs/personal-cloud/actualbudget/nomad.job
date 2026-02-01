@@ -1,0 +1,110 @@
+job "actualbudget" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+      job_file = "nomad_jobs/personal-cloud/actualbudget/nomad.job"
+      version = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "actualbudget" {
+    count = 1
+
+    network {
+      mode = "host"
+      port "http" {
+        static = "5006"
+        host_network = "lan"
+      }
+    }
+
+    volume "actualbudget" {
+      type            = "csi"
+      read_only       = false
+      source          = "actualbudget-data"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      volume_mount {
+        volume      = "actualbudget"
+        destination = "/volume/"
+        read_only   = false
+      }
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chmod 777 /volume/"]
+      }
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "actualbudget" {
+      driver = "docker"
+      config {
+        image = "actualbudget/actual-server:latest"
+        ports = ["http"]
+      }
+
+      volume_mount {
+        volume      = "actualbudget"
+        destination = "/data"
+        read_only   = false
+      }
+
+      env {
+        TZ = "Etc/UTC"
+      }
+
+      service {
+        port = "http"
+        name = "actualbudget"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+    type = string
+}
+
+variable "shared_dir" {
+    type = string
+}
