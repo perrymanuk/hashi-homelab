@@ -5,7 +5,7 @@ job "tailscale" {
 
   meta {
       job_file = "nomad_jobs/core-infra/tailscale/nomad.job"
-      version = "5"
+      version = "6"
   }
 
   constraint {
@@ -56,10 +56,10 @@ job "tailscale" {
 data = <<EOH
 TS_HOSTNAME="home-gateway"
 TS_ROUTES="192.168.50.0/24"
-TS_AUTH_KEY="${var.tailscale_auth}"
+TS_AUTHKEY="${var.tailscale_auth}"
 TS_STATE_DIR="/var/lib/tailscale/tailscaled.state"
 TS_USERSPACE="true"
-TS_EXTRA_ARGS="--reset"
+TS_EXTRA_ARGS="--reset --advertise-tags=tag:nomad"
 EOH
       destination = "local/env"
       env         = true
