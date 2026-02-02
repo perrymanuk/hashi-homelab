@@ -6,7 +6,7 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "2"  // Fixed interface config, host-mounted logs for Wazuh integration
+    version  = "3"  // Removed prestart rule update (moved to suricata-update periodic job)
   }
 
   group "ids" {
@@ -17,29 +17,6 @@ job "suricata" {
     update {
       min_healthy_time = "30s"
       auto_revert      = true
-    }
-
-    # Prestart task to update Suricata rules
-    task "update-rules" {
-      driver = "docker"
-
-      config {
-        image   = "jasonish/suricata:7.0"
-        command = "suricata-update"
-        volumes = [
-          "/var/lib/suricata:/var/lib/suricata",
-        ]
-      }
-
-      resources {
-        cpu    = 200
-        memory = 256
-      }
-
-      lifecycle {
-        hook    = "prestart"
-        sidecar = false
-      }
     }
 
     task "suricata" {

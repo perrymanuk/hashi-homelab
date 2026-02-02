@@ -1,0 +1,39 @@
+job "suricata-update" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "sysbatch"
+
+  meta {
+    job_file = "nomad_jobs/security/suricata-update/nomad.job"
+    version  = "1"
+  }
+
+  # Run daily at 4am
+  periodic {
+    crons            = ["0 4 * * *"]
+    prohibit_overlap = true
+  }
+
+  group "update" {
+    task "suricata-update" {
+      driver = "docker"
+
+      config {
+        image   = "jasonish/suricata:7.0"
+        command = "suricata-update"
+        volumes = [
+          "/var/lib/suricata:/var/lib/suricata",
+        ]
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
