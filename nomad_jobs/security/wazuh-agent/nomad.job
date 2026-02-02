@@ -6,7 +6,7 @@ job "wazuh-agent" {
 
   meta {
     job_file = "nomad_jobs/security/wazuh-agent/nomad.job"
-    version  = "4"  // Added Suricata IDS log collection
+    version  = "6"  // Fix client.keys file permissions for persistence
   }
 
   group "agent" {
@@ -17,6 +17,30 @@ job "wazuh-agent" {
     update {
       min_healthy_time = "30s"
       auto_revert      = true
+    }
+
+    # Ensure agent data directory exists on host
+    task "prep-agent-dir" {
+      driver = "docker"
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "mkdir -p /host/var/lib/wazuh-agent; test -f /host/var/lib/wazuh-agent/client.keys || touch /host/var/lib/wazuh-agent/client.keys; chmod 666 /host/var/lib/wazuh-agent/client.keys"]
+        volumes = [
+          "/var/lib:/host/var/lib",
+        ]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 32
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
     }
 
     task "wazuh-agent" {
@@ -33,6 +57,7 @@ job "wazuh-agent" {
           "/var/log:/host/var/log:ro",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "/:/host:ro",
+          "/var/lib/wazuh-agent/client.keys:/var/ossec/etc/client.keys",
           "local/ossec.conf:/var/ossec/etc/ossec.conf",
         ]
       }
