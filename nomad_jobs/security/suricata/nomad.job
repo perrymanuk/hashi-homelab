@@ -6,7 +6,7 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "5"  // Auto-detect network interface using sockaddr
+    version  = "6"  // Added server address groups for ET rules
   }
 
   group "ids" {
@@ -49,6 +49,19 @@ vars:
   address-groups:
     HOME_NET: "[192.168.50.0/24,10.0.0.0/8]"
     EXTERNAL_NET: "!$HOME_NET"
+    HTTP_SERVERS: "$HOME_NET"
+    SMTP_SERVERS: "$HOME_NET"
+    SQL_SERVERS: "$HOME_NET"
+    DNS_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+    AIM_SERVERS: "$EXTERNAL_NET"
+    DC_SERVERS: "$HOME_NET"
+    DNP3_SERVER: "$HOME_NET"
+    DNP3_CLIENT: "$HOME_NET"
+    MODBUS_CLIENT: "$HOME_NET"
+    MODBUS_SERVER: "$HOME_NET"
+    ENIP_CLIENT: "$HOME_NET"
+    ENIP_SERVER: "$HOME_NET"
 
   port-groups:
     HTTP_PORTS: "80"
