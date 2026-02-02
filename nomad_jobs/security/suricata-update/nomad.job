@@ -2,10 +2,11 @@ job "suricata-update" {
   region      = var.region
   datacenters = ["dc1"]
   type        = "sysbatch"
+  priority    = 80
 
   meta {
     job_file = "nomad_jobs/security/suricata-update/nomad.job"
-    version  = "1"
+    version  = "2"  // Increased priority for resource preemption
   }
 
   # Run daily at 4am
