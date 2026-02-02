@@ -2,7 +2,7 @@ job "gcp-dns-updater" {
   
   meta {
     job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
-    version  = "4"
+    version  = "5"  // Added Tailscale CGNAT range to whitelist
   }
   type        = "batch"
   periodic {
@@ -161,7 +161,8 @@ def update_traefik_whitelist(ip_address: str):
                                 f"{ip_address}/32",
                                 "192.168.0.0/16",
                                 "10.0.0.0/8",
-                                "172.16.0.0/12"
+                                "172.16.0.0/12",
+                                "100.64.0.0/10"
                             ]
                         }
                     }
@@ -173,7 +174,7 @@ def update_traefik_whitelist(ip_address: str):
         
         # Write as TOML format
         toml_content = f"""[http.middlewares.home-ip-whitelist.ipAllowList]
-sourceRange = ["{ip_address}/32", "192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12"]
+sourceRange = ["{ip_address}/32", "192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10"]
 """
         
         with open(config_path, 'w') as f:

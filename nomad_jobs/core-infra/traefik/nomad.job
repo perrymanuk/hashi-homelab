@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-      version = "9"  // Added insecure-skip-verify serversTransport, fixed API dashboard access
+      version = "10"  // Apply IP whitelist to HTTP entrypoint via router, allow ACME challenges
   }
 
   group "lbs" {
@@ -111,7 +111,7 @@ data = <<EOH
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    # No global redirect - handle via router to allow ACME challenges
+    # No entrypoint middleware - applied at router level to allow ACME challenges
 
   [entryPoints.websecure]
     address = ":443"
@@ -187,14 +187,17 @@ data = <<EOH
     scheme = "https"
     permanent = true
 
+  [http.middlewares.whitelist-then-redirect.chain]
+    middlewares = ["home-ip-whitelist@file", "redirect-to-https"]
+
 [http.routers]
-  # Redirect HTTP to HTTPS except for ACME challenges
+  # Redirect HTTP to HTTPS except for ACME challenges - apply whitelist first
   [http.routers.http-redirect]
     entryPoints = ["web"]
     rule = "PathPrefix(`/`) && !PathPrefix(`/.well-known/acme-challenge/`)"
-    middlewares = ["redirect-to-https"]
+    middlewares = ["whitelist-then-redirect"]
     service = "noop@internal"
-    priority = 1
+    priority = 1000
 
   [http.routers.https-local]
     entryPoints = ["websecure"]
