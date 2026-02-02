@@ -6,7 +6,7 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "3"  // Removed prestart rule update (moved to suricata-update periodic job)
+    version  = "4"  // Added af-packet args for proper startup
   }
 
   group "ids" {
@@ -28,6 +28,9 @@ job "suricata" {
         force_pull   = true
         privileged   = true
         cap_add      = ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+
+        # Run Suricata in af-packet mode using config file
+        args = ["-c", "/etc/suricata/suricata.yaml", "--af-packet"]
 
         # Host mounts for logs (Wazuh reads these) and rules (shared with update task)
         volumes = [
