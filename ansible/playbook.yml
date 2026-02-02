@@ -1,9 +1,10 @@
 ---
 - name: network mounts
-  hosts: 
+  hosts:
     - lan-client-server
     - lan-client
     - cheese
+    - minecraft
   become: true
   remote_user: root
   tasks:
@@ -124,11 +125,12 @@
         state: restarted
 
 - name: Update configuration, execute command, and install packages
-  hosts: 
+  hosts:
     - lan-client-server
     - lan-client
     - wan-clients
     - cheese
+    - minecraft
   remote_user: root
   #roles:
   #  - role: artis3n.tailscale

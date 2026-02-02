@@ -1,6 +1,6 @@
 #jinja2: trim_blocks:False
 data_dir = "/var/lib/nomad/"
-datacenter = {% if "cheese" in group_names %}"cheese"{% else %}"dc1"{% endif %}
+datacenter = {% if "cheese" in group_names %}"cheese"{% elif "minecraft" in group_names %}"minecraft"{% else %}"dc1"{% endif %}
 log_level = "warn"
 bind_addr = "0.0.0.0"
 region = "home"

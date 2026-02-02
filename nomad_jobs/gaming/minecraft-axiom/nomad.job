@@ -1,0 +1,103 @@
+job "minecraft-axiom" {
+  region      = var.region
+  datacenters = ["minecraft"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/gaming/minecraft-axiom/nomad.job"
+    version  = "2"  // Added forge-config-api-port dependency
+  }
+
+  group "minecraft" {
+    count = 1
+
+    network {
+      port "minecraft" {
+        host_network = "lan"
+        static       = 25566
+        to           = 25565
+      }
+      port "query" {
+        host_network = "lan"
+        static       = 25567
+        to           = 25565
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "minecraft-server" {
+      driver = "docker"
+
+      config {
+        image        = "itzg/minecraft-server:latest"
+        force_pull   = false
+        network_mode = "host"
+
+        volumes = [
+          "/root/minecraft_new/minecraft-fabric-server/data:/data",
+          "/root/minecraft_new/minecraft-fabric-server/config:/config",
+          "/root/minecraft_new/minecraft-fabric-server/mods:/mods",
+        ]
+      }
+
+      env {
+        EULA                          = "TRUE"
+        VERSION                       = "1.20.1"
+        TYPE                          = "FABRIC"
+        FABRIC_LOADER_VERSION         = "0.17.2"
+        MEMORY                        = "8G"
+        MOTD                          = "Axiom Building Server (1.20.1)"
+        MODE                          = "creative"
+        DIFFICULTY                    = "easy"
+        MAX_PLAYERS                   = "20"
+        VIEW_DISTANCE                 = "10"
+        SIMULATION_DISTANCE           = "8"
+        SPAWN_PROTECTION              = "16"
+        ONLINE_MODE                   = "false"
+        ENABLE_WHITELIST              = "false"
+        SERVER_PORT                   = "25566"
+        ENABLE_QUERY                  = "true"
+        QUERY_PORT                    = "25566"
+        NETWORK_COMPRESSION_THRESHOLD = "512"
+        FORCE_GAMEMODE                = "true"
+        ENABLE_COMMAND_BLOCK          = "true"
+        OPS                           = "perry,hannah,Perry"
+        JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -Dfabric.networkMaxPacketSize=16777216 -Dnetty.maxDirectMemory=0"
+        MODRINTH_PROJECTS             = "axiom\nbeautify-refabricated\nchipped\necologics\ndecorative-blocks\nresourceful-lib\nathena-ctm\nconnected-glass\ndiagonal-fences\ndiagonal-walls\ndiagonal-windows\ndouble-doors\nsupplementaries\nhandcrafted\nmacaws-fences-and-walls\nmacaws-windows\nmacaws-bridges\nmacaws-roofs\nfairy-lights-fabric\nimmediatelyfast\nmacaws-doors\nmacaws-furniture\nmacaws-paths-and-pavings\nmacaws-stairs\nmacaws-paintings\nmacaws-trapdoors\nmacaws-lights-and-lamps\nmoonlight\nstarlight\npuzzles-lib\ncollective\nregions-unexplored\ntwigs\nforge-config-api-port"
+        CURSEFORGE_FILES              = "grass-overhaul\nfabric-api\nfusion-connected-textures\narchitectury-api\nsodium\nlithium\ncloth-config\nworldedit\njourneymap\nxaeros-minimap\nwaystones\nbalm-fabric\nbiomes-o-plenty\ntectonic\nterralith\nsupermartijn642s-core-lib\noh-the-biomes-weve-gone\nglitchcore\nterrablender-fabric\ncorgilib\noh-the-trees-youll-grow\ngeckolib\nrefurbished-furniture\nframework"
+        CF_API_KEY                    = "${var.curseforge_api_key}"
+      }
+
+      service {
+        name = "minecraft-axiom"
+        port = "minecraft"
+        tags = ["minecraft", "gaming", "axiom"]
+
+        check {
+          type     = "tcp"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu    = 4000
+        memory = 9728
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "curseforge_api_key" {
+  type    = string
+  default = ""
+}
