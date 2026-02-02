@@ -1,12 +1,12 @@
 job "suricata-update" {
   region      = var.region
   datacenters = ["dc1"]
-  type        = "sysbatch"
+  type        = "batch"
   priority    = 80
 
   meta {
     job_file = "nomad_jobs/security/suricata-update/nomad.job"
-    version  = "2"  // Increased priority for resource preemption
+    version  = "3"  // Single instance with shared NFS storage
   }
 
   # Run daily at 4am
@@ -15,7 +15,15 @@ job "suricata-update" {
     prohibit_overlap = true
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "update" {
+    count = 1
+
     task "suricata-update" {
       driver = "docker"
 
@@ -23,7 +31,7 @@ job "suricata-update" {
         image   = "jasonish/suricata:7.0"
         command = "suricata-update"
         volumes = [
-          "/var/lib/suricata:/var/lib/suricata",
+          "${var.shared_dir}suricata/rules:/var/lib/suricata",
         ]
       }
 
@@ -36,5 +44,9 @@ job "suricata-update" {
 }
 
 variable "region" {
+  type = string
+}
+
+variable "shared_dir" {
   type = string
 }

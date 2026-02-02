@@ -6,7 +6,13 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "6"  // Added server address groups for ET rules
+    version  = "7"  // Use shared NFS for rules
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
   }
 
   group "ids" {
@@ -32,11 +38,11 @@ job "suricata" {
         # Run Suricata in af-packet mode using config file
         args = ["-c", "/etc/suricata/suricata.yaml", "--af-packet"]
 
-        # Host mounts for logs (Wazuh reads these) and rules (shared with update task)
+        # Host mounts for logs (Wazuh reads these) and rules (shared NFS)
         volumes = [
           "local/suricata.yaml:/etc/suricata/suricata.yaml:ro",
           "/var/log/suricata:/var/log/suricata",
-          "/var/lib/suricata:/var/lib/suricata",
+          "${var.shared_dir}suricata/rules:/var/lib/suricata:ro",
         ]
       }
 
@@ -264,5 +270,9 @@ EOH
 }
 
 variable "region" {
+  type = string
+}
+
+variable "shared_dir" {
   type = string
 }
