@@ -6,7 +6,7 @@ job "wazuh-agent" {
 
   meta {
     job_file = "nomad_jobs/security/wazuh-agent/nomad.job"
-    version  = "3"  // Enhanced log collection, FIM, vulnerability detection, SCA, Docker monitoring
+    version  = "4"  // Added Suricata IDS log collection
   }
 
   group "agent" {
@@ -156,6 +156,19 @@ EOH
     <location>journald</location>
   </localfile>
 
+  <!-- ==================== SURICATA IDS INTEGRATION ==================== -->
+  <!-- Suricata eve.json - Wazuh has native decoder for this format -->
+  <localfile>
+    <log_format>json</log_format>
+    <location>/host/var/log/suricata/eve.json</location>
+  </localfile>
+
+  <!-- Suricata service log -->
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/suricata/suricata.log</location>
+  </localfile>
+
   <!-- ==================== FILE INTEGRITY MONITORING ==================== -->
   <syscheck>
     <disabled>no</disabled>
@@ -242,8 +255,7 @@ EOH
 </ossec_config>
 EOH
         destination = "local/ossec.conf"
-        change_mode = "signal"
-        change_signal = "SIGHUP"
+        change_mode = "restart"
       }
 
       resources {

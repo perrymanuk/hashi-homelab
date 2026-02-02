@@ -1,0 +1,281 @@
+job "suricata" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "system"
+  priority    = 100
+
+  meta {
+    job_file = "nomad_jobs/security/suricata/nomad.job"
+    version  = "2"  // Fixed interface config, host-mounted logs for Wazuh integration
+  }
+
+  group "ids" {
+    network {
+      mode = "host"
+    }
+
+    update {
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    # Prestart task to update Suricata rules
+    task "update-rules" {
+      driver = "docker"
+
+      config {
+        image   = "jasonish/suricata:7.0"
+        command = "suricata-update"
+        volumes = [
+          "/var/lib/suricata:/var/lib/suricata",
+        ]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "suricata" {
+      driver = "docker"
+
+      config {
+        image        = "jasonish/suricata:7.0"
+        network_mode = "host"
+        force_pull   = true
+        privileged   = true
+        cap_add      = ["NET_ADMIN", "NET_RAW", "SYS_NICE"]
+
+        # Host mounts for logs (Wazuh reads these) and rules (shared with update task)
+        volumes = [
+          "local/suricata.yaml:/etc/suricata/suricata.yaml:ro",
+          "/var/log/suricata:/var/log/suricata",
+          "/var/lib/suricata:/var/lib/suricata",
+        ]
+      }
+
+      # Suricata configuration
+      template {
+        data = <<EOH
+%YAML 1.1
+---
+vars:
+  address-groups:
+    HOME_NET: "[192.168.50.0/24,10.0.0.0/8]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+  port-groups:
+    HTTP_PORTS: "80"
+    SHELLCODE_PORTS: "!80"
+    ORACLE_PORTS: 1521
+    SSH_PORTS: 22
+    DNP3_PORTS: 20000
+    MODBUS_PORTS: 502
+    FILE_DATA_PORTS: "[$HTTP_PORTS,110,143]"
+    FTP_PORTS: 21
+    GENEVE_PORTS: 6081
+    VXLAN_PORTS: 4789
+    TEREDO_PORTS: 3544
+
+# Output configuration for JSON logs (Wazuh integration)
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: /var/log/suricata/eve.json
+      pcap-file: false
+      community-id: true
+      community-id-seed: 0
+      xff:
+        enabled: no
+        mode: extra-data
+        deployment: reverse
+        header: X-Forwarded-For
+
+      types:
+        - alert:
+            tagged-packets: yes
+            xff:
+              enabled: no
+              mode: extra-data
+              deployment: reverse
+              header: X-Forwarded-For
+        - anomaly:
+            enabled: yes
+            types:
+        - http:
+            extended: yes
+        - dns:
+            version: 2
+        - tls:
+            extended: yes
+        - files:
+            force-magic: no
+        - smtp:
+        - ssh
+        - stats:
+            totals: yes
+            threads: no
+            deltas: no
+        - flow
+        - netflow
+
+  # Stats output
+  - stats:
+      enabled: yes
+      filename: /var/log/suricata/stats.log
+      append: yes
+      totals: yes
+      threads: no
+
+# Logging configuration
+logging:
+  default-log-level: notice
+  outputs:
+    - console:
+        enabled: yes
+    - file:
+        enabled: yes
+        level: info
+        filename: /var/log/suricata/suricata.log
+
+# Network interface configuration
+af-packet:
+  - interface: ${var.network_interface}
+    threads: auto
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+    use-mmap: yes
+    tpacket-v3: yes
+    ring-size: 2048
+    block-size: 32768
+
+# Detect engine settings
+detect-engine:
+  - profile: medium
+  - custom-values:
+      toclient-groups: 3
+      toserver-groups: 25
+  - sgh-mpm-context: auto
+  - inspection-recursion-limit: 3000
+
+# Threading
+threading:
+  set-cpu-affinity: no
+  detect-thread-ratio: 1.0
+
+# Rules configuration
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+
+# Live rule reload
+rule-reload: true
+
+# Application layer protocols
+app-layer:
+  protocols:
+    rfb:
+      enabled: yes
+    mqtt:
+      enabled: yes
+    krb5:
+      enabled: yes
+    snmp:
+      enabled: yes
+    ikev2:
+      enabled: yes
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443
+    dcerpc:
+      enabled: yes
+    ftp:
+      enabled: yes
+    ssh:
+      enabled: yes
+    smtp:
+      enabled: yes
+    http:
+      enabled: yes
+    dns:
+      tcp:
+        enabled: yes
+      udp:
+        enabled: yes
+
+# Performance tuning
+stream:
+  memcap: 64mb
+  checksum-validation: yes
+  inline: auto
+  reassembly:
+    memcap: 256mb
+    depth: 1mb
+    toserver-chunk-size: 2560
+    toclient-chunk-size: 2560
+    randomize-chunk-size: yes
+
+host:
+  hash-size: 4096
+  prealloc: 1000
+  memcap: 32mb
+
+flow:
+  memcap: 128mb
+  hash-size: 65536
+  prealloc: 10000
+  emergency-recovery: 30
+
+# Defragmentation settings
+defrag:
+  memcap: 32mb
+  hash-size: 65536
+  trackers: 65535
+  max-frags: 65535
+  prealloc: yes
+  timeout: 60
+EOH
+        destination = "local/suricata.yaml"
+        change_mode = "restart"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+
+      service {
+        name = "suricata"
+        tags = ["security", "ids"]
+
+        check {
+          type     = "script"
+          name     = "suricata-running"
+          command  = "/bin/sh"
+          args     = ["-c", "pgrep -x Suricata-Main > /dev/null || pgrep -x suricata > /dev/null"]
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "network_interface" {
+  type        = string
+  default     = "eth0"
+  description = "Network interface to monitor (e.g., eth0, ens18, enp0s3)"
+}
