@@ -42,6 +42,12 @@
     # used during the challenge
     entryPoint = "web"
 
+################################################################
+# ServersTransports for HTTPS backends with self-signed certs
+################################################################
+[serversTransports.insecure-skip-verify]
+  insecureSkipVerify = true
+
 
 ################################################################
 # Traefik logs configuration

@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-version = "8" // Added keepalived sidecar for Tailscale floating IP 192.168.50.50
+      version = "9"  // Added insecure-skip-verify serversTransport, fixed API dashboard access
   }
 
   group "lbs" {
@@ -21,6 +21,7 @@ version = "8" // Added keepalived sidecar for Tailscale floating IP 192.168.50.5
         static = "80"
       }
       port "admin" {
+        host_network = "lan"
         static = "9002"
       }
     }
@@ -91,8 +92,10 @@ EOH
         network_mode = "host"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
+          "local/dynamic-config.toml:/etc/traefik/dynamic/dynamic-config.toml",
+          "local/servers-transport.toml:/etc/traefik/dynamic/servers-transport.toml",
           "${var.shared_dir}traefik-ingress/acme.json:/acme.json",
-          "${var.shared_dir}traefik-ingress:/etc/traefik/dynamic"
+          "${var.shared_dir}traefik-ingress/dynamic-whitelist.toml:/etc/traefik/dynamic/dynamic-whitelist.toml",
         ]
       }
 
@@ -132,7 +135,7 @@ data = <<EOH
 
 [api]
   dashboard = true
-  insecure = false  # Changed to false for security
+  insecure = true  # Enable direct access on :9002 (protected by local network)
 
 [ping]
 
@@ -205,7 +208,19 @@ data = <<EOH
     [[http.services.beefcake.loadBalancer.servers]]
       url = "http://192.168.50.208:80"
 EOH
-        destination = "/etc/traefik/dynamic/static-config.toml"
+        destination = "local/dynamic-config.toml"
+        env         = false
+        change_mode = "noop"
+      }
+
+      template {
+        data = <<EOH
+# ServersTransport for HTTPS backends with self-signed certificates
+[http.serversTransports]
+  [http.serversTransports.insecure-skip-verify]
+    insecureSkipVerify = true
+EOH
+        destination = "local/servers-transport.toml"
         env         = false
         change_mode = "noop"
       }

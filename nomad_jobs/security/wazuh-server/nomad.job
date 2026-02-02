@@ -1,0 +1,439 @@
+job "wazuh-server" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "wazuh-stack" {
+    count = 1
+
+    network {
+      port "indexer" {
+        host_network = "lan"
+        to = 9200
+      }
+      port "manager" {
+        static       = 1514
+        host_network = "lan"
+        to = 1514
+      }
+      port "manager_reg" {
+        static       = 1515
+        host_network = "lan"
+        to = 1515
+      }
+      port "manager_api" {
+        host_network = "lan"
+        to = 55000
+      }
+      port "dashboard" {
+        host_network = "lan"
+        to = 443
+      }
+    }
+
+    # Persistent volumes for Wazuh components
+    volume "wazuh-indexer" {
+      type            = "csi"
+      read_only       = false
+      source          = "wazuh-indexer"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    volume "wazuh-manager" {
+      type            = "csi"
+      read_only       = false
+      source          = "wazuh-manager"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    volume "wazuh-dashboard" {
+      type            = "csi"
+      read_only       = false
+      source          = "wazuh-dashboard"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    # Prep disk task for indexer volume permissions
+    task "prep-indexer-disk" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-indexer"
+        destination = "/volume/"
+        read_only   = false
+      }
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chown -R 1000:1000 /volume/"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    # Prep disk task for manager volume permissions
+    task "prep-manager-disk" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-manager"
+        destination = "/volume/"
+        read_only   = false
+      }
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chown -R 999:999 /volume/"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    # Prep disk task for dashboard volume permissions
+    task "prep-dashboard-disk" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-dashboard"
+        destination = "/volume/"
+        read_only   = false
+      }
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "rm -rf /volume/wazuh && mkdir -p /volume/wazuh/config && chown -R 1000:1000 /volume/"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    # Wazuh Indexer (OpenSearch-based)
+    task "wazuh-indexer" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-indexer"
+        destination = "/var/lib/wazuh-indexer"
+        read_only   = false
+      }
+
+      config {
+        image      = "wazuh/wazuh-indexer:4.14.2"
+        force_pull = true
+        ports      = ["indexer"]
+        volumes = [
+          "local/opensearch.yml:/usr/share/wazuh-indexer/config/opensearch.yml",
+        ]
+        ulimit {
+          nofile = "65536:65536"
+          memlock = "-1:-1"
+        }
+      }
+
+      env {
+        OPENSEARCH_JAVA_OPTS = "-Xms1g -Xmx1g"
+      }
+
+      template {
+        data = <<EOH
+network.host: "0.0.0.0"
+node.name: "wazuh-indexer"
+cluster.name: "wazuh-cluster"
+path.data: /var/lib/wazuh-indexer
+path.logs: /var/log/wazuh-indexer
+discovery.type: single-node
+compatibility.override_main_response_version: true
+
+# Enable SSL with demo certificates
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: certs/indexer.pem
+plugins.security.ssl.http.pemkey_filepath: certs/indexer-key.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: certs/root-ca.pem
+plugins.security.ssl.transport.enabled: true
+plugins.security.ssl.transport.pemcert_filepath: certs/indexer.pem
+plugins.security.ssl.transport.pemkey_filepath: certs/indexer-key.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: certs/root-ca.pem
+plugins.security.ssl.transport.enforce_hostname_verification: false
+plugins.security.ssl.transport.resolve_hostname: false
+plugins.security.allow_unsafe_democertificates: true
+plugins.security.allow_default_init_securityindex: true
+plugins.security.authcz.admin_dn:
+  - "CN=admin,OU=Wazuh,O=Wazuh,L=California,C=US"
+plugins.security.nodes_dn:
+  - "CN=wazuh-indexer,OU=Wazuh,O=Wazuh,L=California,C=US"
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+plugins.security.restapi.roles_enabled: ["all_access", "security_rest_api_access"]
+EOH
+        destination = "local/opensearch.yml"
+        perms       = "0644"
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+      }
+
+      service {
+        name = "wazuh-indexer"
+        port = "indexer"
+
+        check {
+          type     = "tcp"
+          port     = "indexer"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+    }
+
+    # Wazuh Manager (Analysis Engine)
+    task "wazuh-manager" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-manager"
+        destination = "/var/ossec/data"
+        read_only   = false
+      }
+
+      config {
+        image      = "wazuh/wazuh-manager:4.14.2"
+        force_pull = true
+        hostname   = "wazuh-manager"
+        ports      = ["manager", "manager_reg", "manager_api"]
+      }
+
+      template {
+        data = <<EOH
+INDEXER_URL=https://{{ env "NOMAD_IP_indexer" }}:{{ env "NOMAD_HOST_PORT_indexer" }}
+INDEXER_USERNAME=admin
+INDEXER_PASSWORD=admin
+FILEBEAT_SSL_VERIFICATION_MODE=none
+SSL_CERTIFICATE_AUTHORITIES=""
+API_USERNAME=wazuh-wui
+API_PASSWORD=${var.wazuh_api_password}
+EOH
+        destination = "secrets/manager.env"
+        env         = true
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 1024
+      }
+
+      service {
+        name = "wazuh-manager"
+        port = "manager_api"
+        tags = ["metrics"]
+
+        meta {
+          api_port = "${NOMAD_HOST_PORT_manager_api}"
+        }
+
+        check {
+          type     = "tcp"
+          port     = "manager_api"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      service {
+        name = "wazuh-agent-comm"
+        port = "manager"
+        tags = ["agent-communication"]
+
+        check {
+          type     = "tcp"
+          port     = "manager"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+
+      service {
+        name = "wazuh-agent-reg"
+        port = "manager_reg"
+        tags = ["agent-registration"]
+
+        check {
+          type     = "tcp"
+          port     = "manager_reg"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+    }
+
+    # Wazuh Dashboard (Web UI)
+    task "wazuh-dashboard" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "wazuh-dashboard"
+        destination = "/usr/share/wazuh-dashboard/data"
+        read_only   = false
+      }
+
+      config {
+        image      = "wazuh/wazuh-dashboard:4.14.2"
+        force_pull = true
+        ports      = ["dashboard"]
+        volumes = [
+          "local/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml",
+          "local/wazuh.yml:/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml:ro",
+        ]
+      }
+
+      template {
+        data = <<EOH
+OPENSEARCH_HOSTS=https://{{ env "NOMAD_IP_indexer" }}:{{ env "NOMAD_HOST_PORT_indexer" }}
+OPENSEARCH_USERNAME=admin
+OPENSEARCH_PASSWORD=admin
+OPENSEARCH_SSL_VERIFICATIONMODE=none
+SERVER_HOST=0.0.0.0
+SERVER_PORT=443
+SERVER_SSL_ENABLED=true
+SERVER_SSL_CERTIFICATE=/usr/share/wazuh-dashboard/config/certs/dashboard.pem
+SERVER_SSL_KEY=/usr/share/wazuh-dashboard/config/certs/dashboard-key.pem
+WAZUH_API_URL=https://{{ env "NOMAD_IP_manager_api" }}:{{ env "NOMAD_HOST_PORT_manager_api" }}
+API_USERNAME=wazuh-wui
+API_PASSWORD=${var.wazuh_api_password}
+EOH
+        destination = "secrets/dashboard.env"
+        env         = true
+        change_mode = "noop"
+      }
+
+      template {
+        data = <<EOH
+server.host: "0.0.0.0"
+server.port: 443
+opensearch.hosts: ["https://{{ env "NOMAD_IP_indexer" }}:{{ env "NOMAD_HOST_PORT_indexer" }}"]
+opensearch.ssl.verificationMode: none
+opensearch.username: "admin"
+opensearch.password: "admin"
+opensearch.requestHeadersWhitelist: ["securitytenant","Authorization"]
+opensearch_security.multitenancy.enabled: false
+opensearch_security.readonly_mode.roles: ["kibana_read_only"]
+server.ssl.enabled: true
+server.ssl.certificate: /usr/share/wazuh-dashboard/config/certs/dashboard.pem
+server.ssl.key: /usr/share/wazuh-dashboard/config/certs/dashboard-key.pem
+uiSettings.overrides.defaultRoute: "/app/wz-home"
+csp.warnLegacyBrowsers: false
+EOH
+        destination = "local/opensearch_dashboards.yml"
+        perms       = "0644"
+        change_mode = "noop"
+      }
+
+      template {
+        data = <<EOH
+hosts:
+  - default:
+      url: https://{{ env "NOMAD_IP_manager_api" }}
+      port: {{ env "NOMAD_HOST_PORT_manager_api" }}
+      username: wazuh-wui
+      password: ${var.wazuh_api_password}
+      run_as: false
+EOH
+        destination = "local/wazuh.yml"
+        perms       = "0644"
+        change_mode = "noop"
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+
+      service {
+        name = "wazuh-dashboard"
+        port = "dashboard"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.wazuh.rule=Host(`wazuh.${var.tld}`)",
+          "traefik.http.routers.wazuh.entrypoints=websecure",
+          "traefik.http.routers.wazuh.tls=true",
+          "traefik.http.routers.wazuh.tls.certresolver=letsencrypt",
+          "traefik.http.services.wazuh.loadbalancer.server.scheme=https",
+          "traefik.http.services.wazuh.loadbalancer.serversTransport=insecure-skip-verify@file",
+        ]
+
+        check {
+          type     = "tcp"
+          port     = "dashboard"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+    }
+
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
+
+variable "wazuh_indexer_password" {
+  type = string
+  description = "Password for Wazuh indexer admin user"
+}
+
+variable "wazuh_api_password" {
+  type = string
+  description = "Password for Wazuh API user"
+}
+
+variable "wazuh_dashboard_password" {
+  type = string
+  description = "Password for Wazuh dashboard kibanaserver user"
+}

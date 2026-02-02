@@ -1,0 +1,274 @@
+job "wazuh-agent" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "system"
+  priority    = 100
+
+  meta {
+    job_file = "nomad_jobs/security/wazuh-agent/nomad.job"
+    version  = "3"  // Enhanced log collection, FIM, vulnerability detection, SCA, Docker monitoring
+  }
+
+  group "agent" {
+    network {
+      mode = "host"
+    }
+
+    update {
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "wazuh-agent" {
+      driver = "docker"
+
+      config {
+        image        = "wazuh/wazuh-agent:4.14.2"
+        network_mode = "host"
+        force_pull   = true
+        privileged   = true
+
+        # Mount host directories for monitoring and config
+        volumes = [
+          "/var/log:/host/var/log:ro",
+          "/var/run/docker.sock:/var/run/docker.sock:ro",
+          "/:/host:ro",
+          "local/ossec.conf:/var/ossec/etc/ossec.conf",
+        ]
+      }
+
+      # Configuration template for the agent
+      # Uses Consul service discovery to automatically find Wazuh manager
+      template {
+        data = <<EOH
+{{- if service "wazuh-agent-comm" -}}
+{{- with index (service "wazuh-agent-comm") 0 -}}
+WAZUH_MANAGER={{ .Address }}
+WAZUH_MANAGER_PORT={{ .Port }}
+WAZUH_PROTOCOL=tcp
+WAZUH_REGISTRATION_SERVER={{ .Address }}
+WAZUH_REGISTRATION_PORT=1515
+WAZUH_AGENT_NAME={{ env "node.unique.name" }}
+WAZUH_AGENT_GROUP=nomad-cluster
+{{- end -}}
+{{- else }}
+# Waiting for wazuh-agent-comm service to be available in Consul
+WAZUH_MANAGER=127.0.0.1
+WAZUH_MANAGER_PORT=1514
+WAZUH_PROTOCOL=tcp
+WAZUH_REGISTRATION_SERVER=127.0.0.1
+WAZUH_REGISTRATION_PORT=1515
+WAZUH_AGENT_NAME={{ env "node.unique.name" }}
+WAZUH_AGENT_GROUP=nomad-cluster
+{{- end }}
+EOH
+        destination = "local/agent.env"
+        env         = true
+        change_mode = "restart"
+      }
+
+      # Custom ossec.conf for monitoring specific logs
+      # Uses Consul service discovery to automatically find Wazuh manager
+      # Uses SIGHUP for hot reload (requires Wazuh 4.14.0+)
+      template {
+        data = <<EOH
+<ossec_config>
+  <client>
+    <server>
+{{- if service "wazuh-agent-comm" -}}
+{{- with index (service "wazuh-agent-comm") 0 }}
+      <address>{{ .Address }}</address>
+      <port>{{ .Port }}</port>
+{{- end -}}
+{{- else }}
+      <address>127.0.0.1</address>
+      <port>1514</port>
+{{- end }}
+      <protocol>tcp</protocol>
+    </server>
+    <config-profile>ubuntu, ubuntu20, ubuntu20.04</config-profile>
+    <notify_time>10</notify_time>
+    <time-reconnect>60</time-reconnect>
+    <auto_restart>yes</auto_restart>
+  </client>
+
+  <client_buffer>
+    <disabled>no</disabled>
+    <queue_size>5000</queue_size>
+    <events_per_second>500</events_per_second>
+  </client_buffer>
+
+  <!-- ==================== LOG COLLECTION ==================== -->
+
+  <!-- System logs -->
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/syslog</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/auth.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/kern.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/dpkg.log</location>
+  </localfile>
+
+  <!-- HashiCorp stack logs -->
+  <localfile>
+    <log_format>json</log_format>
+    <location>/host/var/log/nomad/*.log</location>
+  </localfile>
+
+  <localfile>
+    <log_format>json</log_format>
+    <location>/host/var/log/consul/*.log</location>
+  </localfile>
+
+  <!-- Docker daemon logs -->
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/docker.log</location>
+  </localfile>
+
+  <!-- Audit logs if auditd is installed -->
+  <localfile>
+    <log_format>audit</log_format>
+    <location>/host/var/log/audit/audit.log</location>
+  </localfile>
+
+  <!-- SSH logs -->
+  <localfile>
+    <log_format>syslog</log_format>
+    <location>/host/var/log/secure</location>
+  </localfile>
+
+  <!-- Journal logs for systemd -->
+  <localfile>
+    <log_format>journald</log_format>
+    <location>journald</location>
+  </localfile>
+
+  <!-- ==================== FILE INTEGRITY MONITORING ==================== -->
+  <syscheck>
+    <disabled>no</disabled>
+    <frequency>21600</frequency>
+    <scan_on_start>yes</scan_on_start>
+    <alert_new_files>yes</alert_new_files>
+
+    <!-- Critical system directories -->
+    <directories check_all="yes" realtime="yes">/host/etc</directories>
+    <directories check_all="yes" realtime="yes">/host/usr/bin</directories>
+    <directories check_all="yes" realtime="yes">/host/usr/sbin</directories>
+    <directories check_all="yes" realtime="yes">/host/bin</directories>
+    <directories check_all="yes" realtime="yes">/host/sbin</directories>
+
+    <!-- HashiCorp config directories -->
+    <directories check_all="yes">/host/etc/nomad.d</directories>
+    <directories check_all="yes">/host/etc/consul.d</directories>
+
+    <!-- SSH keys and config -->
+    <directories check_all="yes" realtime="yes">/host/root/.ssh</directories>
+    <directories check_all="yes">/host/home/*/.ssh</directories>
+
+    <!-- Ignore frequently changing files -->
+    <ignore>/host/etc/mtab</ignore>
+    <ignore>/host/etc/hosts.deny</ignore>
+    <ignore>/host/etc/mail/statistics</ignore>
+    <ignore>/host/etc/random-seed</ignore>
+    <ignore>/host/etc/adjtime</ignore>
+    <ignore>/host/etc/httpd/logs</ignore>
+    <ignore>/host/etc/resolv.conf</ignore>
+    <ignore type="sregex">.log$|.tmp$|.swp$</ignore>
+  </syscheck>
+
+  <!-- ==================== ROOTCHECK ==================== -->
+  <rootcheck>
+    <disabled>no</disabled>
+    <check_files>yes</check_files>
+    <check_trojans>yes</check_trojans>
+    <check_dev>yes</check_dev>
+    <check_sys>yes</check_sys>
+    <check_pids>yes</check_pids>
+    <check_ports>yes</check_ports>
+    <check_if>yes</check_if>
+    <frequency>43200</frequency>
+    <rootkit_files>/var/ossec/etc/shared/rootkit_files.txt</rootkit_files>
+    <rootkit_trojans>/var/ossec/etc/shared/rootkit_trojans.txt</rootkit_trojans>
+  </rootcheck>
+
+  <!-- ==================== VULNERABILITY DETECTION ==================== -->
+  <wodle name="syscollector">
+    <disabled>no</disabled>
+    <interval>1h</interval>
+    <scan_on_start>yes</scan_on_start>
+    <hardware>yes</hardware>
+    <os>yes</os>
+    <network>yes</network>
+    <packages>yes</packages>
+    <ports all="no">yes</ports>
+    <processes>yes</processes>
+  </wodle>
+
+  <!-- ==================== SECURITY CONFIGURATION ASSESSMENT ==================== -->
+  <wodle name="sca">
+    <enabled>yes</enabled>
+    <scan_on_start>yes</scan_on_start>
+    <interval>12h</interval>
+    <skip_nfs>yes</skip_nfs>
+  </wodle>
+
+  <!-- ==================== DOCKER MONITORING ==================== -->
+  <wodle name="docker-listener">
+    <disabled>no</disabled>
+    <interval>10m</interval>
+    <attempts>5</attempts>
+    <run_on_start>yes</run_on_start>
+  </wodle>
+
+  <!-- ==================== ACTIVE RESPONSE ==================== -->
+  <!-- Disabled by default - enable with caution in production -->
+  <active-response>
+    <disabled>yes</disabled>
+  </active-response>
+
+</ossec_config>
+EOH
+        destination = "local/ossec.conf"
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+      }
+
+      resources {
+        cpu    = 300
+        memory = 512
+      }
+
+      service {
+        name = "wazuh-agent"
+        tags = ["security", "monitoring"]
+
+        # Use a simple script check that runs inside the container
+        check {
+          type     = "script"
+          name     = "agent-status"
+          command  = "/var/ossec/bin/wazuh-control"
+          args     = ["status"]
+          interval = "30s"
+          timeout  = "10s"
+        }
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
