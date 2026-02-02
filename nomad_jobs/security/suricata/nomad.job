@@ -6,7 +6,7 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "4"  // Added af-packet args for proper startup
+    version  = "5"  // Auto-detect network interface using sockaddr
   }
 
   group "ids" {
@@ -127,7 +127,7 @@ logging:
 
 # Network interface configuration
 af-packet:
-  - interface: ${var.network_interface}
+  - interface: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
     threads: auto
     cluster-id: 99
     cluster-type: cluster_flow
@@ -252,10 +252,4 @@ EOH
 
 variable "region" {
   type = string
-}
-
-variable "network_interface" {
-  type        = string
-  default     = "eth0"
-  description = "Network interface to monitor (e.g., eth0, ens18, enp0s3)"
 }
