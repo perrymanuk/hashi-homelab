@@ -6,7 +6,7 @@ job "suricata" {
 
   meta {
     job_file = "nomad_jobs/security/suricata/nomad.job"
-    version  = "7"  // Use shared NFS for rules
+    version  = "8"  // Add hourly log rotation
   }
 
   constraint {
@@ -88,6 +88,9 @@ outputs:
       enabled: yes
       filetype: regular
       filename: /var/log/suricata/eve.json
+      rotate: yes
+      rotate-interval: hour
+      rotate-count: 2
       pcap-file: false
       community-id: true
       community-id-seed: 0
