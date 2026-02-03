@@ -5,7 +5,7 @@ job "sonarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/sonarr/nomad.job"
-version = "10"  // Use /ping for health check (no auth required)
+version = "11"  // Full config.xml template with API key
   }
 
   constraint {
@@ -59,6 +59,20 @@ version = "10"  // Use /ping for health check (no auth required)
   <PostgresHost>postgres.service.consul</PostgresHost>
   <PostgresMainDb>sonarr_main</PostgresMainDb>
   <PostgresLogDb>sonarr_logs</PostgresLogDb>
+  <LogLevel>info</LogLevel>
+  <UrlBase></UrlBase>
+  <BindAddress>*</BindAddress>
+  <Port>8989</Port>
+  <SslPort>9898</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${var.sonarr_api_key}</ApiKey>
+  <AuthenticationMethod>External</AuthenticationMethod>
+  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+  <TrustedProxies>100.64.0.0/10,192.168.50.0/24</TrustedProxies>
+  <Branch>main</Branch>
+  <InstanceName>Sonarr</InstanceName>
+  <UpdateMechanism>Docker</UpdateMechanism>
 </Config>
 EOH
         destination = "local/config.xml"
@@ -110,4 +124,9 @@ variable "tv_dir" {
 variable "postgres_pass" {
     type = string
     description = "Admin password for PostgreSQL"
+}
+
+variable "sonarr_api_key" {
+    type = string
+    description = "API key for Sonarr"
 }

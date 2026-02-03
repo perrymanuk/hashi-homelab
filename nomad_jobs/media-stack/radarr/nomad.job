@@ -5,7 +5,7 @@ job "radarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/radarr/nomad.job"
-version = "9"  // Use /ping for health check
+version = "10"  // Full config.xml template with API key
   }
 
   group "downloaders" {
@@ -39,6 +39,7 @@ version = "9"  // Use /ping for health check
         dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
+          "${var.downloads_dir}:/downloads",
           "${var.movies_dir}:/media/Movies",
           "local/config.xml:/config/config.xml",
         ]
@@ -66,6 +67,20 @@ version = "9"  // Use /ping for health check
   <PostgresHost>postgres.service.consul</PostgresHost>
   <PostgresMainDb>radarr_main</PostgresMainDb>
   <PostgresLogDb>radarr_logs</PostgresLogDb>
+  <LogLevel>info</LogLevel>
+  <UrlBase></UrlBase>
+  <BindAddress>*</BindAddress>
+  <Port>7878</Port>
+  <SslPort>9898</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${var.radarr_api_key}</ApiKey>
+  <AuthenticationMethod>External</AuthenticationMethod>
+  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+  <TrustedProxies>100.64.0.0/10,192.168.50.0/24</TrustedProxies>
+  <Branch>master</Branch>
+  <InstanceName>Radarr</InstanceName>
+  <UpdateMechanism>Docker</UpdateMechanism>
 </Config>
 EOH
         destination = "local/config.xml"
@@ -117,4 +132,9 @@ variable "movies_dir" {
 variable "postgres_pass" {
     type = string
     description = "Admin password for PostgreSQL"
+}
+
+variable "radarr_api_key" {
+    type = string
+    description = "API key for Radarr"
 }

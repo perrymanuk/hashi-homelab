@@ -34,6 +34,7 @@ job "requestrr" {
       driver = "docker"
 
       config {
+        dns_servers = ["192.168.50.2"]
         image = "thomst08/requestrr:v2.1.9"
         ports = ["http"]
         volumes = [
