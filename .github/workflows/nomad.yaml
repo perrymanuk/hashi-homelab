@@ -34,7 +34,7 @@ jobs:
           nomadjobs:
             # Updated paths based on directory restructure
             - 'nomad_jobs/media-stack/plex/*.job'
-            - 'nomad_jobs/media-stack/sickchill/*.job'
+            - 'nomad_jobs/media-stack/radarr/*.job'
             - 'nomad_jobs/media-stack/radarr/*.job'
             - 'nomad_jobs/media-stack/lidarr/*.job'
             - 'nomad_jobs/media-stack/overseerr/*.job'

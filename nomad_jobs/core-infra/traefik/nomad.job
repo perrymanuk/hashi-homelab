@@ -4,17 +4,11 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-      version = "10"  // Apply IP whitelist to HTTP entrypoint via router, allow ACME challenges
+      version = "11"  // Enable VMAC for floating IP to support FritzBox port forwarding
   }
 
   group "lbs" {
     count = 1
-    
-    constraint {
-      attribute = "${attr.unique.network.ip-address}"
-      operator  = "="
-      value     = "${var.ingress_ip}"
-    }
     network {
       port "http" {
         host_network = "lan"
@@ -56,8 +50,10 @@ job "traefik" {
         splay       = "1m"
         data        = <<EOH
 KEEPALIVED_VIRTUAL_IPS:
-  - 192.168.50.50/24
+  - 192.168.50.20/24
 KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+KEEPALIVED_VIRTUAL_ROUTER_ID: 50
+KEEPALIVED_USE_VMAC: "true"
 EOH
       }
 

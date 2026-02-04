@@ -1,6 +1,6 @@
 job "ollama" {
   region = var.region
-  datacenters = [var.datacenter]
+  datacenters = ["cheese"]
   type        = "service"
 
   meta {
