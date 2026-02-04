@@ -64,6 +64,11 @@ version = "4"
           path     = "/"
           interval = "10s"
           timeout  = "10s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
         }
       }
 

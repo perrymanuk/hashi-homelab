@@ -58,6 +58,11 @@ job "maintainerr" {
           path     = "/"
           interval = "30s"
           timeout  = "5s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
         }
       }
 
