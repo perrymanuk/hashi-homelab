@@ -2,13 +2,10 @@
 Description=nomad.agent
 Requires=network-online.target tailscaled.service
 After=network-online.target tailscaled.service
-# Wait for NFS mounts to be available (automount units trigger on access)
-Wants=home-shared.automount home-media-TV.automount home-media-Music.automount home-media-Movies.automount home-media-Books.automount
-After=home-shared.automount home-media-TV.automount home-media-Music.automount home-media-Movies.automount home-media-Books.automount
+# Wait for NFS mounts to be available before starting Nomad
+RequiresMountsFor=/home/shared /home/media/TV /home/media/Music /home/media/Movies /home/media/Books
 
 [Service]
-# Brief delay to ensure automount units are registered
-ExecStartPre=/bin/sleep 5
 EnvironmentFile=-/etc/default/nomad
 Restart=always
 ExecStart=/usr/bin/nomad agent $OPTIONS -config=/etc/nomad.d/nomad.hcl

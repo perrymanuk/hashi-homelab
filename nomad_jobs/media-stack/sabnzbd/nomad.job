@@ -5,7 +5,7 @@ job "sabnzbd" {
 
   meta {
       job_file = "nomad_jobs/media-stack/sabnzbd/nomad.job"
-version = "3"
+version = "5"
   }
 
   constraint {
@@ -34,6 +34,7 @@ version = "3"
       driver = "docker"
       config {
         image = "linuxserver/sabnzbd"
+        network_mode = "host"
         ports = ["http"]
         mounts = [
           {
@@ -80,7 +81,7 @@ version = "3"
         ]
         check {
           type     = "http"
-          path     = "/"
+          path     = "/api?mode=auth"
           interval = "10s"
           timeout  = "2s"
         }

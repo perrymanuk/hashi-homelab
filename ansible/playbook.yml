@@ -93,11 +93,11 @@
         path: /etc/fstab
         marker: "# {mark} ANSIBLE MANAGED NFS MOUNTS"
         block: |
-          192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
-          192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
-          192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
-          192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
-          192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,bg,hard,timeo=600,retrans=5,x-systemd.automount,x-systemd.mount-timeout=30  0  0
+          192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
       notify:
         - Reload systemd fstab
         - Mount Filesystems
