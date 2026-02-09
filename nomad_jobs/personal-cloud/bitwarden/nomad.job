@@ -14,12 +14,6 @@ version = "3"
     value     = "true"
   }
 
-  vault {
-    policies      = ["admin"]
-    change_mode   = "signal"
-    change_signal = "SIGUSR1"
-  }
-
   group "password" {
     count = 1 
     task "bitwarden" {
@@ -40,11 +34,6 @@ version = "3"
 	name = "bitwarden"
         tags = [
           "traefik.enable=true",
-          "traefik.http.middlewares.httpsRedirect.redirectscheme.scheme=https",
-
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=forward-auth"
         ]
 
         check {
@@ -56,7 +45,11 @@ version = "3"
 
       template {
 data = <<EOH
-ADMIN_TOKEN=""
+ADMIN_TOKEN="u3L9xN7vB2mK5zP8wA4qR1tY6cX0jH2nG7dS9fL4kM1vP3qW"
+SMTP_HOST="192.168.50.120"
+SMTP_PORT="25"
+SMTP_SECURITY="off"
+SMTP_FROM="vault@demonsafe.com"
 EOH
         destination = "local/env"
         env         = true
