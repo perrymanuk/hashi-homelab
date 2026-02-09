@@ -38,7 +38,7 @@ job "truenas-graphite-exporter" {
       driver = "docker"
 
       config {
-        image      = "ghcr.io/supporterino/truenas-graphite-to-prometheus:v1.4.0"
+        image      = "ghcr.io/supporterino/truenas-graphite-to-prometheus:v2.2.1"
         force_pull = true
         ports      = ["graphite", "metrics"]
       }
