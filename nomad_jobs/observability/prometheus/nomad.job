@@ -299,7 +299,7 @@ groups:
       description: "Home Assistant at {{ $labels.instance }} has been down for more than 10 minutes."
   # Alert for any device that is over 80% capacity  
   - alert: DiskUsage
-    expr: avg(disk_used_percent) by (host, device) > 80
+    expr: avg(nomad_client_host_disk_used_percent) by (host, device) > 80
     for: 5m
     labels:
       severity: page
@@ -364,17 +364,6 @@ groups:
       description: "{{ $value }} allocations were killed due to out-of-memory on {{ $labels.host }}"
       service: "nomad"
       
-  - alert: NomadHighMemoryUsage
-    expr: (nomad_client_allocs_memory_usage / nomad_client_allocs_memory_allocated) * 100 > 90
-    for: 5m
-    labels:
-      severity: warning
-      alertname: "NomadHighMemoryUsage"
-    annotations:
-      summary: "High memory usage for allocation {{ $labels.alloc }}"
-      description: "Allocation {{ $labels.alloc }} is using {{ $value }}% of allocated memory"
-      service: "nomad"
-
 EOH
       }
 
