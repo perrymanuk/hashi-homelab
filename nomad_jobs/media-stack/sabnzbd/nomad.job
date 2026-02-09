@@ -5,7 +5,7 @@ job "sabnzbd" {
 
   meta {
       job_file = "nomad_jobs/media-stack/sabnzbd/nomad.job"
-version = "5"
+version = "6"
   }
 
   constraint {
@@ -93,8 +93,9 @@ version = "5"
       }
 
       resources {
-        cpu    = 100
-        memory = 2048
+        cpu        = 1000    # Match actual usage (952 MHz observed)
+        memory     = 3072    # Accommodate 2GB cache + 1GB overhead
+        memory_max = 4096    # Hard limit for burst usage
       }
     }
   }

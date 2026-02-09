@@ -2,14 +2,22 @@ job "plex" {
   region = var.region
   datacenters = ["dc1"]
   type        = "service"
+  priority    = 80
 
   meta {
       job_file = "nomad_jobs/media-stack/plex/nomad.job"
-version = "6"  // Incremented version number
+version = "7"  // Pin to klo01 for QuickSync hardware transcoding
   }
 
   group "downloaders" {
-    count = 1 
+    count = 1
+
+    # Pin to klo01 for Intel QuickSync hardware transcoding
+    constraint {
+      attribute = "${attr.unique.hostname}"
+      value     = "klo01"
+    }
+
     network {
       port "http" {
         host_network = "lan"
@@ -41,6 +49,8 @@ version = "6"  // Incremented version number
         privileged = "true"
         force_pull = "true"
         volumes = [
+          # Intel QuickSync hardware transcoding (privileged mode grants access)
+          "/dev/dri:/dev/dri",
           "/tmp:/transcode",
           "${var.media_dir}:/data",
           "${var.shared_dir}plex_new:/config",
@@ -138,7 +148,7 @@ EOH
       }
 
       resources {
-        cpu    = 4000
+        cpu    = 1500  # QuickSync handles transcoding, minimal CPU needed
         memory = 4096
       }
     }
