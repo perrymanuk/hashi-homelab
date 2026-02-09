@@ -28,7 +28,7 @@ job "suricata-update" {
       driver = "docker"
 
       config {
-        image   = "jasonish/suricata:7.0"
+        image   = "jasonish/suricata:8.0"
         command = "suricata-update"
         volumes = [
           "${var.shared_dir}suricata/rules:/var/lib/suricata",
