@@ -173,45 +173,108 @@ def update_dns_record(client: dns.Client, project_id: str, zone_name: str, recor
         logging.error(f"An unexpected error occurred during DNS update for {fqdn} in zone {gcp_zone_name}: {e}")
 
 
+def update_spf_record(client: dns.Client, project_id: str, zone_name: str, record_name: str, ip_address: str):
+    """Updates the SPF TXT record on the bare domain with the current public IP."""
+    try:
+        gcp_zone_name = zone_name.replace('.', '-')
+        logging.info(f"Updating SPF record in zone: {gcp_zone_name}")
+
+        zone = client.zone(gcp_zone_name, project_id)
+        if not zone.exists():
+            logging.error(f"DNS zone '{gcp_zone_name}' not found in project '{project_id}'.")
+            return
+
+        # Derive bare domain from record_name (e.g., "*.demonsafe.com" -> "demonsafe.com.")
+        domain = record_name.lstrip('*.') if record_name.startswith('*.') else record_name
+        fqdn = domain if domain.endswith('.') else f"{domain}."
+        logging.info(f"Checking TXT records for: {fqdn}")
+
+        spf_value = f'"v=spf1 ip4:{ip_address} ~all"'
+
+        record_sets = list(zone.list_resource_record_sets(filter_=f"name={fqdn}"))
+        existing_txt = None
+        for rs in record_sets:
+            if rs.record_type == 'TXT' and rs.name == fqdn:
+                existing_txt = rs
+                logging.info(f"Found existing TXT record: {rs.name} -> {rs.rrdatas}")
+                break
+
+        changes = zone.changes()
+        needs_update = False
+
+        if existing_txt:
+            new_rrdatas = []
+            spf_found = False
+            for rd in existing_txt.rrdatas:
+                if 'v=spf1' in rd:
+                    spf_found = True
+                    if ip_address in rd:
+                        logging.info(f"SPF record already contains {ip_address}. No update needed.")
+                        return
+                    logging.info(f"Replacing SPF entry: {rd} -> {spf_value}")
+                    new_rrdatas.append(spf_value)
+                else:
+                    new_rrdatas.append(rd)
+            if not spf_found:
+                logging.info(f"No existing SPF entry found. Adding: {spf_value}")
+                new_rrdatas.append(spf_value)
+
+            changes.delete_record_set(existing_txt)
+            new_txt = zone.resource_record_set(fqdn, "TXT", 300, new_rrdatas)
+            changes.add_record_set(new_txt)
+            needs_update = True
+        else:
+            logging.info(f"No TXT record found for {fqdn}. Creating with SPF: {spf_value}")
+            new_txt = zone.resource_record_set(fqdn, "TXT", 300, [spf_value])
+            changes.add_record_set(new_txt)
+            needs_update = True
+
+        if needs_update:
+            logging.info(f"Executing SPF TXT changes for {fqdn}...")
+            changes.create()
+            while changes.status != 'done':
+                logging.info(f"Waiting for SPF changes to complete (status: {changes.status})...")
+                time.sleep(5)
+                changes.reload()
+            logging.info(f"Successfully updated SPF record for {fqdn} with ip4:{ip_address}")
+
+    except GoogleAPIError as e:
+        logging.error(f"GCP API Error updating SPF record: {e}")
+    except Exception as e:
+        logging.error(f"Unexpected error updating SPF record: {e}")
+
+
 if __name__ == "__main__":
     logging.info("Starting DNS update script.")
-    # Update variable name received from get_env_vars
-    # zone_name here is the TLD (e.g., "demonsafe.com")
     project_id, zone_name, record_name, key_b64 = get_env_vars()
     public_ip = get_public_ip()
 
     # DNS Pre-check logic
     if public_ip:
-        hostname_to_check = 'asdf.demonsafe.com' # Define the specific hostname to check
+        hostname_to_check = 'asdf.demonsafe.com'
         logging.info(f"Performing pre-check for hostname: {hostname_to_check}")
         try:
             resolved_ip = socket.gethostbyname(hostname_to_check)
             logging.info(f"Resolved IP for {hostname_to_check}: {resolved_ip}")
             if resolved_ip == public_ip:
                 logging.info(f'DNS record for {hostname_to_check} ({resolved_ip}) already matches public IP ({public_ip}). No update needed.')
-                sys.exit(0) # Exit cleanly if IP matches
+                sys.exit(0)
             else:
                 logging.info(f'Resolved IP for {hostname_to_check} ({resolved_ip}) does not match public IP ({public_ip}). Proceeding with potential update.')
         except socket.gaierror as e:
-            # Log a warning if DNS resolution fails, but continue the script
             logging.warning(f'Could not resolve IP for {hostname_to_check}: {e}. Proceeding with potential update.')
         except Exception as e:
-            # Catch other potential socket errors
             logging.warning(f'An unexpected error occurred during DNS pre-check for {hostname_to_check}: {e}. Proceeding with potential update.')
 
-    # Proceed with DNS update logic only if public IP was obtained and pre-check didn't exit
     if public_ip:
-        # Pass key_b64 and project_id to get_dns_client
         dns_client = get_dns_client(key_b64, project_id)
         if dns_client:
-            # Pass the TLD zone_name here; conversion happens inside update_dns_record
             update_dns_record(dns_client, project_id, zone_name, record_name, public_ip)
+            update_spf_record(dns_client, project_id, zone_name, record_name, public_ip)
             logging.info("DNS update script finished.")
         else:
-            # Error handled in get_dns_client, it exits
             logging.error("Exiting due to DNS client initialization failure.")
-            sys.exit(1) # Explicit exit for clarity
+            sys.exit(1)
     else:
-        # Error handled in get_public_ip, it exits
         logging.error("Exiting due to inability to fetch public IP.")
-        sys.exit(1) # Explicit exit for clarity
+        sys.exit(1)
