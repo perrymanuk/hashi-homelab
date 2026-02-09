@@ -1,13 +1,14 @@
 [Unit]
 Description=nomad.agent
 Requires=network-online.target tailscaled.service
-After=network-online.target tailscaled.service
-# Wait for NFS mounts to be available before starting Nomad
+After=network-online.target tailscaled.service remote-fs.target
+# Hard requirement: Nomad must not start until NFS mounts are ready
 RequiresMountsFor=/home/shared /home/media/TV /home/media/Music /home/media/Movies /home/media/Books
 
 [Service]
 EnvironmentFile=-/etc/default/nomad
-Restart=always
+Restart=on-failure
+RestartSec=10
 ExecStart=/usr/bin/nomad agent $OPTIONS -config=/etc/nomad.d/nomad.hcl
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT

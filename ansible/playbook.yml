@@ -8,6 +8,24 @@
   become: true
   remote_user: root
   tasks:
+    - name: Configure static IP via netplan
+      copy:
+        dest: /etc/netplan/00-installer-config.yaml
+        content: |
+          network:
+            version: 2
+            ethernets:
+              ens3:
+                addresses:
+                  - {{ inventory_hostname }}/24
+                routes:
+                  - to: default
+                    via: 192.168.50.1
+                nameservers:
+                  addresses:
+                    - 192.168.50.1
+      notify: Apply netplan
+
     - name: Ensure directories exist
       file:
         path: "{{ item }}"
@@ -93,11 +111,11 @@
         path: /etc/fstab
         marker: "# {mark} ANSIBLE MANAGED NFS MOUNTS"
         block: |
-          192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
-          192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
-          192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
-          192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
-          192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,bg,hard,timeo=600,retrans=5,retry=3,nofail,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool0/share              /home/shared         nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool1/media/TV           /home/media/TV       nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
       notify:
         - Reload systemd fstab
         - Mount Filesystems
@@ -112,6 +130,9 @@
         - multipath-tools
 
   handlers:
+    - name: Apply netplan
+      command: netplan apply
+
     - name: Reload systemd fstab
       systemd:
         daemon_reload: yes
