@@ -1,0 +1,86 @@
+job "minecraft-forge" {
+  region      = var.region
+  datacenters = ["minecraft"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/gaming/minecraft-forge/nomad.job"
+    version  = "1"
+  }
+
+  group "minecraft" {
+    count = 1
+
+    network {
+      port "minecraft" {
+        host_network = "lan"
+        static       = 25565
+        to           = 25565
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "minecraft-server" {
+      driver = "docker"
+
+      config {
+        image        = "itzg/minecraft-server:latest"
+        force_pull   = false
+        network_mode = "host"
+
+        volumes = [
+          "/root/minecraft/minecraft-server/data:/data",
+          "/root/minecraft/minecraft-server/mods:/mods:ro",
+          "/root/minecraft/minecraft-server/config:/config:ro",
+        ]
+      }
+
+      env {
+        EULA                          = "TRUE"
+        VERSION                       = "1.20.1"
+        TYPE                          = "FORGE"
+        MEMORY                        = "8G"
+        SERVER_PORT                   = "25565"
+        MOTD                          = "Welcome to our modded Minecraft server!"
+        MODE                          = "creative"
+        DIFFICULTY                    = "easy"
+        MAX_PLAYERS                   = "20"
+        VIEW_DISTANCE                 = "20"
+        SIMULATION_DISTANCE           = "10"
+        SPAWN_PROTECTION              = "16"
+        ONLINE_MODE                   = "false"
+        ENABLE_WHITELIST              = "false"
+        FORCE_GAMEMODE                = "true"
+        ENABLE_COMMAND_BLOCK          = "true"
+        OPS                           = "perry,hannah,Perry"
+        JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:ReservedCodeCacheSize=512M -XX:+UseCodeCacheFlushing"
+      }
+
+      service {
+        name = "minecraft-forge"
+        port = "minecraft"
+        tags = ["minecraft", "gaming", "forge", "1.20.1"]
+
+        check {
+          type     = "tcp"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu    = 4000
+        memory = 9728
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}

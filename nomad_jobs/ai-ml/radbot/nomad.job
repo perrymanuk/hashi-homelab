@@ -1,0 +1,131 @@
+job "radbot" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/ai-ml/radbot/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "web" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to           = 8000
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "60s"
+      healthy_deadline = "5m"
+      auto_revert      = true
+    }
+
+    task "radbot" {
+      driver = "docker"
+
+      config {
+        image       = "ghcr.io/perrymanuk/radbot:v0.2"
+        dns_servers = [var.dns_server_ip]
+        ports       = ["http"]
+        volumes     = [
+          "local/config.yaml:/app/config.yaml",
+        ]
+      }
+
+      # Bootstrap-only env vars:
+      # - RADBOT_CREDENTIAL_KEY: decrypt credentials/config stored in the DB
+      # - RADBOT_ADMIN_TOKEN:    access /admin/ to manage everything else
+      # All other config (API keys, models, integrations, endpoints) is stored
+      # encrypted in the radbot_credentials table and managed via /admin/ UI.
+      env {
+        RADBOT_CREDENTIAL_KEY = var.radbot_credential_key
+        RADBOT_ADMIN_TOKEN    = var.radbot_admin_token
+        RADBOT_CONFIG_FILE    = "/app/config.yaml"
+      }
+
+      # Minimal bootstrap config — just enough to connect to the DB.
+      # Everything else is loaded from the DB credential store at startup.
+      template {
+        data = <<EOH
+database:
+  host: postgres.service.consul
+  port: 5432
+  user: postgres
+  password: ${var.postgres_pass}
+  db_name: radbot_todos
+EOH
+        destination = "local/config.yaml"
+        env         = false
+      }
+
+      service {
+        port = "http"
+        name = "radbot"
+        tags = [
+          "traefik.enable=true",
+        ]
+        check {
+          type     = "http"
+          path     = "/health"
+          interval = "30s"
+          timeout  = "5s"
+          check_restart {
+            limit           = 3
+            grace           = "120s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 1000
+        memory = 2048
+      }
+    }
+  }
+}
+
+# ------------------------------------------------------------------
+# Variables — only bootstrap secrets
+# ------------------------------------------------------------------
+
+variable "region" {
+  type = string
+}
+
+variable "dns_server_ip" {
+  type = string
+}
+
+variable "postgres_pass" {
+  type        = string
+  description = "PostgreSQL password (needed to connect to DB where all config lives)"
+}
+
+variable "radbot_credential_key" {
+  type        = string
+  description = "Fernet master key for encrypting credentials/config in the DB"
+}
+
+variable "radbot_admin_token" {
+  type        = string
+  description = "Bearer token for /admin/ — the only pre-shared secret"
+}
