@@ -49,17 +49,13 @@ sshConnection:
   # use either password or key
   password: "${var.truenas_iscsi_pass}"
 zfs:
-  # can be used to override defaults if necessary
-  # the example below is useful for TrueNAS 12
-  #cli:
-  #  sudoEnabled: true
-  #
-  #  leave paths unset for auto-detection
-  #  paths:
-  #    zfs: /usr/local/sbin/zfs
-  #    zpool: /usr/local/sbin/zpool
-  #    sudo: /usr/local/bin/sudo
-  #    chroot: /usr/sbin/chroot
+  # TrueNAS SCALE 24.10+ (Electric Eel) paths differ from FreeBSD defaults
+  cli:
+    paths:
+      zfs: /usr/sbin/zfs
+      zpool: /usr/sbin/zpool
+      sudo: /usr/bin/sudo
+      chroot: /usr/sbin/chroot
   
   # can be used to set arbitrary values on the dataset/zvol
   # can use handlebars templates with the parameters from the storage class/CO

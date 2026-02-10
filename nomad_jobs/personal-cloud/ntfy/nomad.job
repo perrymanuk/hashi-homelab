@@ -1,0 +1,142 @@
+job "ntfy" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/personal-cloud/ntfy/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "ntfy" {
+    count = 1
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    volume "ntfy" {
+      type            = "csi"
+      read_only       = false
+      source          = "ntfy-data"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    network {
+      port "http" {
+        host_network = "lan"
+      }
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "ntfy"
+        destination = "/volume/"
+        read_only   = false
+      }
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chmod 777 /volume/"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
+    task "ntfy" {
+      driver = "docker"
+
+      config {
+        image      = "binwiederhier/ntfy:latest"
+        force_pull = true
+        ports      = ["http"]
+        args       = ["serve"]
+        volumes = [
+          "local/server.yml:/etc/ntfy/server.yml:ro",
+        ]
+      }
+
+      volume_mount {
+        volume      = "ntfy"
+        destination = "/var/cache/ntfy"
+        read_only   = false
+      }
+
+      env {
+        TZ = "Europe/Berlin"
+      }
+
+      template {
+        data = <<EOH
+base-url: "https://ntfy.${var.tld}"
+listen-http: ":{{ env "NOMAD_PORT_http" }}"
+cache-file: "/var/cache/ntfy/cache.db"
+cache-duration: "12h"
+attachment-cache-dir: "/var/cache/ntfy/attachments"
+attachment-total-size-limit: "1G"
+attachment-file-size-limit: "15M"
+EOH
+        destination = "local/server.yml"
+        change_mode = "restart"
+      }
+
+      service {
+        name = "ntfy"
+        port = "http"
+        tags = [
+          "traefik.enable=true",
+        ]
+
+        check {
+          type     = "http"
+          path     = "/v1/health"
+          interval = "10s"
+          timeout  = "2s"
+
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}

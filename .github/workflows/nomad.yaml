@@ -62,6 +62,8 @@ jobs:
             - 'nomad_jobs/web-apps/firecrawl/*.job'
             - 'nomad_jobs/observability/alertmanager/*.job'
             - 'nomad_jobs/observability/prometheus/*.job'
+            - 'nomad_jobs/ai-ml/radbot/*.job'
+            - 'nomad_jobs/personal-cloud/ntfy/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -175,3 +177,5 @@ jobs:
         NOMAD_VAR_truenass_iscsi_pass: ${{ secrets.NOMAD_VAR_truenass_iscsi_pass }} # Note potential typo in name
         NOMAD_VAR_dns_zone: ${{ secrets.NOMAD_VAR_dns_zone }}
         NOMAD_VAR_ingress_ip: ${{ secrets.NOMAD_VAR_ingress_ip }}
+        NOMAD_VAR_radbot_credential_key: ${{ secrets.NOMAD_VAR_radbot_credential_key }}
+        NOMAD_VAR_radbot_admin_token: ${{ secrets.NOMAD_VAR_radbot_admin_token }}
