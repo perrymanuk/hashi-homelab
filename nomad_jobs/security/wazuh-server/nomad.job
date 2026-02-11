@@ -676,7 +676,7 @@ EOH
       }
 
       config {
-        image      = "wazuh/wazuh-dashboard:4.14.2"
+        image      = "wazuh/wazuh-dashboard:4.14.3"
         force_pull = true
         ports      = ["dashboard"]
         volumes = [
