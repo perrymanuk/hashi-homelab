@@ -236,7 +236,7 @@ EOH
       }
 
       config {
-        image      = "wazuh/wazuh-manager:4.14.2"
+        image      = "wazuh/wazuh-manager:4.14.3"
         force_pull = true
         hostname   = "wazuh-manager"
         ports      = ["manager", "manager_reg", "manager_api"]
