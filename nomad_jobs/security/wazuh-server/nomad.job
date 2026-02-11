@@ -155,7 +155,7 @@ job "wazuh-server" {
       }
 
       config {
-        image      = "wazuh/wazuh-indexer:4.14.2"
+        image      = "wazuh/wazuh-indexer:4.14.3"
         force_pull = true
         ports      = ["indexer"]
         volumes = [
