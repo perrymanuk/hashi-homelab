@@ -43,6 +43,11 @@
       "matchPackageNames": [
         "/^lscr.io\\/linuxserver\\//"
       ]
+    },
+    {
+      "matchPackageNames": ["ghcr.io/perrymanuk/radbot"],
+      "enabled": false,
+      "description": "Managed by radbot CI dispatch workflow"
     }
   ],
   "customManagers": [
