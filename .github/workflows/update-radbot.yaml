@@ -1,0 +1,28 @@
+name: Update radbot image tag
+
+on:
+  repository_dispatch:
+    types: [update-radbot]
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update image tag in Nomad job
+        run: |
+          TAG="${{ github.event.client_payload.tag }}"
+          sed -i "s|ghcr.io/perrymanuk/radbot:[^ \"]*|ghcr.io/perrymanuk/radbot:${TAG}|" \
+            nomad_jobs/ai-ml/radbot/nomad.job
+          echo "Updated radbot image tag to ${TAG}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TAG="${{ github.event.client_payload.tag }}"
+          git add nomad_jobs/ai-ml/radbot/nomad.job
+          git commit -m "chore: bump radbot to ${TAG}"
+          git push

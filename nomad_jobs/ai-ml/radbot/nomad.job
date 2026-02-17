@@ -5,7 +5,7 @@ job "radbot" {
 
   meta {
     job_file = "nomad_jobs/ai-ml/radbot/nomad.job"
-    version  = "1"
+    version  = "2"
   }
 
   constraint {
