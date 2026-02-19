@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.ACTIONS_PAT }}
 
       - name: Update image tag in Nomad job
         run: |
