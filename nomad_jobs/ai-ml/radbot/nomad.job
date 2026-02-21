@@ -42,7 +42,7 @@ job "radbot" {
       driver = "docker"
 
       config {
-        image       = "ghcr.io/perrymanuk/radbot:v0.7"
+        image       = "ghcr.io/perrymanuk/radbot:v0.8"
         dns_servers = [var.dns_server_ip]
         ports       = ["http"]
         volumes     = [
