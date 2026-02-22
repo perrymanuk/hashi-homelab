@@ -31,16 +31,6 @@ service_owner = "@pmanuk"
       }
     }
 
-    volume "home-assistant" {
-      type      = "csi"
-      read_only = false
-
-      source    = "home-assistant"
-      access_mode = "single-node-writer"
-      attachment_mode = "file-system"
-    }
-
-
     update {
       max_parallel     = 1
       min_healthy_time = "30s"
@@ -58,12 +48,6 @@ service_owner = "@pmanuk"
           "${var.shared_dir}home-assistant:/config",
         ]
       }
-
-#      volume_mount {
-#        volume      = "home-assistant"
-#        destination = "/config"
-#        read_only   = false
-#      }
 
       service {
         port = "http"

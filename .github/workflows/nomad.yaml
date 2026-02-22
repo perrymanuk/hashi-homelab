@@ -22,9 +22,8 @@ jobs:
         list-files: 'json'
         filters: |
           volumes:
-            # Keep broad for now, refine if needed
-            - 'nomad_jobs/**/volume.hcl' # Updated path
-            - 'nomad_jobs/media-stack/plex/plex-database-volume.hcl' # Updated path
+            - 'nomad_jobs/**/volume.hcl'
+            - 'nomad_jobs/**/*-volume.hcl'
 
     - uses: dorny/paths-filter@v3
       id: filter
@@ -84,7 +83,15 @@ jobs:
     - name: deploy
       shell: bash
       run: |
-        nomad volume create ${{ matrix.job }}
+        # Extract volume ID from the HCL file
+        VOLUME_ID=$(grep '^id' ${{ matrix.job }} | head -1 | sed 's/.*= *"\(.*\)"/\1/')
+        # Skip if volume already exists
+        if nomad volume status "$VOLUME_ID" > /dev/null 2>&1; then
+          echo "Volume '$VOLUME_ID' already exists, skipping creation"
+        else
+          echo "Creating volume '$VOLUME_ID'"
+          nomad volume create ${{ matrix.job }}
+        fi
       env:
         NOMAD_ADDR: '${{ secrets.NOMAD_ADDR }}'
 
