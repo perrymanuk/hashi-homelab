@@ -308,6 +308,7 @@
         --authkey={{ tailscale_auth_key }}
         --hostname={{ tailscale_hostname }}
         --advertise-tags={{ tailscale_tags }}
+        --accept-dns=false
         --reset
       register: tailscale_up
       changed_when: "'Success' in tailscale_up.stdout or 'Success' in tailscale_up.stderr or tailscale_up.rc == 0"
