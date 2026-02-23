@@ -1,0 +1,230 @@
+// =============================================================================
+// Nomad Job Template
+// =============================================================================
+//
+// Usage:
+//   1. Copy this file to nomad_jobs/<category>/<service-name>/nomad.job
+//   2. Find/replace the following placeholders:
+//      - __JOB_NAME__        : lowercase service name (e.g. "sonarr")
+//      - __GROUP_NAME__      : group name (e.g. "downloaders", "monitoring", "ai")
+//      - __CATEGORY__        : directory category (e.g. "media-stack", "ai-ml")
+//      - __IMAGE__           : docker image with tag (e.g. "linuxserver/sonarr:4.0.16")
+//      - __PORT__            : container port number (e.g. "8989")
+//      - __HEALTH_PATH__     : HTTP health check path (e.g. "/ping", "/-/healthy", "/api/health")
+//      - __CPU__             : CPU MHz allocation (see guide below)
+//      - __MEMORY__          : Memory MB allocation (see guide below)
+//   3. Remove any optional sections you don't need (marked with OPTIONAL)
+//   4. Update the variable declarations at the bottom
+//   5. Add any job-specific secrets to .envrc as NOMAD_VAR_<name>
+//   6. Add the job path to .github/workflows/nomad.yaml if it should auto-deploy
+//
+// Resource guide:
+//   Light services (static sites, proxies):     cpu = 100-200,  memory = 128-256
+//   Medium services (APIs, web apps):            cpu = 500-1000, memory = 512-1024
+//   Heavy services (.NET apps, databases, Java): cpu = 1000+,    memory = 1024-2048
+//   GPU / ML workloads:                          cpu = 200+,     memory = 4096-8192
+//
+// =============================================================================
+
+job "__JOB_NAME__" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/__CATEGORY__/__JOB_NAME__/nomad.job"
+    version  = "1"
+  }
+
+  // Ensures scheduling on nodes with NFS shared mount available.
+  // Remove if the service has no need for shared storage or config dirs.
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "__GROUP_NAME__" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to           = "__PORT__"
+      }
+    }
+
+    // --- OPTIONAL: CSI Volume ------------------------------------------------
+    // Use for services that need persistent block storage (databases, stateful apps).
+    // Requires a matching volume.hcl deployed first.
+    // Remove this block and the prep-disk task + volume_mount if not needed.
+    //
+    // volume "__JOB_NAME__" {
+    //   type            = "csi"
+    //   read_only       = false
+    //   source          = "__JOB_NAME__"
+    //   access_mode     = "single-node-writer"
+    //   attachment_mode = "file-system"
+    // }
+    // -------------------------------------------------------------------------
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel      = 1
+      min_healthy_time  = "30s"
+      healthy_deadline  = "5m"
+      progress_deadline = "10m"
+      auto_revert       = true
+    }
+
+    // --- OPTIONAL: Prep-disk task --------------------------------------------
+    // Required when using CSI volumes to fix ownership before the main task runs.
+    // Set UID:GID to match the user the main container runs as.
+    // Common values:
+    //   linuxserver images: 65534:65534 (nobody)
+    //   prometheus:         1000:2000
+    //   grafana:            472:472
+    //   loki:               10001:10001
+    //
+    // task "prep-disk" {
+    //   driver = "docker"
+    //
+    //   lifecycle {
+    //     hook    = "prestart"
+    //     sidecar = false
+    //   }
+    //
+    //   volume_mount {
+    //     volume      = "__JOB_NAME__"
+    //     destination = "/volume/"
+    //     read_only   = false
+    //   }
+    //
+    //   config {
+    //     image   = "busybox:latest"
+    //     command = "sh"
+    //     args    = ["-c", "chown -R UID:GID /volume/"]
+    //   }
+    //
+    //   resources {
+    //     cpu    = 200
+    //     memory = 128
+    //   }
+    // }
+    // -------------------------------------------------------------------------
+
+    task "__JOB_NAME__" {
+      driver = "docker"
+
+      config {
+        image = "__IMAGE__"
+        ports = ["http"]
+
+        // --- Bind mount pattern (shared NFS config dir) ---
+        // Use for services that store config on shared NFS.
+        // volumes = [
+        //   "${var.shared_dir}__JOB_NAME__:/config",
+        // ]
+
+        // --- Template mount pattern (config rendered by Nomad) ---
+        // Use when config is templated inline below.
+        // volumes = [
+        //   "local/config.yaml:/app/config.yaml",
+        // ]
+      }
+
+      // --- OPTIONAL: CSI volume mount ----------------------------------------
+      // volume_mount {
+      //   volume      = "__JOB_NAME__"
+      //   destination = "/data"
+      //   read_only   = false
+      // }
+      // -----------------------------------------------------------------------
+
+      env {
+        TZ = "Etc/UTC"
+        // PUID = "65534"    // common for linuxserver images
+        // PGID = "65534"
+      }
+
+      // --- OPTIONAL: Config template -----------------------------------------
+      // Use for services that need a rendered config file.
+      // Reference secrets with ${var.secret_name} syntax.
+      //
+      // template {
+      //   data        = <<EOH
+      // your config here
+      // EOH
+      //   destination = "local/config.yaml"
+      //   change_mode = "restart"
+      //   // change_mode options:
+      //   //   "restart" - restart the task on config change (safest default)
+      //   //   "signal"  - send a signal: change_signal = "SIGHUP"
+      //   //   "noop"    - do nothing (use only for static configs)
+      // }
+      // -----------------------------------------------------------------------
+
+      service {
+        port = "http"
+        name = "__JOB_NAME__"
+        tags = [
+          "traefik.enable=true",
+        ]
+        check {
+          type     = "http"
+          path     = "__HEALTH_PATH__"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = __CPU__
+        memory = __MEMORY__
+      }
+    }
+  }
+}
+
+// =============================================================================
+// Variables
+// =============================================================================
+// Common variables (always required - provided by .envrc / GitHub Actions):
+
+variable "region" {
+  type        = string
+  description = "Nomad region"
+}
+
+variable "tld" {
+  type        = string
+  description = "Top-level domain for service discovery"
+}
+
+variable "shared_dir" {
+  type        = string
+  description = "Path to shared NFS config directory"
+}
+
+// --- OPTIONAL: Add job-specific variables below ------------------------------
+// Follow this pattern:
+//
+// variable "my_secret" {
+//   type        = string
+//   description = "Description of what this secret is for"
+// }
+//
+// Then add to .envrc:  export NOMAD_VAR_my_secret='value'
+// And to GitHub Actions workflow env block if auto-deploying.
+// -----------------------------------------------------------------------------
