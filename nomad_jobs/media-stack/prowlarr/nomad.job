@@ -1,0 +1,87 @@
+job "prowlarr" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+      job_file = "nomad_jobs/media-stack/prowlarr/nomad.job"
+version = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "downloaders" {
+    count = 1
+    network {
+      port "http" {
+        host_network = "lan"
+        static = "9696"
+      }
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "prowlarr" {
+      driver = "docker"
+      config {
+        image = "linuxserver/prowlarr"
+        ports = ["http"]
+        mounts = [
+          {
+            type = "bind"
+            target = "/config"
+            source = "${var.shared_dir}prowlarr",
+            readonly = false
+            bind_options = {
+              propagation = "rshared"
+            }
+          }
+        ]
+      }
+
+      env {
+        PUID = "65534"
+        PGID = "65534"
+        TZ = "Etc/UTC"
+      }
+
+      service {
+        port = "http"
+        name = "prowlarr"
+        tags = [
+          "traefik.enable=true"
+        ]
+        check {
+          type     = "http"
+          path     = "/ping"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {}
+
+variable "tld" {}
+
+variable "shared_dir" {}

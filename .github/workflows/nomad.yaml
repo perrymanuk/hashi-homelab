@@ -42,6 +42,8 @@ jobs:
             - 'nomad_jobs/core-infra/coredns/*.job'
             - 'nomad_jobs/storage-backends/iscsi-csi-plugin/*.job'
             - 'nomad_jobs/media-stack/sabnzbd/*.job'
+            - 'nomad_jobs/media-stack/qbittorrent/*.job'
+            - 'nomad_jobs/media-stack/prowlarr/*.job'
             - 'nomad_jobs/core-infra/smtp/*.job'
             - 'nomad_jobs/ai-ml/ollama/*.job'
             - 'nomad_jobs/ai-ml/open-webui/*.job'
@@ -176,3 +178,5 @@ jobs:
         NOMAD_VAR_ingress_ip: ${{ secrets.NOMAD_VAR_ingress_ip }}
         NOMAD_VAR_radbot_credential_key: ${{ secrets.NOMAD_VAR_radbot_credential_key }}
         NOMAD_VAR_radbot_admin_token: ${{ secrets.NOMAD_VAR_radbot_admin_token }}
+        NOMAD_VAR_mullvad_wireguard_key: ${{ secrets.NOMAD_VAR_mullvad_wireguard_key }}
+        NOMAD_VAR_mullvad_wireguard_addr: ${{ secrets.NOMAD_VAR_mullvad_wireguard_addr }}
