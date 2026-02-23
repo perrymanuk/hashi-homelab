@@ -8,6 +8,14 @@ datacenters = ["dc1"]
   # that all nodes in the DC have a copy.
   type = "system"
   group "nodes" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "plugin" {
       driver = "docker"
       config {

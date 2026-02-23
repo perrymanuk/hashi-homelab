@@ -9,6 +9,14 @@ job "neo4j-setup" {
   }
 
   group "setup" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "neo4j-init" {
       driver = "docker"
 

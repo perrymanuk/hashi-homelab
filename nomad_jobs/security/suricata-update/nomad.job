@@ -24,6 +24,13 @@ job "suricata-update" {
   group "update" {
     count = 1
 
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "suricata-update" {
       driver = "docker"
 

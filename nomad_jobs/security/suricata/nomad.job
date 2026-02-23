@@ -20,6 +20,13 @@ job "suricata" {
       mode = "host"
     }
 
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     update {
       min_healthy_time = "30s"
       auto_revert      = true

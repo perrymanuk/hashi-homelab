@@ -6,6 +6,14 @@ job "democratic-csi-iscsi-controller" {
 datacenters = ["dc1"]
 
   group "controller" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "plugin" {
       driver = "docker"
 

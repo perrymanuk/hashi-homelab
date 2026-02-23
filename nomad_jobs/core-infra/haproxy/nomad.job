@@ -10,6 +10,14 @@ version = "6"
 
   group "lbs" {
     count = 1
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     update {
       max_parallel     = 1
       min_healthy_time = "30s"

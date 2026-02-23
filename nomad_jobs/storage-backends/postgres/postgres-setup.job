@@ -8,6 +8,14 @@ version = "2"
   }
   
   group "setup" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "create-dbs" {
       driver = "docker"
       

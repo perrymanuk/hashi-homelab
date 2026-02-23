@@ -16,6 +16,14 @@ job "open-webui" {
         host_network = "lan"
       }
     }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "open-webui" {
       driver = "docker"
 

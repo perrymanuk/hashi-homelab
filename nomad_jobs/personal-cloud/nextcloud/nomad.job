@@ -21,6 +21,14 @@ version = "4"
   }
 
   group "nextcloud" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "web" {
       driver = "docker"
 

@@ -62,6 +62,13 @@ job "wazuh-server" {
       attachment_mode = "file-system"
     }
 
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     # Prep disk task for indexer volume permissions
     task "prep-indexer-disk" {
       driver = "docker"

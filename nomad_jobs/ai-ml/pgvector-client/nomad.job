@@ -9,6 +9,14 @@ job "pgvector-client-example" {
   }
 
   group "client" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "embedding-example" {
       driver = "docker"
 

@@ -16,7 +16,15 @@ service_owner = "@pmanuk"
   }
 
   group "chat" {
-    count = 1 
+    count = 1
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "mumble-server" {
       driver = "docker"
       config {

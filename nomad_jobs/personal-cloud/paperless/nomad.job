@@ -32,6 +32,12 @@ job "paperless" {
       }
     }
 
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
 
     update {
       max_parallel     = 1

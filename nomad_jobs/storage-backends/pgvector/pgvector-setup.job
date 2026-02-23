@@ -8,6 +8,14 @@ job "pgvector-setup" {
   }
   
   group "setup" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "initialize-pgvector" {
       driver = "docker"
       

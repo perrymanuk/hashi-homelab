@@ -16,6 +16,14 @@ version = "2"  // Incremented version number
         host_network = "lan"
       }
     }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "mariadb" {
       driver = "docker"
 

@@ -18,6 +18,13 @@ job "docker-cleanup" {
   group "cleanup" {
     # sysbatch will automatically run on all eligible nodes
 
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "docker-prune" {
       driver = "raw_exec"
       

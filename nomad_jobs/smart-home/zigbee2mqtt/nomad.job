@@ -22,6 +22,14 @@ service_owner = "@pmanuk"
         host_network = "lan"
       }
     }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "zigbee2mqtt" {
       driver = "docker"
       config {

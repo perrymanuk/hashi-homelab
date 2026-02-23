@@ -10,6 +10,14 @@ datacenters = ["dc1"]
   type = "system"
 
   group "nodes" {
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "plugin" {
       driver = "docker"
 

@@ -15,7 +15,15 @@ version = "3"
   }
 
   group "password" {
-    count = 1 
+    count = 1
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
     task "bitwarden" {
       driver = "docker"
       config {
