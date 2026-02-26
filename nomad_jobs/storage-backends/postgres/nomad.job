@@ -34,7 +34,7 @@ version = "5"  // Fixed postgres password variable
       driver = "docker"
 
       config {
-        image = "postgres:15.16"
+        image = "postgres:15.17"
         volumes = [
           "${var.shared_dir}paperless-postgres:/appdata/postgres",
         ]
