@@ -56,7 +56,8 @@ job "minecraft-1-21" {
         EULA                          = "TRUE"
         VERSION                       = "1.21.10"
         TYPE                          = "FABRIC"
-        MEMORY                        = "8G"
+        INIT_MEMORY                   = "2G"
+        MAX_MEMORY                    = "8G"
         MOTD                          = "Minecraft 1.21.10 Fabric Server"
         DIFFICULTY                    = "peaceful"
         MAX_PLAYERS                   = "20"
@@ -90,8 +91,9 @@ job "minecraft-1-21" {
       }
 
       resources {
-        cpu    = 4000
-        memory = 9728
+        cpu        = 4000
+        memory     = 3072
+        memory_max = 9728
       }
     }
   }

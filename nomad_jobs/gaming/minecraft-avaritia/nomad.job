@@ -1,0 +1,109 @@
+job "minecraft-avaritia" {
+  region      = var.region
+  datacenters = ["minecraft"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/gaming/minecraft-avaritia/nomad.job"
+    version  = "1"
+  }
+
+  group "minecraft" {
+    count = 1
+
+    network {
+      port "minecraft" {
+        host_network = "lan"
+        static       = 25571
+        to           = 25565
+      }
+    }
+
+    restart {
+      attempts = 2
+      delay    = "120s"
+      interval = "30m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "minecraft-server" {
+      driver = "docker"
+
+      config {
+        image        = "itzg/minecraft-server:latest"
+        force_pull   = false
+        network_mode = "host"
+
+        volumes = [
+          "/root/minecraft-avaritia/data:/data",
+        ]
+      }
+
+      env {
+        EULA                          = "TRUE"
+        VERSION                       = "1.20.1"
+        TYPE                          = "FORGE"
+        INIT_MEMORY                   = "2G"
+        MAX_MEMORY                    = "8G"
+        MOTD                          = "Avaritia Modded Server (1.20.1)"
+        MODE                          = "creative"
+        DIFFICULTY                    = "normal"
+        MAX_PLAYERS                   = "20"
+        VIEW_DISTANCE                 = "10"
+        SIMULATION_DISTANCE           = "8"
+        SPAWN_PROTECTION              = "16"
+        ONLINE_MODE                   = "false"
+        ENABLE_WHITELIST              = "false"
+        SERVER_PORT                   = "25571"
+        ENABLE_QUERY                  = "true"
+        QUERY_PORT                    = "25571"
+        NETWORK_COMPRESSION_THRESHOLD = "512"
+        FORCE_GAMEMODE                = "true"
+        ENABLE_COMMAND_BLOCK          = "true"
+        OPS                           = "perry,hannah,Perry"
+        MAX_TICK_TIME                 = "-1"
+        ENABLE_RCON                   = "true"
+        RCON_PORT                     = "25572"
+        RCON_PASSWORD                 = "minecraft"
+        CREATE_CONSOLE_IN_PIPE        = "true"
+        JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -XX:G1PeriodicGCInterval=15000 -XX:G1PeriodicGCSystemLoadThreshold=0.0"
+        MODRINTH_PROJECTS             = "remorphed\nwoodwalkers\ncrafted-core"
+        CURSEFORGE_FILES              = "re-avaritia\nluckytnt\nlucky-tnt-lib\npehkui\nterrablender\nbiomes-o-plenty\noh-the-biomes-weve-gone\nterralith\ntectonic\nlithostitched\noh-the-trees-youll-grow\njei\njourneymap\nwaystones\nembeddium\ngeckolib\narchitectury-api\nglitchcore\ncorgilib\nbalm"
+        CF_API_KEY                    = "${var.curseforge_api_key}"
+      }
+
+      service {
+        name = "minecraft-avaritia"
+        port = "minecraft"
+        tags = ["minecraft", "gaming", "avaritia", "modded"]
+
+        check {
+          type     = "tcp"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu        = 4000
+        memory     = 3072
+        memory_max = 9728
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "curseforge_api_key" {
+  type    = string
+  default = ""
+}

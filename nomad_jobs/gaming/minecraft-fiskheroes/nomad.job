@@ -1,10 +1,10 @@
-job "minecraft-forge" {
+job "minecraft-fiskheroes" {
   region      = var.region
   datacenters = ["minecraft"]
   type        = "service"
 
   meta {
-    job_file = "nomad_jobs/gaming/minecraft-forge/nomad.job"
+    job_file = "nomad_jobs/gaming/minecraft-fiskheroes/nomad.job"
     version  = "1"
   }
 
@@ -14,7 +14,7 @@ job "minecraft-forge" {
     network {
       port "minecraft" {
         host_network = "lan"
-        static       = 25565
+        static       = 25570
         to           = 25565
       }
     }
@@ -36,43 +36,44 @@ job "minecraft-forge" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:latest"
+        image        = "itzg/minecraft-server:java8"
         force_pull   = false
         network_mode = "host"
 
         volumes = [
-          "/root/minecraft/minecraft-server/data:/data",
-          "/root/minecraft/minecraft-server/mods:/mods:ro",
-          "/root/minecraft/minecraft-server/config:/config:ro",
+          "/root/minecraft-fiskheroes/data:/data",
         ]
       }
 
       env {
         EULA                          = "TRUE"
-        VERSION                       = "1.20.1"
+        VERSION                       = "1.7.10"
         TYPE                          = "FORGE"
-        INIT_MEMORY                   = "2G"
-        MAX_MEMORY                    = "8G"
-        SERVER_PORT                   = "25565"
-        MOTD                          = "Welcome to our modded Minecraft server!"
+        FORGE_VERSION                 = "10.13.4.1614"
+        MEMORY                        = "10G"
+        SERVER_PORT                   = "25570"
+        ENABLE_QUERY                  = "true"
+        QUERY_PORT                    = "25570"
+        MOTD                          = "Fisk Superheroes - New York City"
         MODE                          = "creative"
-        DIFFICULTY                    = "easy"
+        DIFFICULTY                    = "peaceful"
+        FORCE_GAMEMODE                = "true"
         MAX_PLAYERS                   = "20"
-        VIEW_DISTANCE                 = "20"
-        SIMULATION_DISTANCE           = "10"
-        SPAWN_PROTECTION              = "16"
+        VIEW_DISTANCE                 = "12"
+        SIMULATION_DISTANCE           = "8"
+        SPAWN_PROTECTION              = "0"
         ONLINE_MODE                   = "false"
         ENABLE_WHITELIST              = "false"
-        FORCE_GAMEMODE                = "true"
         ENABLE_COMMAND_BLOCK          = "true"
         OPS                           = "perry,hannah,Perry"
+        JAVA_TOOL_OPTIONS             = "-Dfml.queryResult=confirm"
         JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:ReservedCodeCacheSize=512M -XX:+UseCodeCacheFlushing"
       }
 
       service {
-        name = "minecraft-forge"
+        name = "minecraft-fiskheroes"
         port = "minecraft"
-        tags = ["minecraft", "gaming", "forge", "1.20.1"]
+        tags = ["minecraft", "gaming", "forge", "fiskheroes"]
 
         check {
           type     = "tcp"
@@ -82,9 +83,8 @@ job "minecraft-forge" {
       }
 
       resources {
-        cpu        = 4000
-        memory     = 3072
-        memory_max = 9728
+        cpu    = 4000
+        memory = 12288
       }
     }
   }
@@ -93,3 +93,4 @@ job "minecraft-forge" {
 variable "region" {
   type = string
 }
+

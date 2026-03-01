@@ -57,7 +57,8 @@ job "minecraft-axiom" {
         VERSION                       = "1.20.1"
         TYPE                          = "FABRIC"
         FABRIC_LOADER_VERSION         = "0.17.2"
-        MEMORY                        = "8G"
+        INIT_MEMORY                   = "2G"
+        MAX_MEMORY                    = "8G"
         MOTD                          = "Axiom Building Server (1.20.1)"
         MODE                          = "creative"
         DIFFICULTY                    = "easy"
@@ -93,8 +94,9 @@ job "minecraft-axiom" {
       }
 
       resources {
-        cpu    = 4000
-        memory = 9728
+        cpu        = 4000
+        memory     = 3072
+        memory_max = 9728
       }
     }
   }
