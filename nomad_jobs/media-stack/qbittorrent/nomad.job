@@ -82,7 +82,7 @@ job "qbittorrent" {
             target   = "/config"
             source   = "${var.shared_dir}qbittorrent"
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           },
@@ -91,7 +91,7 @@ job "qbittorrent" {
             target   = "/downloads"
             source   = "${var.downloads_dir}"
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           },
@@ -100,7 +100,7 @@ job "qbittorrent" {
             target   = "/media"
             source   = "${var.media_dir}"
             readonly = false
-            bind_options {
+            bind_options = {
               propagation = "rshared"
             }
           },
@@ -121,8 +121,7 @@ job "qbittorrent" {
           "traefik.enable=true",
         ]
         check {
-          type     = "http"
-          path     = "/api/v2/app/version"
+          type     = "tcp"
           interval = "10s"
           timeout  = "2s"
           check_restart {

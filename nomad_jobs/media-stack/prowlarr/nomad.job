@@ -1,26 +1,33 @@
 job "prowlarr" {
-  region = var.region
+  region      = var.region
   datacenters = ["dc1"]
   type        = "service"
 
   meta {
-      job_file = "nomad_jobs/media-stack/prowlarr/nomad.job"
-version = "1"
-  }
-
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
+    job_file = "nomad_jobs/media-stack/prowlarr/nomad.job"
+    version  = "2"
   }
 
   group "downloaders" {
     count = 1
+
     network {
       port "http" {
         host_network = "lan"
-        static = "9696"
+        static       = 9696
       }
+      port "flaresolverr" {
+        host_network = "lan"
+        static       = 8191
+      }
+    }
+
+    volume "prowlarr" {
+      type            = "csi"
+      read_only       = false
+      source          = "prowlarr"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
     }
 
     update {
@@ -31,33 +38,30 @@ version = "1"
 
     task "prowlarr" {
       driver = "docker"
+
       config {
-        image = "linuxserver/prowlarr"
-        ports = ["http"]
-        mounts = [
-          {
-            type = "bind"
-            target = "/config"
-            source = "${var.shared_dir}prowlarr",
-            readonly = false
-            bind_options = {
-              propagation = "rshared"
-            }
-          }
-        ]
+        image       = "linuxserver/prowlarr"
+        dns_servers = ["192.168.50.2"]
+        ports       = ["http"]
+      }
+
+      volume_mount {
+        volume      = "prowlarr"
+        destination = "/config"
+        read_only   = false
       }
 
       env {
         PUID = "65534"
         PGID = "65534"
-        TZ = "Etc/UTC"
+        TZ   = "Etc/UTC"
       }
 
       service {
         port = "http"
         name = "prowlarr"
         tags = [
-          "traefik.enable=true"
+          "traefik.enable=true",
         ]
         check {
           type     = "http"
@@ -77,11 +81,45 @@ version = "1"
         memory = 512
       }
     }
+
+    task "flaresolverr" {
+      driver = "docker"
+
+      config {
+        image = "ghcr.io/flaresolverr/flaresolverr:latest"
+        ports = ["flaresolverr"]
+      }
+
+      env {
+        LOG_LEVEL = "info"
+        LOG_HTML  = "false"
+        TZ        = "Etc/UTC"
+      }
+
+      service {
+        port = "flaresolverr"
+        name = "flaresolverr"
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "30s"
+          timeout  = "5s"
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 512
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = true
+      }
+    }
   }
 }
 
 variable "region" {}
 
 variable "tld" {}
-
-variable "shared_dir" {}
