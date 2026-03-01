@@ -180,3 +180,15 @@ jobs:
         NOMAD_VAR_radbot_admin_token: ${{ secrets.NOMAD_VAR_radbot_admin_token }}
         NOMAD_VAR_mullvad_wireguard_key: ${{ secrets.NOMAD_VAR_mullvad_wireguard_key }}
         NOMAD_VAR_mullvad_wireguard_addr: ${{ secrets.NOMAD_VAR_mullvad_wireguard_addr }}
+        NOMAD_VAR_sonarr_api_key: ${{ secrets.NOMAD_VAR_sonarr_api_key }}
+        NOMAD_VAR_radarr_api_key: ${{ secrets.NOMAD_VAR_radarr_api_key }}
+        NOMAD_VAR_curseforge_api_key: ${{ secrets.NOMAD_VAR_curseforge_api_key }}
+        NOMAD_VAR_pgvector_pass: ${{ secrets.NOMAD_VAR_pgvector_pass }}
+        NOMAD_VAR_pgvector_admin_password: ${{ secrets.NOMAD_VAR_pgvector_admin_password }}
+        NOMAD_VAR_postgres_admin_password: ${{ secrets.NOMAD_VAR_postgres_admin_password }}
+        NOMAD_VAR_litellm_crawl4ai_key: ${{ secrets.NOMAD_VAR_litellm_crawl4ai_key }}
+        NOMAD_VAR_litellm_salt_key: ${{ secrets.NOMAD_VAR_litellm_salt_key }}
+        NOMAD_VAR_wazuh_api_password: ${{ secrets.NOMAD_VAR_wazuh_api_password }}
+        NOMAD_VAR_wazuh_dashboard_password: ${{ secrets.NOMAD_VAR_wazuh_dashboard_password }}
+        NOMAD_VAR_wazuh_indexer_password: ${{ secrets.NOMAD_VAR_wazuh_indexer_password }}
+        NOMAD_VAR_otr_pass: ${{ secrets.NOMAD_VAR_otr_pass }}
