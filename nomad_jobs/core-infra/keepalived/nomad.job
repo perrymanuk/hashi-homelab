@@ -26,7 +26,7 @@ version = "5"
     task "keepalived" {
       driver = "docker"
       config {
-        image = "osixia/keepalived:2.0.20"
+        image = "osixia/keepalived:2.3.4"
         network_mode = "host"
         volumes = [
             "local/:/container/environment/01-custom"
