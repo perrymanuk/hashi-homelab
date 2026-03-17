@@ -4,11 +4,17 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-      version = "11"  // Enable VMAC for floating IP to support FritzBox port forwarding
+      version = "12"  // HA: run 2 instances with keepalived failover
   }
 
   group "lbs" {
-    count = 1
+    count = 2
+
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
+
     network {
       port "http" {
         host_network = "lan"
@@ -31,6 +37,8 @@ job "traefik" {
       max_parallel     = 1
       min_healthy_time = "30s"
       auto_revert      = true
+      auto_promote     = true
+      canary           = 2
     }
 
     task "keepalived-traefik" {
@@ -58,6 +66,10 @@ job "traefik" {
         data        = <<EOH
 KEEPALIVED_VIRTUAL_IPS:
   - 192.168.50.20/24
+KEEPALIVED_UNICAST_PEERS:
+{{- range service "traefik-web" }}
+  - {{ .Address }}
+{{- end }}
 KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
 KEEPALIVED_VIRTUAL_ROUTER_ID: 50
 KEEPALIVED_USE_VMAC: "true"
@@ -66,7 +78,7 @@ EOH
 
       resources {
         cpu    = 100
-        memory = 32
+        memory = 64
       }
     }
 
