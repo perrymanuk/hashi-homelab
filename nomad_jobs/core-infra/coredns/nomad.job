@@ -6,7 +6,7 @@ job "coredns" {
 
   meta {
       job_file = "nomad_jobs/core-infra/coredns/nomad.job"
-      version = "9"  // Update floating IP to 192.168.50.20
+      version = "10"  // Write keepalived.conf directly instead of env.yaml
   }
 
   constraint {
@@ -63,30 +63,40 @@ job "coredns" {
         network_mode = "host"
         force_pull = false
         volumes = [
-          "local/:/container/environment/01-custom"
+          "local/keepalived.conf:/etc/keepalived/keepalived.conf"
         ]
         cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
       }
-      
+
       template {
-        destination = "local/env.yaml"
+        destination = "local/keepalived.conf"
         change_mode = "restart"
         splay       = "1m"
         data        = <<EOH
-KEEPALIVED_VIRTUAL_IPS:
-  - 192.168.50.2/24
-  - 192.168.50.3/24
-KEEPALIVED_UNICAST_PEERS:
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+
+    unicast_peer {
 {{- range service "coredns" }}
-  - {{ .Address }}
+        {{ .Address }}
 {{- end }}
-KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+    }
+
+    virtual_ipaddress {
+        192.168.50.2/24
+        192.168.50.3/24
+    }
+}
 EOH
       }
       
       resources {
         cpu    = 100
-        memory = 32
+        memory = 64
       }
     }
 

@@ -54,25 +54,36 @@ job "traefik" {
         network_mode = "host"
         force_pull = false
         volumes = [
-          "local/:/container/environment/01-custom"
+          "local/keepalived.conf:/etc/keepalived/keepalived.conf"
         ]
         cap_add = ["NET_ADMIN", "NET_BROADCAST", "NET_RAW"]
       }
 
       template {
-        destination = "local/env.yaml"
+        destination = "local/keepalived.conf"
         change_mode = "restart"
         splay       = "1m"
         data        = <<EOH
-KEEPALIVED_VIRTUAL_IPS:
-  - 192.168.50.20/24
-KEEPALIVED_UNICAST_PEERS:
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
+    virtual_router_id 50
+    priority 100
+    advert_int 1
+
+    use_vmac vrrp.50
+    vmac_xmit_base
+
+    unicast_peer {
 {{- range service "traefik-web" }}
-  - {{ .Address }}
+        {{ .Address }}
 {{- end }}
-KEEPALIVED_INTERFACE: {{ sockaddr "GetPrivateInterfaces | include \"network\" \"192.168.50.0/24\" | attr \"name\"" }}
-KEEPALIVED_VIRTUAL_ROUTER_ID: 50
-KEEPALIVED_USE_VMAC: "true"
+    }
+
+    virtual_ipaddress {
+        192.168.50.20/24
+    }
+}
 EOH
       }
 
