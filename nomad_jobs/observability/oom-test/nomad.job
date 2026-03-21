@@ -1,0 +1,52 @@
+job "oom-test" {
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    version  = "2"
+    job_file = "nomad_jobs/observability/oom-test/nomad.job"
+  }
+
+  group "oom-test" {
+    count = 1
+
+    network {
+      port "http" {
+        to = 8080
+      }
+    }
+
+    task "oom-test" {
+      driver = "docker"
+
+      config {
+        image   = "python:3.12-slim"
+        command = "python3"
+        args = [
+          "-c",
+          "import http.server\nimport threading\nimport time\n\nmemory_hog = []\n\ndef consume_memory():\n    time.sleep(30)\n    while len(memory_hog) < 50:\n        memory_hog.append(b'x' * 1024 * 1024)\n        time.sleep(1)\n\nthreading.Thread(target=consume_memory, daemon=True).start()\n\nserver = http.server.HTTPServer(('0.0.0.0', 8080), http.server.SimpleHTTPRequestHandler)\nserver.serve_forever()\n"
+        ]
+        ports = ["http"]
+      }
+
+      resources {
+        cpu    = 100
+        memory = 128
+      }
+
+      service {
+        name = "oom-test"
+        port = "http"
+        tags = ["traefik.enable=true"]
+
+        check {
+          name     = "service: \"oom-test\" check"
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+        }
+      }
+    }
+  }
+}
