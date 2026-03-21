@@ -5,8 +5,12 @@
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "🔄 Dependency Dashboard - Homelab Updates",
-  "assignees": ["perrymanuk"],
-  "reviewers": ["perrymanuk"],
+  "assignees": [
+    "perrymanuk"
+  ],
+  "reviewers": [
+    "perrymanuk"
+  ],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -29,10 +33,12 @@
     {
       "matchPackageNames": [
         "postgres",
-        "mariadb", 
+        "mariadb",
         "mysql"
       ],
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": false,
       "description": "Block major database version updates - require manual approval",
       "dependencyDashboardApproval": true,
@@ -45,7 +51,9 @@
       ]
     },
     {
-      "matchPackageNames": ["ghcr.io/perrymanuk/radbot"],
+      "matchPackageNames": [
+        "ghcr.io/perrymanuk/radbot"
+      ],
       "enabled": false,
       "description": "Managed by radbot CI dispatch workflow"
     }
@@ -53,8 +61,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "(^|/)*\\.job$"
+      "managerFilePatterns": [
+        "/(^|/)*\\.job$/"
       ],
       "matchStrings": [
         "\\s*image\\s*=\\s*\"(?<depName>.*?)[@:](?<currentValue>.*?)\"\\n"
