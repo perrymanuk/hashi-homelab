@@ -4,8 +4,8 @@ job "oom-test" {
   type        = "service"
 
   meta {
-    version  = "2"
     job_file = "nomad_jobs/observability/oom-test/nomad.job"
+    version  = "3"
   }
 
   constraint {
@@ -44,31 +44,55 @@ job "oom-test" {
 
       config {
         image   = "python:3.12-slim"
+        ports   = ["http"]
         command = "python3"
-        args = [
-          "-c",
-          "import http.server\nimport threading\nimport time\n\nmemory_hog = []\n\ndef consume_memory():\n    time.sleep(30)\n    while len(memory_hog) < 50:\n        memory_hog.append(b'x' * 1024 * 1024)\n        time.sleep(1)\n\nthreading.Thread(target=consume_memory, daemon=True).start()\n\nserver = http.server.HTTPServer(('0.0.0.0', 8080), http.server.SimpleHTTPRequestHandler)\nserver.serve_forever()\n"
-        ]
-        ports = ["http"]
-      }
+        args    = ["-c", <<EOH
+import http.server
+import threading
+import time
 
-      resources {
-        cpu    = 100
-        memory = 128
+memory_hog = []
+
+def consume_memory():
+    """Gradually consume memory until OOM."""
+    time.sleep(30)  # Give the task time to become healthy
+    while True:
+        # Allocate ~1MB per iteration
+        memory_hog.append(b'x' * 1024 * 1024)
+        time.sleep(1)
+
+# Start memory consumer in background
+threading.Thread(target=consume_memory, daemon=True).start()
+
+# Run a simple HTTP server for health checks
+server = http.server.HTTPServer(('0.0.0.0', 8080), http.server.SimpleHTTPRequestHandler)
+server.serve_forever()
+EOH
+        ]
       }
 
       service {
-        name = "oom-test"
         port = "http"
-        tags = ["traefik.enable=true"]
-
+        name = "oom-test"
+        tags = [
+          "traefik.enable=true",
+        ]
         check {
-          name     = "service: \"oom-test\" check"
           type     = "http"
           path     = "/"
           interval = "10s"
           timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
         }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 64
       }
     }
   }
