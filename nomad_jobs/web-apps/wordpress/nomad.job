@@ -156,7 +156,7 @@ WORDPRESS_DB_NAME=wordpress
       }
 
       config {
-        image = "wordpress:6.9.1"
+        image = "wordpress:6.9.4"
         ports = ["http"]
       }
 
