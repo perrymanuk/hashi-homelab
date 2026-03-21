@@ -67,7 +67,7 @@ job "prowlarr" {
           type     = "http"
           path     = "/ping"
           interval = "10s"
-          timeout  = "2s"
+          timeout  = "5s"
           check_restart {
             limit           = 3
             grace           = "60s"
@@ -78,7 +78,7 @@ job "prowlarr" {
 
       resources {
         cpu    = 500
-        memory = 512
+        memory = 1024
       }
     }
 
@@ -86,7 +86,7 @@ job "prowlarr" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/flaresolverr/flaresolverr:latest"
+        image = "ghcr.io/flaresolverr/flaresolverr:v3.4.6"
         ports = ["flaresolverr"]
       }
 
@@ -109,7 +109,7 @@ job "prowlarr" {
 
       resources {
         cpu    = 500
-        memory = 512
+        memory = 1024
       }
 
       lifecycle {
