@@ -36,7 +36,7 @@ job "minecraft-avaritia" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:2026.2.1"
+        image        = "itzg/minecraft-server:2026.3.2"
         force_pull   = false
         network_mode = "host"
 
