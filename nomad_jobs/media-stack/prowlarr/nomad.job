@@ -5,7 +5,7 @@ job "prowlarr" {
 
   meta {
     job_file = "nomad_jobs/media-stack/prowlarr/nomad.job"
-    version  = "2"
+    version  = "3"  // Right-size prowlarr memory 512 -> 256
   }
 
   group "downloaders" {
@@ -78,7 +78,7 @@ job "prowlarr" {
 
       resources {
         cpu    = 500
-        memory = 512
+        memory = 256
       }
     }
 
@@ -86,7 +86,7 @@ job "prowlarr" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/flaresolverr/flaresolverr:latest"
+        image = "ghcr.io/flaresolverr/flaresolverr:v3.4.6"
         ports = ["flaresolverr"]
       }
 

@@ -41,7 +41,7 @@ version = "4"
     task "jackett" {
       driver = "docker"
       config {
-        image = "lscr.io/linuxserver/jackett:latest"
+        image = "lscr.io/linuxserver/jackett:0.24.1234"
         network_mode = "host"
         ports = ["http"]
         volumes = [

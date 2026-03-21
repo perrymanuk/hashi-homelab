@@ -5,7 +5,7 @@ job "ntfy" {
 
   meta {
     job_file = "nomad_jobs/personal-cloud/ntfy/nomad.job"
-    version  = "1"
+    version  = "4"
   }
 
   constraint {
@@ -33,6 +33,7 @@ job "ntfy" {
 
     network {
       port "http" {
+        static       = 8180
         host_network = "lan"
       }
     }
@@ -67,12 +68,13 @@ job "ntfy" {
       driver = "docker"
 
       config {
-        image      = "binwiederhier/ntfy:latest"
+        image      = "binwiederhier/ntfy:v2.17.0"
         force_pull = true
         ports      = ["http"]
         args       = ["serve"]
         volumes = [
           "local/server.yml:/etc/ntfy/server.yml:ro",
+          "local/templates/:/etc/ntfy/templates/:ro",
         ]
       }
 
@@ -95,8 +97,127 @@ cache-duration: "12h"
 attachment-cache-dir: "/var/cache/ntfy/attachments"
 attachment-total-size-limit: "1G"
 attachment-file-size-limit: "15M"
+template-dir: "/etc/ntfy/templates"
 EOH
         destination = "local/server.yml"
+        change_mode = "restart"
+      }
+
+      template {
+        left_delimiter = "((("
+        right_delimiter = ")))"
+        data = <<EOH
+title: |-
+  {{- $status := .status -}}
+  {{- $first := index .alerts 0 -}}
+  {{- if eq $status "firing" -}}
+  🚨 FIRING: {{ $first.labels.alertname }}
+  {{- else if eq $status "resolved" -}}
+  ✅ RESOLVED: {{ $first.labels.alertname }}
+  {{- else -}}
+  {{ $status | title }}: {{ $first.labels.alertname }}
+  {{- end }}
+message: |-
+  {{- range .alerts }}
+  Status: {{ .status | title }}
+  {{- if .annotations.summary }}
+  Summary: {{ .annotations.summary }}
+  {{- end }}
+  {{- if .annotations.description }}
+  Description: {{ .annotations.description }}
+  {{- end }}
+  {{- if .labels.exported_job }}
+  Job: {{ .labels.exported_job }}
+  {{- end }}
+  {{- if .labels.task_group }}
+  Task Group: {{ .labels.task_group }}
+  {{- end }}
+  {{- if .labels.instance }}
+  Instance: {{ .labels.instance }}
+  {{- end }}
+  {{- if .labels.host }}
+  Host: {{ .labels.host }}
+  {{- end }}
+  {{- if .labels.severity }}
+  Severity: {{ .labels.severity }}
+  {{- end }}
+  {{ end }}
+priority: |-
+  {{- $first := index .alerts 0 -}}
+  {{- if eq .status "resolved" -}}
+  default
+  {{- else if eq $first.labels.severity "critical" -}}
+  urgent
+  {{- else if eq $first.labels.severity "page" -}}
+  high
+  {{- else if eq $first.labels.severity "warning" -}}
+  default
+  {{- else -}}
+  default
+  {{- end }}
+EOH
+        destination = "local/templates/alerts.yml"
+        change_mode = "restart"
+      }
+
+      template {
+        left_delimiter = "((("
+        right_delimiter = ")))"
+        data = <<EOH
+title: |-
+  {{- if eq .notification_type "MEDIA_PENDING" -}}
+  📥 Request Pending: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_APPROVED" -}}
+  ✅ Approved: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_AUTO_APPROVED" -}}
+  ✅ Auto-Approved: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_AVAILABLE" -}}
+  🎬 Now Available: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_DECLINED" -}}
+  ❌ Declined: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_FAILED" -}}
+  ⚠️ Failed: {{ .subject }}
+  {{- else if eq .notification_type "MEDIA_AUTO_REQUESTED" -}}
+  🤖 Auto-Requested: {{ .subject }}
+  {{- else if eq .notification_type "ISSUE_CREATED" -}}
+  🐛 Issue: {{ .subject }}
+  {{- else if eq .notification_type "ISSUE_RESOLVED" -}}
+  ✅ Issue Resolved: {{ .subject }}
+  {{- else if eq .notification_type "ISSUE_COMMENT" -}}
+  💬 Issue Comment: {{ .subject }}
+  {{- else if eq .notification_type "TEST_NOTIFICATION" -}}
+  🔔 Test: {{ .subject }}
+  {{- else -}}
+  {{ .subject }}
+  {{- end }}
+message: |-
+  {{- if .message }}
+  {{ .message }}
+  {{ end }}
+  {{- if .media_type }}
+  Type: {{ .media_type | title }}
+  {{- end }}
+  {{- if .media_status }}
+  Status: {{ .media_status }}
+  {{- end }}
+  {{- if .requestedBy_username }}
+  Requested by: {{ .requestedBy_username }}
+  {{- end }}
+  {{- if .event }}
+  Event: {{ .event }}
+  {{- end }}
+priority: |-
+  {{- if or (eq .notification_type "MEDIA_FAILED") (eq .notification_type "ISSUE_CREATED") -}}
+  high
+  {{- else if or (eq .notification_type "MEDIA_AVAILABLE") (eq .notification_type "MEDIA_APPROVED") -}}
+  default
+  {{- else if eq .notification_type "MEDIA_PENDING" -}}
+  default
+  {{- else -}}
+  low
+  {{- end }}
+EOH
+        destination = "local/templates/overseerr.yml"
         change_mode = "restart"
       }
 

@@ -1,0 +1,118 @@
+job "tdarr" {
+  region      = var.region
+  datacenters = ["cheese"]
+  type        = "service"
+  priority    = 50
+
+  meta {
+    job_file = "nomad_jobs/media-stack/tdarr/nomad.job"
+    version  = "4"  // Move to cheese01 for NVENC GPU transcoding
+  }
+
+  group "tdarr" {
+    count = 1
+
+    constraint {
+      attribute = "${attr.unique.hostname}"
+      value     = "cheese01"
+    }
+
+    network {
+      port "http" {
+        host_network = "lan"
+        static       = 8265
+      }
+      port "server" {
+        host_network = "lan"
+        static       = 8266
+      }
+    }
+
+    volume "tdarr" {
+      type            = "csi"
+      read_only       = false
+      source          = "tdarr"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel      = 1
+      min_healthy_time  = "30s"
+      healthy_deadline  = "9m"
+      progress_deadline = "15m"
+      auto_revert       = true
+    }
+
+    task "tdarr" {
+      driver = "docker"
+
+      config {
+        image        = "ghcr.io/haveagitgat/tdarr:latest"
+        network_mode = "host"
+        privileged   = true
+        runtime      = "nvidia"
+        force_pull   = true
+        ports        = ["http", "server"]
+        volumes = [
+          "/tmp/tdarr:/temp",
+          "${var.shared_dir}tdarr/configs:/app/configs",
+          "${var.shared_dir}tdarr/logs:/app/logs",
+          "${var.media_dir}:/media",
+        ]
+      }
+
+      volume_mount {
+        volume      = "tdarr"
+        destination = "/app/server"
+        read_only   = false
+      }
+
+      env {
+        PUID                   = "1000"
+        PGID                   = "1000"
+        NVIDIA_VISIBLE_DEVICES = "all"
+        serverIP               = "0.0.0.0"
+        serverPort             = "8266"
+        webUIPort              = "8265"
+        internalNode           = "true"
+        nodeName               = "cheese01"
+      }
+
+      service {
+        port = "http"
+        name = "tdarr"
+        tags = [
+          "traefik.enable=true",
+        ]
+        check {
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "120s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 2000
+        memory = 2048
+      }
+    }
+  }
+}
+
+variable "region" {}
+variable "tld" {}
+variable "shared_dir" {}
+variable "media_dir" {}

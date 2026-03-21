@@ -33,7 +33,7 @@ version = "3"
     task "audioserve" {
       driver = "docker"
       config {
-        image = "izderadicka/audioserve:latest"
+        image = "izderadicka/audioserve:v0.28.6"
         ports = ["http"]
         args = ["--tags", "/audiobooks"]
         volumes = [

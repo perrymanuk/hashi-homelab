@@ -354,7 +354,7 @@ groups:
       service: "nomad"
       
   - alert: NomadAllocationsOOMKilled
-    expr: increase(nomad_client_allocs_oom_killed[5m]) > 0
+    expr: nomad_client_allocs_oom_killed > 0
     for: 0s
     labels:
       severity: critical

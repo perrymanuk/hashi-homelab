@@ -5,11 +5,11 @@ job "overseerr" {
 
   meta {
     job_file = "nomad_jobs/media-stack/overseerr/nomad.job"
-    version = "3"
+    version = "7"  // Migrate to Seerr + patch webhook bug
   }
 
   group "media" {
-    count = 1 
+    count = 1
 
     network {
       port "http" {
@@ -26,18 +26,46 @@ job "overseerr" {
       attachment_mode = "file-system"
     }
 
-
     update {
       max_parallel     = 1
       min_healthy_time = "30s"
       auto_revert      = true
     }
 
+    task "prep-disk" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "overseerr"
+        destination = "/volume/"
+        read_only   = false
+      }
+
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "chown -R 1000:1000 /volume/"]
+      }
+
+      resources {
+        cpu    = 200
+        memory = 128
+      }
+
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+    }
+
     task "overseerr" {
       driver = "docker"
       config {
-        image = "sctx/overseerr:latest"
+        image = "seerr/seerr:v3.1.0"
+        dns_servers = ["192.168.50.2"]
+        init = true
         ports = ["http"]
+        entrypoint = ["/bin/sh", "-c", "sed -i 's/Buffer.from(req.body.options.jsonPayload)/Buffer.from(JSON.stringify(req.body.options.jsonPayload))/g' /app/dist/routes/settings/notifications.js && exec docker-entrypoint.sh npm start"]
       }
 
       volume_mount {
@@ -50,7 +78,7 @@ job "overseerr" {
         TZ = "Etc/UTC"
         LOG_LEVEL = "info"
       }
-      
+
       service {
         port = "http"
         name = "overseerr"
@@ -72,7 +100,7 @@ job "overseerr" {
 
       resources {
         cpu    = 500
-        memory = 1024
+        memory = 384
       }
     }
   }

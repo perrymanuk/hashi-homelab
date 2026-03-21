@@ -5,7 +5,7 @@ job "open-webui" {
 
   meta {
       job_file = "nomad_jobs/ai-ml/open-webui/nomad.job"
-      version = "2"  // Reduced memory 2048MB -> 1024MB
+      version = "3"  // Right-size memory 1024MB -> 768MB
   }
 
   group "web" {
@@ -55,7 +55,7 @@ job "open-webui" {
 
       resources {
         cpu    = "200"
-        memory = "1024"
+        memory = "768"
       }
     }
   }

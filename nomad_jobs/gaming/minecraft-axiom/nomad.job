@@ -41,7 +41,7 @@ job "minecraft-axiom" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:latest"
+        image        = "itzg/minecraft-server:2026.2.1"
         force_pull   = false
         network_mode = "host"
 

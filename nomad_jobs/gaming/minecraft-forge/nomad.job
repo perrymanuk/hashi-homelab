@@ -36,7 +36,7 @@ job "minecraft-forge" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:latest"
+        image        = "itzg/minecraft-server:2026.2.1"
         force_pull   = false
         network_mode = "host"
 
@@ -51,14 +51,14 @@ job "minecraft-forge" {
         EULA                          = "TRUE"
         VERSION                       = "1.20.1"
         TYPE                          = "FORGE"
-        INIT_MEMORY                   = "2G"
-        MAX_MEMORY                    = "8G"
+        INIT_MEMORY                   = "4G"
+        MAX_MEMORY                    = "12G"
         SERVER_PORT                   = "25565"
         MOTD                          = "Welcome to our modded Minecraft server!"
         MODE                          = "creative"
         DIFFICULTY                    = "easy"
         MAX_PLAYERS                   = "20"
-        VIEW_DISTANCE                 = "20"
+        VIEW_DISTANCE                 = "12"
         SIMULATION_DISTANCE           = "10"
         SPAWN_PROTECTION              = "16"
         ONLINE_MODE                   = "false"
@@ -83,8 +83,8 @@ job "minecraft-forge" {
 
       resources {
         cpu        = 4000
-        memory     = 3072
-        memory_max = 9728
+        memory     = 4096
+        memory_max = 13312
       }
     }
   }

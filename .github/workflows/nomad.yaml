@@ -44,6 +44,7 @@ jobs:
             - 'nomad_jobs/media-stack/sabnzbd/*.job'
             - 'nomad_jobs/media-stack/qbittorrent/*.job'
             - 'nomad_jobs/media-stack/prowlarr/*.job'
+            - 'nomad_jobs/media-stack/tdarr/*.job'
             - 'nomad_jobs/core-infra/smtp/*.job'
             - 'nomad_jobs/ai-ml/ollama/*.job'
             - 'nomad_jobs/ai-ml/open-webui/*.job'
@@ -55,6 +56,7 @@ jobs:
             - 'nomad_jobs/observability/prometheus/*.job'
             - 'nomad_jobs/ai-ml/radbot/*.job'
             - 'nomad_jobs/personal-cloud/ntfy/*.job'
+            - 'nomad_jobs/web-apps/homepage/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -150,8 +152,6 @@ jobs:
         NOMAD_VAR_oauth_client_secret: '${{ secrets.NOMAD_VAR_oauth_client_secret }}' # Corrected case
         NOMAD_VAR_oauth_secret: '${{ secrets.NOMAD_VAR_oauth_secret }}' # Corrected case
         NOMAD_VAR_oauth_emails: '${{ secrets.NOMAD_VAR_oauth_emails }}' # Corrected case
-        NOMAD_VAR_pushover_user_key: '${{ secrets.NOMAD_VAR_pushover_user_key }}' # Corrected case
-        NOMAD_VAR_pushover_token: '${{ secrets.NOMAD_VAR_pushover_token }}'
         NOMAD_VAR_ssh_id: '${{ secrets.NOMAD_VAR_ssh_id }}' # Corrected case
         NOMAD_VAR_truenas_api_key: '${{ secrets.NOMAD_VAR_truenas_api_key }}' # Corrected case
         NOMAD_VAR_gh_access_token: '${{ secrets.NOMAD_VAR_gh_access_token }}' # Corrected case

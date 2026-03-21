@@ -61,6 +61,12 @@ client {
   }
   {%- endif %}
 
+  {%- if ansible_hostname == "klo01" %}
+  reserved {
+    memory = 3072
+  }
+  {%- endif %}
+
 }
 
 telemetry {

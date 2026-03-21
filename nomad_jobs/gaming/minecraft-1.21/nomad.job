@@ -5,7 +5,7 @@ job "minecraft-1-21" {
 
   meta {
     job_file = "nomad_jobs/gaming/minecraft-1.21/nomad.job"
-    version  = "1"
+    version  = "2"
   }
 
   group "minecraft" {
@@ -41,14 +41,13 @@ job "minecraft-1-21" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:latest"
+        image        = "itzg/minecraft-server:2026.2.1"
         force_pull   = false
         network_mode = "host"
 
         volumes = [
           "/root/minecraft-1.21.10/data:/data",
           "/root/minecraft-1.21.10/config:/config",
-          "/root/minecraft-1.21.10/mods:/mods",
         ]
       }
 
@@ -73,7 +72,8 @@ job "minecraft-1-21" {
         ENABLE_AUTOPAUSE              = "FALSE"
         PAUSE_WHEN_EMPTY_SECONDS      = "0"
         REMOVE_OLD_MODS               = "true"
-        SYNC_SKIP_NEWER_IN_DESTINATION = "false"
+        MODRINTH_PROJECTS             = "axiom\nfabric-api\ncloth-config\ndistanthorizons\nbalm\nferrite-core\nwaystones\ncarry-on\nbeautify-refabricated\nmacaws-furniture\nmacaws-trapdoors\nmore-decorative-blocks\nblackwolf-library"
+        MODRINTH_ALLOWED_VERSION_TYPE = "beta"
         OPS                           = "perry,hannah,Perry,Steve5leon"
         JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1"
       }

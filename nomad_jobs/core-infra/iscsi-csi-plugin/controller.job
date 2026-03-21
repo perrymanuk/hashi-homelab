@@ -18,7 +18,7 @@ datacenters = ["dc1"]
       driver = "docker"
 
       config {
-        image = "docker.io/democraticcsi/democratic-csi:latest"
+        image = "docker.io/democraticcsi/democratic-csi:v1.9.5"
 
         args = [
           "--csi-version=1.5.0",

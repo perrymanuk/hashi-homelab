@@ -112,7 +112,7 @@ region = var.region
       driver = "docker"
 
       config {
-        image        = "alpine:latest"
+        image        = "alpine:3.23.3"
         command      = "sh"
         args         = ["-c", "echo -n 'Waiting for service'; until nslookup -port=8600 wordpress-db.service.consul ${NOMAD_IP_http} 2>&1 >/dev/null; do echo '.'; sleep 2; done"]
         network_mode = "host"
@@ -156,7 +156,7 @@ WORDPRESS_DB_NAME=wordpress
       }
 
       config {
-        image = "wordpress:latest"
+        image = "wordpress:6.9.1"
         ports = ["http"]
       }
 

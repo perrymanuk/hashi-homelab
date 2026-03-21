@@ -1,4 +1,5 @@
 job "oom-test" {
+  region      = var.region
   datacenters = ["dc1"]
   type        = "service"
 
@@ -7,13 +8,35 @@ job "oom-test" {
     job_file = "nomad_jobs/observability/oom-test/nomad.job"
   }
 
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
   group "oom-test" {
     count = 1
 
     network {
       port "http" {
-        to = 8080
+        host_network = "lan"
+        to           = "8080"
       }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel      = 1
+      min_healthy_time  = "30s"
+      healthy_deadline  = "5m"
+      progress_deadline = "10m"
+      auto_revert       = true
     }
 
     task "oom-test" {
@@ -49,4 +72,19 @@ job "oom-test" {
       }
     }
   }
+}
+
+variable "region" {
+  type        = string
+  description = "Nomad region"
+}
+
+variable "tld" {
+  type        = string
+  description = "Top-level domain for service discovery"
+}
+
+variable "shared_dir" {
+  type        = string
+  description = "Path to shared NFS config directory"
 }

@@ -67,9 +67,11 @@ ssl-browser-cert: ## Generate browser cert if you have SSL enabled
 .PHONY: sync-github-secrets
 sync-github-secrets: ## Sync NOMAD_VAR variables from .envrc to GitHub secrets using gh CLI
 	@echo "Syncing NOMAD_VAR variables from .envrc to GitHub secrets..."
-	@bash -c 'source .envrc && env | grep "^NOMAD_VAR_" | while IFS="=" read -r name value; do \
+	@bash -c 'source .envrc && env | grep "^NOMAD_VAR_" | while read -r line; do \
+		name="$${line%%=*}"; \
+		value="$${line#*=}"; \
 		echo "Setting $$name"; \
-		echo "$$value" | gh secret set "$$name"; \
+		printf "%s" "$$value" | gh secret set "$$name"; \
 	done'
 	@echo "✅ All NOMAD_VAR secrets synced to GitHub"
 
