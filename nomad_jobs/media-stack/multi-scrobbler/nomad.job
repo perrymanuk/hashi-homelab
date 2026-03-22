@@ -1,0 +1,158 @@
+job "multi-scrobbler" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/multi-scrobbler/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "scrobbler" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "9078"
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "multi-scrobbler" {
+      driver = "docker"
+      config {
+        image = "foxxmd/multi-scrobbler:latest"
+        ports = ["http"]
+        dns_servers = ["192.168.50.2"]
+        volumes = [
+          "${var.shared_dir}multi-scrobbler:/config",
+          "local/config.json:/config/config.json",
+        ]
+      }
+
+      env {
+        TZ = "Etc/UTC"
+      }
+
+      template {
+        data = <<EOH
+{
+  "sources": [
+    {
+      "type": "plex",
+      "name": "Plex",
+      "data": {
+        "url": "http://plex.service.consul:32400",
+        "token": "${var.plex_token}"
+      }
+    }
+  ],
+  "clients": [
+    {
+      "type": "listenbrainz",
+      "name": "ListenBrainz",
+      "data": {
+        "token": "${var.listenbrainz_token}",
+        "url": "https://api.listenbrainz.org",
+        "username": "${var.listenbrainz_username}"
+      }
+    },
+    {
+      "type": "lastfm",
+      "name": "Last.fm",
+      "data": {
+        "apiKey": "${var.lastfm_api_key}",
+        "secret": "${var.lastfm_api_secret}",
+        "redirectUri": "https://multi-scrobbler.${var.tld}/lastfm/callback"
+      }
+    }
+  ]
+}
+EOH
+        destination = "local/config.json"
+        perms       = "644"
+      }
+
+      service {
+        port = "http"
+        name = "multi-scrobbler"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
+
+variable "plex_token" {
+  type        = string
+  description = "Plex authentication token for scrobbling"
+}
+
+variable "listenbrainz_token" {
+  type        = string
+  description = "ListenBrainz user token"
+}
+
+variable "listenbrainz_username" {
+  type        = string
+  description = "ListenBrainz/MusicBrainz username"
+}
+
+variable "lastfm_api_key" {
+  type        = string
+  description = "Last.fm API key"
+}
+
+variable "lastfm_api_secret" {
+  type        = string
+  description = "Last.fm API secret"
+}

@@ -1,0 +1,121 @@
+job "mediasage" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/mediasage/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "playlists" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "5765"
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "prep-disk" {
+      driver = "docker"
+      lifecycle {
+        hook    = "prestart"
+        sidecar = false
+      }
+      config {
+        image   = "busybox:latest"
+        command = "sh"
+        args    = ["-c", "mkdir -p /data && chmod 777 /data"]
+        volumes = [
+          "${var.shared_dir}mediasage:/data",
+        ]
+      }
+      resources {
+        cpu    = 50
+        memory = 32
+      }
+    }
+
+    task "mediasage" {
+      driver = "docker"
+      config {
+        image = "ghcr.io/ecwilsonaz/mediasage:latest"
+        ports = ["http"]
+        dns_servers = ["192.168.50.2"]
+        volumes = [
+          "${var.shared_dir}mediasage:/app/data",
+        ]
+      }
+
+      env {
+        PLEX_URL     = "http://plex.service.consul:32400"
+        PLEX_TOKEN   = var.plex_token
+        AI_PROVIDER  = "ollama"
+        OLLAMA_URL   = "http://ollama.service.consul:11434"
+      }
+
+      service {
+        port = "http"
+        name = "mediasage"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 200
+        memory = 512
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
+
+variable "plex_token" {
+  type        = string
+  description = "Plex authentication token"
+}

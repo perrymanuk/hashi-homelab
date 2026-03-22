@@ -1,0 +1,109 @@
+job "lidify" {
+  region = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/media-stack/lidify/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "discovery" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to = "5000"
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel     = 1
+      min_healthy_time = "30s"
+      auto_revert      = true
+    }
+
+    task "lidify" {
+      driver = "docker"
+      config {
+        image = "thewicklowwolf/lidify:latest"
+        ports = ["http"]
+        dns_servers = ["192.168.50.2"]
+        volumes = [
+          "${var.shared_dir}lidify:/lidify/config",
+        ]
+      }
+
+      env {
+        lidarr_address      = "http://lidarr.service.consul:8686"
+        lidarr_api_key      = var.lidarr_api_key
+        lastfm_api_key      = var.lastfm_api_key
+        root_folder_path    = "/music"
+        quality_profile_id  = "1"
+        metadata_profile_id = "1"
+        sleep_interval      = "3600"
+      }
+
+      service {
+        port = "http"
+        name = "lidify"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
+        ]
+        check {
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 100
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "tld" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
+
+variable "lidarr_api_key" {
+  type        = string
+  description = "API key for Lidarr"
+}
+
+variable "lastfm_api_key" {
+  type        = string
+  description = "Last.fm API key"
+}

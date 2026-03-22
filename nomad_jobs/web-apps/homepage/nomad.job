@@ -133,6 +133,20 @@ EOH
         href: "https://navidrome.${var.tld}"
         description: Music Streaming
 
+- Music Discovery:
+    - Multi-Scrobbler:
+        icon: si-lastdotfm
+        href: "https://multi-scrobbler.${var.tld}"
+        description: Scrobbling Hub
+    - Lidify:
+        icon: lidarr.svg
+        href: "https://lidify.${var.tld}"
+        description: Artist Discovery
+    - MediaSage:
+        icon: si-openai
+        href: "https://mediasage.${var.tld}"
+        description: AI Playlist Generator
+
 - AI & ML:
     - Open WebUI:
         icon: open-webui.svg

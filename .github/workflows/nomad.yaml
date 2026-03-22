@@ -57,6 +57,9 @@ jobs:
             - 'nomad_jobs/ai-ml/radbot/*.job'
             - 'nomad_jobs/personal-cloud/ntfy/*.job'
             - 'nomad_jobs/web-apps/homepage/*.job'
+            - 'nomad_jobs/media-stack/multi-scrobbler/*.job'
+            - 'nomad_jobs/media-stack/lidify/*.job'
+            - 'nomad_jobs/media-stack/mediasage/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -192,3 +195,9 @@ jobs:
         NOMAD_VAR_wazuh_dashboard_password: ${{ secrets.NOMAD_VAR_wazuh_dashboard_password }}
         NOMAD_VAR_wazuh_indexer_password: ${{ secrets.NOMAD_VAR_wazuh_indexer_password }}
         NOMAD_VAR_otr_pass: ${{ secrets.NOMAD_VAR_otr_pass }}
+        NOMAD_VAR_plex_token: ${{ secrets.NOMAD_VAR_plex_token }}
+        NOMAD_VAR_listenbrainz_token: ${{ secrets.NOMAD_VAR_listenbrainz_token }}
+        NOMAD_VAR_listenbrainz_username: ${{ secrets.NOMAD_VAR_listenbrainz_username }}
+        NOMAD_VAR_lastfm_api_key: ${{ secrets.NOMAD_VAR_lastfm_api_key }}
+        NOMAD_VAR_lastfm_api_secret: ${{ secrets.NOMAD_VAR_lastfm_api_secret }}
+        NOMAD_VAR_lidarr_api_key: ${{ secrets.NOMAD_VAR_lidarr_api_key }}
