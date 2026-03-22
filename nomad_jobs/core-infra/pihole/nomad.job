@@ -82,13 +82,11 @@ version = "3"
       }
 
       env {
-        TZ           = "Europe/Amsterdam"
-        WEBPASSWORD  = ""
-        DNS1         = "8.8.8.8"
-        DNS2         = "1.1.1.1"
-        INTERFACE    = "eth0"
-        VIRTUAL_HOST = join("", ["pihole.", var.tld])
-        ServerIP     = "${NOMAD_IP_dns}"
+        TZ                             = "Europe/Amsterdam"
+        FTLCONF_webserver_api_password = ""
+        FTLCONF_dns_upstreams          = "8.8.8.8;1.1.1.1"
+        FTLCONF_dns_listeningMode      = "ALL"
+        FTLCONF_misc_etc_dnsmasq_d     = "true"
       }
 
       resources {
@@ -101,7 +99,6 @@ version = "3"
 
 variable "region" {}
 
-variable "tld" {}
 
 variable "shared_dir" {}
 
