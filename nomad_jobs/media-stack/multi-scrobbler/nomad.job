@@ -97,7 +97,6 @@ EOH
         name = "multi-scrobbler"
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
         ]
         check {
           type     = "http"
