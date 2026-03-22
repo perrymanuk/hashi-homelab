@@ -48,9 +48,6 @@ job "homepage" {
       template {
         data        = <<EOH
 ---
-providers:
-  nomad:
-    url: http://nomad-client.service.consul:4646
 EOH
         destination = "local/config/settings.yaml"
       }
@@ -63,137 +60,112 @@ EOH
         icon: plex.svg
         href: "https://plex.${var.tld}"
         description: Media Server
-plex
     - Sonarr:
         icon: sonarr.svg
         href: "https://sonarr.${var.tld}"
         description: TV Shows
-sonarr
     - Radarr:
         icon: radarr.svg
         href: "https://radarr.${var.tld}"
         description: Movies
-radarr
     - Lidarr:
         icon: lidarr.svg
         href: "https://lidarr.${var.tld}"
         description: Music
-lidarr
     - Overseerr:
         icon: overseerr.svg
         href: "https://overseerr.${var.tld}"
         description: Media Requests
-overseerr
     - Tautulli:
         icon: tautulli.svg
         href: "https://tautulli.${var.tld}"
         description: Plex Statistics
-tautulli
 
 - Downloads:
     - SABnzbd:
         icon: sabnzbd.svg
         href: "https://sabnzbd.${var.tld}"
         description: Usenet
-sabnzbd
     - qBittorrent:
         icon: qbittorrent.svg
         href: "https://qbittorrent.${var.tld}"
         description: Torrents
-qbittorrent
     - Prowlarr:
         icon: prowlarr.svg
         href: "https://prowlarr.${var.tld}"
         description: Indexer Manager
-prowlarr
     - Jackett:
         icon: jackett.svg
         href: "https://jackett.${var.tld}"
         description: Indexer Proxy
-jackett
     - Tdarr:
         icon: tdarr.svg
         href: "https://tdarr.${var.tld}"
         description: Media Transcoding
-tdarr
     - Maintainerr:
         icon: maintainerr.svg
         href: "https://maintainerr.${var.tld}"
         description: Media Maintenance
-maintainerr
 
 - Personal Cloud:
     - Nextcloud:
         icon: nextcloud.svg
         href: "https://nextcloud.${var.tld}"
         description: Cloud Storage
-nextcloud
     - Bitwarden:
         icon: bitwarden.svg
         href: "https://bitwarden.${var.tld}"
         description: Password Manager
-bitwarden
     - Actual Budget:
         icon: actual-budget.svg
         href: "https://actualbudget.${var.tld}"
         description: Budget Manager
-actualbudget
     - Paperless:
         icon: paperless-ngx.svg
         href: "https://paperless.${var.tld}"
         description: Document Management
-paperless
     - Ntfy:
         icon: ntfy.svg
         href: "https://ntfy.${var.tld}"
         description: Push Notifications
-ntfy
     - Navidrome:
         icon: navidrome.svg
         href: "https://navidrome.${var.tld}"
         description: Music Streaming
-navidrome
 
 - AI & ML:
     - Open WebUI:
         icon: open-webui.svg
         href: "https://open-webui.${var.tld}"
         description: Chat Interface
-open-webui
     - LiteLLM:
         icon: si-openai
         href: "https://litellm.${var.tld}"
         description: LLM Proxy
-litellm
     - Manyfold:
         icon: si-threedotjs
         href: "https://manyfold.${var.tld}"
         description: 3D Model Library
-manyfold
 
 - Observability:
     - Grafana:
         icon: grafana.svg
         href: "https://grafana.${var.tld}"
         description: Dashboards
-grafana
     - Prometheus:
         icon: prometheus.svg
         href: "https://prometheus.${var.tld}"
         description: Metrics
-prometheus
     - Alertmanager:
         icon: alertmanager.svg
         href: "https://alertmanager.${var.tld}"
         description: Alert Routing
-alertmanager
 
 - Infrastructure:
     - Traefik:
         icon: traefik.svg
         href: "https://traefik.${var.tld}"
         description: Reverse Proxy
-traefik
     - Nomad:
         icon: nomad.svg
         href: "http://192.168.50.113:4646"
@@ -212,12 +184,10 @@ traefik
         icon: home-assistant.svg
         href: "https://home-assistant.${var.tld}"
         description: Home Automation
-home-assistant
     - Zigbee2MQTT:
         icon: zigbee2mqtt.svg
         href: "https://zigbee2mqtt.${var.tld}"
         description: Zigbee Bridge
-zigbee2mqtt
 EOH
         destination = "local/config/services.yaml"
       }

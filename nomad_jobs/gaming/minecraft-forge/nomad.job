@@ -65,8 +65,12 @@ job "minecraft-forge" {
         ENABLE_WHITELIST              = "false"
         FORCE_GAMEMODE                = "true"
         ENABLE_COMMAND_BLOCK          = "true"
+        ENABLE_RCON                   = "true"
+        RCON_PASSWORD                 = "minecraft"
+        RCON_PORT                     = "25576"
+        MAX_TICK_TIME                 = "-1"
         OPS                           = "perry,hannah,Perry"
-        JVM_OPTS                      = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:ReservedCodeCacheSize=512M -XX:+UseCodeCacheFlushing"
+        JVM_OPTS                      = "-Dwatchdog.timeoutMillis=180000 -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:+UseStringDeduplication -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:InitiatingHeapOccupancyPercent=20 -XX:G1MixedGCLiveThresholdPercent=90 -XX:SurvivorRatio=32 -XX:MaxTenuringThreshold=1 -XX:MetaspaceSize=256M -XX:MaxMetaspaceSize=512M -XX:ReservedCodeCacheSize=512M -XX:+UseCodeCacheFlushing"
       }
 
       service {
@@ -83,7 +87,7 @@ job "minecraft-forge" {
 
       resources {
         cpu        = 4000
-        memory     = 4096
+        memory     = 13312
         memory_max = 13312
       }
     }

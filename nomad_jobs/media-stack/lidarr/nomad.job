@@ -5,7 +5,7 @@ job "lidarr" {
 
   meta {
       job_file = "nomad_jobs/media-stack/lidarr/nomad.job"
-version = "9"  // Reduced memory 1024MB -> 256MB
+version = "10"  // Full config.xml template with API key
   }
 
   constraint {
@@ -80,6 +80,20 @@ version = "9"  // Reduced memory 1024MB -> 256MB
   <PostgresHost>postgres.service.consul</PostgresHost>
   <PostgresMainDb>lidarr_main</PostgresMainDb>
   <PostgresLogDb>lidarr_logs</PostgresLogDb>
+  <LogLevel>info</LogLevel>
+  <UrlBase></UrlBase>
+  <BindAddress>*</BindAddress>
+  <Port>8686</Port>
+  <SslPort>6868</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>${var.lidarr_api_key}</ApiKey>
+  <AuthenticationMethod>External</AuthenticationMethod>
+  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+  <TrustedProxies>100.64.0.0/10,192.168.50.0/24</TrustedProxies>
+  <Branch>master</Branch>
+  <InstanceName>Lidarr</InstanceName>
+  <UpdateMechanism>Docker</UpdateMechanism>
 </Config>
 EOH
         destination = "local/config.xml"
@@ -94,9 +108,15 @@ EOH
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.domains[0].sans=${NOMAD_TASK_NAME}.${var.tld}",
         ]
         check {
-          type     = "tcp"
+          type     = "http"
+          path     = "/ping"
           interval = "10s"
           timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
         }
       }
 
@@ -131,4 +151,9 @@ variable "music_dir" {
 variable "postgres_pass" {
     type = string
     description = "Admin password for PostgreSQL"
+}
+
+variable "lidarr_api_key" {
+    type = string
+    description = "API key for Lidarr"
 }
