@@ -33,7 +33,7 @@ job "homepage" {
     task "homepage" {
       driver = "docker"
       config {
-        image = "ghcr.io/gethomepage/homepage:v1.12.0"
+        image = "ghcr.io/gethomepage/homepage:v1.12.1"
         ports = ["http"]
         volumes = [
           "local/config:/app/config",
