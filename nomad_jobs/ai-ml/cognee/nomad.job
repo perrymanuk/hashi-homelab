@@ -35,7 +35,7 @@ job "cognee" {
 
       config {
         dns_servers = ["192.168.50.2"]
-        image = "cognee/cognee:0.5.6"
+        image = "cognee/cognee:0.5.7"
         ports = ["http"]
       }
 
