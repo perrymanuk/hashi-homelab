@@ -41,7 +41,7 @@ job "minecraft-1-21" {
       driver = "docker"
 
       config {
-        image        = "itzg/minecraft-server:2026.3.3"
+        image        = "itzg/minecraft-server:2026.4.0"
         force_pull   = false
         network_mode = "host"
 
