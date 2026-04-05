@@ -35,7 +35,7 @@ version = "3"
     task "navidrome" {
       driver = "docker"
       config {
-        image = "deluan/navidrome:0.61.0"
+        image = "deluan/navidrome:0.61.1"
         dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
