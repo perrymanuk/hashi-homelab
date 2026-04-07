@@ -34,7 +34,7 @@ job "maintainerr" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/maintainerr/maintainerr:3.3.0"
+        image = "ghcr.io/maintainerr/maintainerr:3.4.0"
         ports = ["http"]
         volumes = [
           "${var.shared_dir}maintainerr:/opt/data",
