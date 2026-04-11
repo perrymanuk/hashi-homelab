@@ -60,6 +60,8 @@ jobs:
             - 'nomad_jobs/media-stack/multi-scrobbler/*.job'
             - 'nomad_jobs/media-stack/lidify/*.job'
             - 'nomad_jobs/media-stack/mediasage/*.job'
+            - 'nomad_jobs/core-infra/netboot-xyz/*.job'
+            - 'nomad_jobs/web-apps/kideo/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -201,3 +203,4 @@ jobs:
         NOMAD_VAR_lastfm_api_key: ${{ secrets.NOMAD_VAR_lastfm_api_key }}
         NOMAD_VAR_lastfm_api_secret: ${{ secrets.NOMAD_VAR_lastfm_api_secret }}
         NOMAD_VAR_lidarr_api_key: ${{ secrets.NOMAD_VAR_lidarr_api_key }}
+        NOMAD_VAR_kideo_jwt_secret: ${{ secrets.NOMAD_VAR_kideo_jwt_secret }}

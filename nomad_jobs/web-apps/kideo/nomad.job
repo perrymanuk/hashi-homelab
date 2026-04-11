@@ -1,0 +1,129 @@
+job "kideo" {
+  region      = var.region
+  datacenters = [var.datacenter]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/web-apps/kideo/nomad.job"
+    version  = "1"
+  }
+
+  constraint {
+    attribute = "${meta.shared_mount}"
+    operator  = "="
+    value     = "true"
+  }
+
+  group "kideo" {
+    count = 1
+
+    constraint {
+      attribute = "${attr.unique.hostname}"
+      value     = var.gpu_host
+    }
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to           = "8000"
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel      = 1
+      min_healthy_time  = "30s"
+      healthy_deadline  = "5m"
+      progress_deadline = "10m"
+      auto_revert       = true
+    }
+
+    task "kideo" {
+      driver = "docker"
+
+      config {
+        image      = "ghcr.io/perrymanuk/kideo:latest"
+        ports      = ["http"]
+        runtime    = "nvidia"
+        privileged = true
+
+        volumes = [
+          "${var.shared_dir}kideo:/data",
+        ]
+      }
+
+      env {
+        TZ                      = "Etc/UTC"
+        NVIDIA_VISIBLE_DEVICES  = "all"
+        KIDEO_POSTGRES_HOST     = "postgres.service.consul"
+        KIDEO_POSTGRES_PORT     = "5432"
+        KIDEO_POSTGRES_USER     = "kideo"
+        KIDEO_POSTGRES_PASSWORD = var.postgres_pass
+        KIDEO_POSTGRES_DB       = "kideo"
+        KIDEO_JWT_SECRET        = var.kideo_jwt_secret
+
+        KIDEO_VIDEO_DIR         = "/data/videos"
+        KIDEO_THUMBNAIL_DIR     = "/data/thumbnails"
+        KIDEO_DEFAULT_QUALITY   = "720"
+      }
+
+      service {
+        port = "http"
+        name = "kideo"
+        tags = [
+          "traefik.enable=true",
+        ]
+        check {
+          type     = "http"
+          path     = "/api/health"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 500
+        memory = 1024
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "shared_dir" {
+  type = string
+}
+
+variable "datacenter" {
+  type    = string
+  default = "cheese"
+}
+
+variable "gpu_host" {
+  type    = string
+  default = "cheese01"
+}
+
+variable "postgres_pass" {
+  type        = string
+  description = "Shared PostgreSQL password"
+}
+
+variable "kideo_jwt_secret" {
+  type        = string
+  description = "JWT signing secret for admin auth"
+}
