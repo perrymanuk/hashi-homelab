@@ -1,6 +1,6 @@
 job "kideo" {
   region      = var.region
-  datacenters = [var.datacenter]
+  datacenters = ["cheese"]
   type        = "service"
 
   meta {
@@ -8,18 +8,12 @@ job "kideo" {
     version  = "1"
   }
 
-  constraint {
-    attribute = "${meta.shared_mount}"
-    operator  = "="
-    value     = "true"
-  }
-
   group "kideo" {
     count = 1
 
     constraint {
       attribute = "${attr.unique.hostname}"
-      value     = var.gpu_host
+      value     = "cheese01"
     }
 
     network {
@@ -67,7 +61,6 @@ job "kideo" {
         KIDEO_POSTGRES_PASSWORD = var.postgres_pass
         KIDEO_POSTGRES_DB       = "kideo"
         KIDEO_JWT_SECRET        = var.kideo_jwt_secret
-
         KIDEO_VIDEO_DIR         = "/data/videos"
         KIDEO_THUMBNAIL_DIR     = "/data/thumbnails"
         KIDEO_DEFAULT_QUALITY   = "720"
@@ -106,16 +99,6 @@ variable "region" {
 
 variable "shared_dir" {
   type = string
-}
-
-variable "datacenter" {
-  type    = string
-  default = "cheese"
-}
-
-variable "gpu_host" {
-  type    = string
-  default = "cheese01"
 }
 
 variable "postgres_pass" {
