@@ -57,7 +57,7 @@ job "kideo" {
         NVIDIA_VISIBLE_DEVICES  = "all"
         KIDEO_POSTGRES_HOST     = "postgres.service.consul"
         KIDEO_POSTGRES_PORT     = "5432"
-        KIDEO_POSTGRES_USER     = "kideo"
+        KIDEO_POSTGRES_USER     = "postgres"
         KIDEO_POSTGRES_PASSWORD = var.postgres_pass
         KIDEO_POSTGRES_DB       = "kideo"
         KIDEO_JWT_SECRET        = var.kideo_jwt_secret
