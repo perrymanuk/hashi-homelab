@@ -37,7 +37,7 @@ job "minecraftmath" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/perrymanuk/minecraftmath:v0.1"
+        image = "ghcr.io/perrymanuk/minecraftmath:v0.2"
         ports = ["http"]
       }
 
