@@ -64,17 +64,9 @@ job "kideo" {
         KIDEO_VIDEO_DIR         = "/data/videos"
         KIDEO_THUMBNAIL_DIR     = "/data/thumbnails"
         KIDEO_DEFAULT_QUALITY   = "720"
-        KIDEO_COOKIES_FILE            = "/secrets/cookies.txt"
+        KIDEO_COOKIES_FILE            = "/data/cookies.txt"
         KIDEO_CURIOSITYSTREAM_USER    = var.kideo_curiositystream_user
         KIDEO_CURIOSITYSTREAM_PASS    = var.kideo_curiositystream_pass
-      }
-
-      template {
-        data        = <<EOH
-${var.kideo_youtube_cookies}
-EOH
-        destination = "secrets/cookies.txt"
-        change_mode = "restart"
       }
 
       service {
@@ -120,12 +112,6 @@ variable "postgres_pass" {
 variable "kideo_jwt_secret" {
   type        = string
   description = "JWT signing secret for admin auth"
-}
-
-variable "kideo_youtube_cookies" {
-  type        = string
-  description = "YouTube cookies.txt content for yt-dlp authentication"
-  default     = ""
 }
 
 variable "kideo_curiositystream_user" {
