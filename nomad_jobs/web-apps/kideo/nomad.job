@@ -68,7 +68,9 @@ job "kideo" {
       }
 
       template {
-        data        = var.kideo_youtube_cookies
+        data        = <<EOH
+${var.kideo_youtube_cookies}
+EOH
         destination = "secrets/cookies.txt"
         change_mode = "restart"
       }
