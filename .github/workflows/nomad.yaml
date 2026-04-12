@@ -206,4 +206,6 @@ jobs:
         NOMAD_VAR_lidarr_api_key: ${{ secrets.NOMAD_VAR_lidarr_api_key }}
         NOMAD_VAR_kideo_jwt_secret: ${{ secrets.NOMAD_VAR_kideo_jwt_secret }}
         NOMAD_VAR_kideo_youtube_cookies: ${{ secrets.NOMAD_VAR_kideo_youtube_cookies }}
+        NOMAD_VAR_kideo_curiositystream_user: ${{ secrets.NOMAD_VAR_kideo_curiositystream_user }}
+        NOMAD_VAR_kideo_curiositystream_pass: ${{ secrets.NOMAD_VAR_kideo_curiositystream_pass }}
         NOMAD_VAR_minecraftmath_jwt_secret: ${{ secrets.NOMAD_VAR_minecraftmath_jwt_secret }}

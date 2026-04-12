@@ -64,7 +64,9 @@ job "kideo" {
         KIDEO_VIDEO_DIR         = "/data/videos"
         KIDEO_THUMBNAIL_DIR     = "/data/thumbnails"
         KIDEO_DEFAULT_QUALITY   = "720"
-        KIDEO_COOKIES_FILE      = "/secrets/cookies.txt"
+        KIDEO_COOKIES_FILE            = "/secrets/cookies.txt"
+        KIDEO_CURIOSITYSTREAM_USER    = var.kideo_curiositystream_user
+        KIDEO_CURIOSITYSTREAM_PASS    = var.kideo_curiositystream_pass
       }
 
       template {
@@ -123,5 +125,17 @@ variable "kideo_jwt_secret" {
 variable "kideo_youtube_cookies" {
   type        = string
   description = "YouTube cookies.txt content for yt-dlp authentication"
+  default     = ""
+}
+
+variable "kideo_curiositystream_user" {
+  type        = string
+  description = "CuriosityStream email"
+  default     = ""
+}
+
+variable "kideo_curiositystream_pass" {
+  type        = string
+  description = "CuriosityStream password"
   default     = ""
 }
