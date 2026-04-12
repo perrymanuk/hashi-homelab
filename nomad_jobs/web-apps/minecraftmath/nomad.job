@@ -1,0 +1,93 @@
+job "minecraftmath" {
+  region      = var.region
+  datacenters = ["dc1"]
+  type        = "service"
+
+  meta {
+    job_file = "nomad_jobs/web-apps/minecraftmath/nomad.job"
+    version  = "1"
+  }
+
+  group "minecraftmath" {
+    count = 1
+
+    network {
+      port "http" {
+        host_network = "lan"
+        to           = "8000"
+      }
+    }
+
+    restart {
+      attempts = 3
+      delay    = "15s"
+      interval = "10m"
+      mode     = "delay"
+    }
+
+    update {
+      max_parallel      = 1
+      min_healthy_time  = "30s"
+      healthy_deadline  = "5m"
+      progress_deadline = "10m"
+      auto_revert       = true
+    }
+
+    task "minecraftmath" {
+      driver = "docker"
+
+      config {
+        image = "ghcr.io/perrymanuk/minecraftmath:v0.1"
+        ports = ["http"]
+      }
+
+      env {
+        TZ                       = "Etc/UTC"
+        MCMATH_POSTGRES_HOST     = "postgres.service.consul"
+        MCMATH_POSTGRES_PORT     = "5432"
+        MCMATH_POSTGRES_USER     = "postgres"
+        MCMATH_POSTGRES_PASSWORD = var.postgres_pass
+        MCMATH_POSTGRES_DB       = "minecraftmath"
+        MCMATH_JWT_SECRET        = var.minecraftmath_jwt_secret
+      }
+
+      service {
+        port = "http"
+        name = "minecraftmath"
+        tags = [
+          "traefik.enable=true",
+        ]
+        check {
+          type     = "http"
+          path     = "/api/health"
+          interval = "10s"
+          timeout  = "2s"
+          check_restart {
+            limit           = 3
+            grace           = "60s"
+            ignore_warnings = false
+          }
+        }
+      }
+
+      resources {
+        cpu    = 300
+        memory = 256
+      }
+    }
+  }
+}
+
+variable "region" {
+  type = string
+}
+
+variable "postgres_pass" {
+  type        = string
+  description = "Shared PostgreSQL password"
+}
+
+variable "minecraftmath_jwt_secret" {
+  type        = string
+  description = "JWT signing secret for parent auth"
+}

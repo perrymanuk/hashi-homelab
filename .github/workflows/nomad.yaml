@@ -62,6 +62,7 @@ jobs:
             - 'nomad_jobs/media-stack/mediasage/*.job'
             - 'nomad_jobs/core-infra/netboot-xyz/*.job'
             - 'nomad_jobs/web-apps/kideo/*.job'
+            - 'nomad_jobs/web-apps/minecraftmath/*.job'
 
   add_volumes:
     runs-on: ubuntu-latest
@@ -205,3 +206,4 @@ jobs:
         NOMAD_VAR_lidarr_api_key: ${{ secrets.NOMAD_VAR_lidarr_api_key }}
         NOMAD_VAR_kideo_jwt_secret: ${{ secrets.NOMAD_VAR_kideo_jwt_secret }}
         NOMAD_VAR_kideo_youtube_cookies: ${{ secrets.NOMAD_VAR_kideo_youtube_cookies }}
+        NOMAD_VAR_minecraftmath_jwt_secret: ${{ secrets.NOMAD_VAR_minecraftmath_jwt_secret }}
