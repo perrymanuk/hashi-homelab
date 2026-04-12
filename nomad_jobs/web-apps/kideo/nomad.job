@@ -42,7 +42,7 @@ job "kideo" {
       driver = "docker"
 
       config {
-        image      = "ghcr.io/perrymanuk/kideo:v0.32"
+        image      = "ghcr.io/perrymanuk/kideo:v0.33"
         ports      = ["http"]
         runtime    = "nvidia"
         privileged = true
