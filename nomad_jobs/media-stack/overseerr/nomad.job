@@ -61,7 +61,7 @@ job "overseerr" {
     task "overseerr" {
       driver = "docker"
       config {
-        image = "seerr/seerr:v3.1.1"
+        image = "seerr/seerr:v3.2.0"
         dns_servers = ["192.168.50.2"]
         init = true
         ports = ["http"]
