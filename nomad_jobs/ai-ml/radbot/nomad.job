@@ -47,17 +47,24 @@ job "radbot" {
         ports       = ["http"]
         volumes     = [
           "local/config.yaml:/app/config.yaml",
+          "${var.shared_dir}ai-intel:/mnt/ai-intel",
         ]
       }
 
       # Bootstrap-only env vars:
       # - RADBOT_CREDENTIAL_KEY: decrypt credentials/config stored in the DB
       # - RADBOT_ADMIN_TOKEN:    access /admin/ to manage everything else
+      # - RADBOT_MCP_TOKEN:      bootstrap bearer for MCP bridge HTTP
+      #                          (credential-store `mcp_token` wins once set)
+      # - RADBOT_WIKI_PATH:      wiki root inside the container (matches the
+      #                          ai-intel bind mount above)
       # All other config (API keys, models, integrations, endpoints) is stored
       # encrypted in the radbot_credentials table and managed via /admin/ UI.
       env {
         RADBOT_CREDENTIAL_KEY = var.radbot_credential_key
         RADBOT_ADMIN_TOKEN    = var.radbot_admin_token
+        RADBOT_MCP_TOKEN      = var.radbot_mcp_token
+        RADBOT_WIKI_PATH      = "/mnt/ai-intel"
         RADBOT_CONFIG_FILE    = "/app/config.yaml"
       }
 
@@ -128,4 +135,14 @@ variable "radbot_credential_key" {
 variable "radbot_admin_token" {
   type        = string
   description = "Bearer token for /admin/ — the only pre-shared secret"
+}
+
+variable "radbot_mcp_token" {
+  type        = string
+  description = "Bootstrap bearer token for the MCP bridge HTTP transport. The credential-store entry `mcp_token` takes priority once set, so this is only used before the first rotate."
+}
+
+variable "shared_dir" {
+  type        = string
+  description = "Base path on shared-mount nodes; jobs append their subdir (e.g. `${var.shared_dir}ai-intel`)."
 }
