@@ -144,5 +144,5 @@ variable "radbot_mcp_token" {
 
 variable "shared_dir" {
   type        = string
-  description = "Base path on shared-mount nodes; jobs append their subdir (e.g. `${var.shared_dir}ai-intel`)."
+  description = "Base path on shared-mount nodes; jobs append their own subdirectory (this job mounts <shared_dir>/ai-intel at /mnt/ai-intel)."
 }
