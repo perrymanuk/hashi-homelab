@@ -48,6 +48,7 @@ job "radbot" {
         volumes     = [
           "local/config.yaml:/app/config.yaml",
           "${var.shared_dir}ai-intel:/mnt/ai-intel",
+          "${var.shared_dir}repos:/data/repos",
         ]
       }
 
