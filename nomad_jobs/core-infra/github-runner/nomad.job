@@ -74,7 +74,7 @@ version = "3"
       }
 
       config {
-        image       = "myoung34/github-runner:2.333.1"
+        image       = "myoung34/github-runner:2.334.0"
         extra_hosts = ["nomad.service.home:192.168.50.120"]
         ports       = ["http"]
         userns_mode = "host"
