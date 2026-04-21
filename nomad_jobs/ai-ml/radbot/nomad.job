@@ -65,6 +65,8 @@ job "radbot" {
         RADBOT_CREDENTIAL_KEY = var.radbot_credential_key
         RADBOT_ADMIN_TOKEN    = var.radbot_admin_token
         RADBOT_MCP_TOKEN      = var.radbot_mcp_token
+        RADBOT_GITHUB_CLIENT_ID     = var.radbot_github_client_id
+        RADBOT_GITHUB_CLIENT_SECRET = var.radbot_github_client_secret
         RADBOT_WIKI_PATH      = "/mnt/ai-intel"
         RADBOT_CONFIG_FILE    = "/app/config.yaml"
         CLAUDE_CLI_PATH       = "/usr/local/bin/claude"
@@ -142,6 +144,16 @@ variable "radbot_admin_token" {
 variable "radbot_mcp_token" {
   type        = string
   description = "Bootstrap bearer token for the MCP bridge HTTP transport. The credential-store entry `mcp_token` takes priority once set, so this is only used before the first rotate."
+}
+
+variable "radbot_github_client_id" {
+  type        = string
+  description = "GitHub OAuth app client ID"
+}
+
+variable "radbot_github_client_secret" {
+  type        = string
+  description = "GitHub OAuth app client secret"
 }
 
 variable "shared_dir" {
