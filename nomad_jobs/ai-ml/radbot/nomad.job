@@ -67,6 +67,7 @@ job "radbot" {
         RADBOT_MCP_TOKEN      = var.radbot_mcp_token
         RADBOT_WIKI_PATH      = "/mnt/ai-intel"
         RADBOT_CONFIG_FILE    = "/app/config.yaml"
+        CLAUDE_CLI_PATH       = "/usr/local/bin/claude"
       }
 
       # Minimal bootstrap config — just enough to connect to the DB.
