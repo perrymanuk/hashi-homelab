@@ -56,7 +56,7 @@ version = "4"
     task "manyfold" {
       driver = "docker"
       config {
-        image = "ghcr.io/manyfold3d/manyfold-solo:0.137.0"
+        image = "ghcr.io/manyfold3d/manyfold-solo:0.138.0"
         ports = ["http"]
       }
 
