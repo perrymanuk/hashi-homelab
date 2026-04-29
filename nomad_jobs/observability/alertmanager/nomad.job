@@ -98,7 +98,7 @@ job "alertmanager" {
       }
 
       config {
-        image = "prom/alertmanager:v0.32.0"
+        image = "prom/alertmanager:v0.32.1"
         network_mode = "host"
         ports = ["http"]
         force_pull = true
