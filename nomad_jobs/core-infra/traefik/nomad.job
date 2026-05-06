@@ -113,7 +113,7 @@ EOH
       }
 
       config {
-        image = "traefik:v3.6"
+        image = "traefik:v3.7"
         ports = ["http", "admin"]
         network_mode = "host"
         volumes = [
