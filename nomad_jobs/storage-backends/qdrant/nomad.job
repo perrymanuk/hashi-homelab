@@ -51,7 +51,7 @@ job "qdrant" {
       driver = "docker"
 
       config {
-        image = "qdrant/qdrant:v1.17"
+        image = "qdrant/qdrant:v1.18"
         ports = ["http", "grpc"]
       }
 
