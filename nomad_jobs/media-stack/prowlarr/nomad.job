@@ -86,7 +86,7 @@ job "prowlarr" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/flaresolverr/flaresolverr:v3.4.6"
+        image = "ghcr.io/flaresolverr/flaresolverr:v3.5.0"
         ports = ["flaresolverr"]
       }
 
