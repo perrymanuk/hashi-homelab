@@ -42,7 +42,7 @@ job "requestrr" {
 
       config {
         dns_servers = ["192.168.50.2"]
-        image = "thomst08/requestrr:v2.1.9"
+        image = "thomst08/requestrr:v2.1.10"
         ports = ["http"]
         volumes = [
           "${var.shared_dir}requestrr:/root/config",
