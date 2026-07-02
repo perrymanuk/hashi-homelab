@@ -65,7 +65,7 @@ job "actualbudget" {
     task "actualbudget" {
       driver = "docker"
       config {
-        image = "actualbudget/actual-server:26.6.0"
+        image = "actualbudget/actual-server:26.7.0"
         ports = ["http"]
       }
 
