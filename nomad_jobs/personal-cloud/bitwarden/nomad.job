@@ -27,7 +27,7 @@ version = "3"
     task "bitwarden" {
       driver = "docker"
       config {
-        image = "vaultwarden/server:1.36.0"
+        image = "vaultwarden/server:1.37.0"
         force_pull = "true"
         port_map = {
           http = 80 
