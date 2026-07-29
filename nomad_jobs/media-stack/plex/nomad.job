@@ -6,7 +6,7 @@ job "plex" {
 
   meta {
       job_file = "nomad_jobs/media-stack/plex/nomad.job"
-version = "7"  // Pin to klo01 for QuickSync hardware transcoding
+version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so renovate can track it
   }
 
   group "downloaders" {
@@ -51,7 +51,7 @@ version = "7"  // Pin to klo01 for QuickSync hardware transcoding
     task "plex" {
       driver = "docker"
       config {
-        image = "plexinc/pms-docker@sha256:4e704a2172129d8a6bc5b05ea201945b329bb6512f48a4e92ed4a4a787c35462"
+        image = "plexinc/pms-docker:1.43.3.10828-00f62d37d"
         network_mode = "host"
         privileged = "true"
         force_pull = "true"
