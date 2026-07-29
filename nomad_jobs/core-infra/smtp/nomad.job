@@ -34,7 +34,7 @@ version = "8"  // ixdotai/smtp removed from Docker Hub -> ghcr.io/ix-ai/smtp; dr
     task "smtp" {
       driver = "docker"
       config {
-        image = "ghcr.io/ix-ai/smtp:v0.7.2"
+        image = "ghcr.io/ix-ai/smtp:v0.7.7"
         network_mode = "host"
         ports = ["smtp"]
         force_pull = "true"
