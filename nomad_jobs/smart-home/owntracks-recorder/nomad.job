@@ -34,7 +34,7 @@ version = "4"
     task "owntracks" {
       driver = "docker"
       config {
-        image = "owntracks/recorder:1.0.2"
+        image = "owntracks/recorder:1.0.3"
         args = [
           "--http-host", "${NOMAD_IP_http}"
         ]
