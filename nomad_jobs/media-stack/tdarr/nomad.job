@@ -6,7 +6,7 @@ job "tdarr" {
 
   meta {
     job_file = "nomad_jobs/media-stack/tdarr/nomad.job"
-    version  = "6"  // Restore nvidia runtime on cheese01, logs to tmpfs
+    version  = "7"  // Transcode cache on dedicated SSD CSI volume
   }
 
   group "tdarr" {
@@ -32,6 +32,15 @@ job "tdarr" {
       type            = "csi"
       read_only       = false
       source          = "tdarr"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    // Transcode cache on SSD instead of cheese01's root disk (4K remuxes are 50GB+)
+    volume "tdarr-cache" {
+      type            = "csi"
+      read_only       = false
+      source          = "tdarr-cache"
       access_mode     = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -62,7 +71,6 @@ job "tdarr" {
         force_pull   = true
         ports        = ["http", "server"]
         volumes = [
-          "/tmp/tdarr:/temp",
           "${var.shared_dir}tdarr/configs:/app/configs",
           "${var.media_dir}:/media",
         ]
@@ -79,6 +87,12 @@ job "tdarr" {
       volume_mount {
         volume      = "tdarr"
         destination = "/app/server"
+        read_only   = false
+      }
+
+      volume_mount {
+        volume      = "tdarr-cache"
+        destination = "/temp"
         read_only   = false
       }
 
