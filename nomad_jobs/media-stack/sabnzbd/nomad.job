@@ -47,9 +47,10 @@ version = "6"
             }
           },
           {
+            # scratch on pool1 (same pool as the final media) so downloads never touch pool0/share
             type = "bind"
             target = "/downloads"
-            source = "/tmp"
+            source = "${var.downloads_dir}"
             readonly = false
             bind_options = {
               propagation = "rshared"

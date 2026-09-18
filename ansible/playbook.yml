@@ -37,6 +37,8 @@
         - /home/media/Music
         - /home/media/Movies
         - /home/media/Books
+        - /home/media/downloads
+      tags: mounts
 
     - name: makesure multipath.conf exists
       copy:
@@ -105,6 +107,7 @@
         path: /etc/fstab
         regexp: '^192\.168\.50\.208:/mnt/.*'
         state: absent
+      tags: mounts
 
     - name: Add NFS fstab entries with proper options
       blockinfile:
@@ -116,9 +119,11 @@
           192.168.50.208:/mnt/pool0/media/music        /home/media/Music    nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
           192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
           192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/pool1/media/downloads    /home/media/downloads nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
       notify:
         - Reload systemd fstab
         - Mount Filesystems
+      tags: mounts
 
     - name: Enable services
       systemd:

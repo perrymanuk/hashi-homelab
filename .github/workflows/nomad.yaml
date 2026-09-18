@@ -139,7 +139,7 @@ jobs:
         NOMAD_VAR_region: 'home'
         NOMAD_VAR_tld: '${{ secrets.NOMAD_VAR_tld }}' # Corrected case
         NOMAD_VAR_shared_dir: '/home/shared/'
-        NOMAD_VAR_downloads_dir: '/home/sabnzbd/downloads'
+        NOMAD_VAR_downloads_dir: '/home/media/downloads'
         NOMAD_VAR_music_dir: '/home/media/Music'
         NOMAD_VAR_movies_dir: '/home/media/Movies'
         NOMAD_VAR_books_dir: '/home/media/Books'
