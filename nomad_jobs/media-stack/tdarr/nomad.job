@@ -6,7 +6,7 @@ job "tdarr" {
 
   meta {
     job_file = "nomad_jobs/media-stack/tdarr/nomad.job"
-    version  = "4"  // Move to cheese01 for NVENC GPU transcoding
+    version  = "6"  // Restore nvidia runtime on cheese01, logs to tmpfs
   }
 
   group "tdarr" {
@@ -64,9 +64,16 @@ job "tdarr" {
         volumes = [
           "/tmp/tdarr:/temp",
           "${var.shared_dir}tdarr/configs:/app/configs",
-          "${var.shared_dir}tdarr/logs:/app/logs",
           "${var.media_dir}:/media",
         ]
+        # logs also go to stdout; keep the on-disk copy off the NAS
+        mount {
+          type   = "tmpfs"
+          target = "/app/logs"
+          tmpfs_options {
+            size = 67108864
+          }
+        }
       }
 
       volume_mount {

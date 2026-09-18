@@ -57,6 +57,13 @@ version = "10"  // Full config.xml template with API key
           "${var.music_dir}:/media/Music",
           "local/config.xml:/config/config.xml",
         ]
+        mount {
+          type   = "tmpfs"
+          target = "/config/logs"
+          tmpfs_options {
+            size = 33554432
+          }
+        }
       }
 
       volume_mount {
@@ -81,6 +88,8 @@ version = "10"  // Full config.xml template with API key
   <PostgresMainDb>lidarr_main</PostgresMainDb>
   <PostgresLogDb>lidarr_logs</PostgresLogDb>
   <LogLevel>info</LogLevel>
+  <LogDbEnabled>False</LogDbEnabled>
+  <LogRotate>5</LogRotate>
   <UrlBase></UrlBase>
   <BindAddress>*</BindAddress>
   <Port>8686</Port>
@@ -122,7 +131,8 @@ EOH
 
       resources {
         cpu    = 100
-        memory = 256
+        memory = 1024
+        memory_max = 1536
       }
     }
   }

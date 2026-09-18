@@ -42,7 +42,6 @@ jobs:
             - 'nomad_jobs/core-infra/coredns/*.job'
             - 'nomad_jobs/storage-backends/iscsi-csi-plugin/*.job'
             - 'nomad_jobs/media-stack/sabnzbd/*.job'
-            - 'nomad_jobs/media-stack/qbittorrent/*.job'
             - 'nomad_jobs/media-stack/prowlarr/*.job'
             - 'nomad_jobs/media-stack/tdarr/*.job'
             - 'nomad_jobs/core-infra/smtp/*.job'

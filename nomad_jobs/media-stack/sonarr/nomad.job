@@ -42,6 +42,13 @@ version = "11"  // Full config.xml template with API key
           "${var.tv_dir}:/media/TV",
           "local/config.xml:/config/config.xml",
         ]
+        mount {
+          type   = "tmpfs"
+          target = "/config/logs"
+          tmpfs_options {
+            size = 33554432
+          }
+        }
       }
 
       env {
@@ -60,6 +67,8 @@ version = "11"  // Full config.xml template with API key
   <PostgresMainDb>sonarr_main</PostgresMainDb>
   <PostgresLogDb>sonarr_logs</PostgresLogDb>
   <LogLevel>info</LogLevel>
+  <LogDbEnabled>False</LogDbEnabled>
+  <LogRotate>5</LogRotate>
   <UrlBase></UrlBase>
   <BindAddress>*</BindAddress>
   <Port>8989</Port>

@@ -63,6 +63,14 @@ version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so
           "${var.shared_dir}plex_new:/config",
           "local/optimize-db.sh:/etc/cont-init.d/30-optimize-db",
         ]
+        # keep Plex's rotating log files off the NAS
+        mount {
+          type   = "tmpfs"
+          target = "/config/Library/Application Support/Plex Media Server/Logs"
+          tmpfs_options {
+            size = 67108864
+          }
+        }
         // No custom command - let the container start normally
       }
 

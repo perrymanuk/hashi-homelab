@@ -43,6 +43,13 @@ version = "10"  // Full config.xml template with API key
           "${var.movies_dir}:/media/Movies",
           "local/config.xml:/config/config.xml",
         ]
+        mount {
+          type   = "tmpfs"
+          target = "/config/logs"
+          tmpfs_options {
+            size = 33554432
+          }
+        }
       }
 
       volume_mount {
@@ -68,6 +75,8 @@ version = "10"  // Full config.xml template with API key
   <PostgresMainDb>radarr_main</PostgresMainDb>
   <PostgresLogDb>radarr_logs</PostgresLogDb>
   <LogLevel>info</LogLevel>
+  <LogDbEnabled>False</LogDbEnabled>
+  <LogRotate>5</LogRotate>
   <UrlBase></UrlBase>
   <BindAddress>*</BindAddress>
   <Port>7878</Port>
