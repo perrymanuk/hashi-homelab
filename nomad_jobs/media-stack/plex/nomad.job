@@ -6,7 +6,7 @@ job "plex" {
 
   meta {
       job_file = "nomad_jobs/media-stack/plex/nomad.job"
-version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so renovate can track it
+version = "9"  // /config on SSD CSI volume (was pool0 NFS) so the NAS HDDs can spin down
   }
 
   group "downloaders" {
@@ -30,6 +30,15 @@ version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so
       type      = "csi"
       read_only = false
       source    = "plex-database"
+      access_mode = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
+    // Plex config/metadata on SSD instead of the pool0 NFS share
+    volume "plex-config" {
+      type      = "csi"
+      read_only = false
+      source    = "plex-config"
       access_mode = "single-node-writer"
       attachment_mode = "file-system"
     }
@@ -60,7 +69,6 @@ version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so
           "/dev/dri:/dev/dri",
           "/tmp:/transcode",
           "${var.media_dir}:/data",
-          "${var.shared_dir}plex_new:/config",
           "local/optimize-db.sh:/etc/cont-init.d/30-optimize-db",
         ]
         # keep Plex's rotating log files off the NAS
@@ -72,6 +80,12 @@ version = "8"  // Pin to klo01 for QuickSync hardware transcoding; tag-pinned so
           }
         }
         // No custom command - let the container start normally
+      }
+
+      volume_mount {
+        volume      = "plex-config"
+        destination = "/config"
+        read_only   = false
       }
 
       volume_mount {
