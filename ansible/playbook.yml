@@ -38,6 +38,7 @@
         - /home/media/Movies
         - /home/media/Books
         - /home/media/downloads
+        - /home/shared-ssd
       tags: mounts
 
     - name: makesure multipath.conf exists
@@ -120,6 +121,7 @@
           192.168.50.208:/mnt/pool1/media/Movies       /home/media/Movies   nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
           192.168.50.208:/mnt/pool0/media/audiobooks   /home/media/Books    nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
           192.168.50.208:/mnt/pool1/media/downloads    /home/media/downloads nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
+          192.168.50.208:/mnt/ssd-vms0/nomad-shared    /home/shared-ssd     nfs4    _netdev,hard,timeo=600,retrans=5,x-systemd.mount-timeout=90,x-systemd.requires=network-online.target,x-systemd.after=network-online.target  0  0
       notify:
         - Reload systemd fstab
         - Mount Filesystems

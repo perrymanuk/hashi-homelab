@@ -2,7 +2,7 @@ job "gcp-dns-updater" {
   
   meta {
     job_file = "nomad_jobs/misc/gcp-dns-updater/nomad.job"
-    version  = "6"  // Added SPF TXT record update
+    version  = "7"  // traefik-ingress on SSD share; only rewrite whitelist when it changes
   }
   type        = "batch"
   periodic {
@@ -29,7 +29,7 @@ job "gcp-dns-updater" {
         command = "sh"
         args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests pyyaml && python /local/update_dns.py"]
         volumes = [
-          "${var.shared_dir}traefik-ingress:/shared/traefik-ingress"
+          "${var.shared_ssd_dir}traefik-ingress:/shared/traefik-ingress"
         ]
       }
 
@@ -171,6 +171,16 @@ def update_traefik_whitelist(ip_address: str):
 sourceRange = ["{ip_address}/32", "192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10"]
 """
         
+        # Traefik watches this file; skip the write when nothing changed so the
+        # share isn't touched every run
+        try:
+            with open(config_path) as f:
+                if f.read() == toml_content:
+                    logging.info("Traefik whitelist already up to date, not rewriting")
+                    return
+        except FileNotFoundError:
+            pass
+
         with open(config_path, 'w') as f:
             f.write(toml_content)
         
@@ -361,3 +371,4 @@ variable "dns_zone" {}
 variable "tld" {}
 variable "gcp_dns_admin" {}
 variable "shared_dir" {}
+variable "shared_ssd_dir" {}

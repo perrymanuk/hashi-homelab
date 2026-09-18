@@ -4,7 +4,7 @@ job "traefik" {
   type = "service"
   meta {
       job_file = "nomad_jobs/core-infra/traefik/nomad.job"
-      version = "12"  // HA: run 2 instances with keepalived failover
+      version = "13"  // acme.json + whitelist on SSD-backed NFS share (was pool0)
   }
 
   group "lbs" {
@@ -120,8 +120,8 @@ EOH
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "local/dynamic-config.toml:/etc/traefik/dynamic/dynamic-config.toml",
           "local/servers-transport.toml:/etc/traefik/dynamic/servers-transport.toml",
-          "${var.shared_dir}traefik-ingress/acme.json:/acme.json",
-          "${var.shared_dir}traefik-ingress/dynamic-whitelist.toml:/etc/traefik/dynamic/dynamic-whitelist.toml",
+          "${var.shared_ssd_dir}traefik-ingress/acme.json:/acme.json",
+          "${var.shared_ssd_dir}traefik-ingress/dynamic-whitelist.toml:/etc/traefik/dynamic/dynamic-whitelist.toml",
         ]
       }
 
@@ -272,6 +272,11 @@ variable "tld" {
 
 variable "shared_dir" {
     type = string
+}
+
+variable "shared_ssd_dir" {
+    type = string
+    description = "SSD-backed NFS share for small, frequently written shared config"
 }
 
 variable "ingress_ip" {
