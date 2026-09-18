@@ -5,10 +5,18 @@ job "postgres" {
 
   meta {
       job_file = "nomad_jobs/storage-backends/postgres/nomad.job"
-version = "5"  // Fixed postgres password variable
+version = "6"  // data on SSD CSI volume (was pool0 NFS share/paperless-postgres)
   }
 
   group "db" {
+    volume "postgres-data" {
+      type            = "csi"
+      read_only       = false
+      source          = "postgres-data"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
+
     network {
       mode = "host"
       port "postgres" {
@@ -35,10 +43,14 @@ version = "5"  // Fixed postgres password variable
 
       config {
         image = "postgres:15.19"
-        volumes = [
-          "${var.shared_dir}paperless-postgres:/appdata/postgres",
-        ]
         ports = ["postgres"]
+      }
+
+      # PGDATA is a subdirectory of the volume so ext4's lost+found stays out of it
+      volume_mount {
+        volume      = "postgres-data"
+        destination = "/appdata"
+        read_only   = false
       }
 
       env {
