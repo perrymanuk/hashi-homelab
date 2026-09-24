@@ -54,7 +54,7 @@ job "wazuh-agent" {
       driver = "docker"
 
       config {
-        image        = "wazuh/wazuh-agent:4.14.7"
+        image        = "wazuh/wazuh-agent:4.14.8"
         network_mode = "host"
         force_pull   = true
         privileged   = true
