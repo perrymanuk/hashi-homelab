@@ -50,7 +50,7 @@ job "traefik" {
       }
 
       config {
-        image = "osixia/keepalived:2.3.4"
+        image = "osixia/keepalived:2.4.3"
         network_mode = "host"
         force_pull = false
         volumes = [
