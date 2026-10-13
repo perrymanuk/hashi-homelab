@@ -43,7 +43,7 @@ job "oom-test" {
       driver = "docker"
 
       config {
-        image   = "python:3.14-slim"
+        image   = "python:3.15-slim"
         ports   = ["http"]
         command = "python3"
         args    = ["-c", <<EOH
