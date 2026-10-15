@@ -176,6 +176,7 @@ scrape_configs:
 
     scheme: http
     static_configs:
+      # hass_ip comes from NOMAD_VAR_hass_ip (GitHub secret / .envrc); HA moved to 192.168.50.125 on 2026-10-15
       - targets: ['${var.hass_ip}:8123']
 
   - job_name: 'nomad'
