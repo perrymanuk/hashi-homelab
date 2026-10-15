@@ -16,7 +16,7 @@ job "gcp-dns-updater" {
       attempts = 2
       interval = "1m"
       delay = "15s"
-      mode = "delay" 
+      mode = "fail"
     }
 
 
@@ -24,7 +24,8 @@ job "gcp-dns-updater" {
       driver = "docker"
 
       config {
-        image = "python:3.15-slim"
+        # pinned to 3.14: pyyaml has no 3.15 wheel yet, source build OOMs at pip install
+        image = "python:3.14-slim"
         dns_servers = ["192.168.50.2"]
         command = "sh"
         args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests pyyaml && python /local/update_dns.py"]
@@ -360,7 +361,7 @@ EOF
 
       resources {
         cpu    = 100 
-        memory = 128  
+        memory = 256
       }
     }
   }
