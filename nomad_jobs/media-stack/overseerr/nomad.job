@@ -42,7 +42,7 @@ job "overseerr" {
       }
 
       config {
-        image   = "busybox:latest"
+        image   = "busybox:1.38.0"
         command = "sh"
         args    = ["-c", "chown -R 1000:1000 /volume/"]
       }

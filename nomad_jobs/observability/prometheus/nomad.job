@@ -40,7 +40,7 @@ job "prometheus" {
         read_only   = false
       }
       config {
-        image        = "busybox:latest"
+        image        = "busybox:1.38.0"
         command      = "sh"
         args         = ["-c", "chown -R 1000:2000 /volume/"]
       }

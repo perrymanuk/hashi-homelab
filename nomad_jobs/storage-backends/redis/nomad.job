@@ -55,7 +55,7 @@ job "redis" {
         read_only   = false
       }
       config {
-        image   = "busybox:latest"
+        image   = "busybox:1.38.0"
         command = "sh"
         args    = ["-c", "chmod 777 /volume/"]
       }

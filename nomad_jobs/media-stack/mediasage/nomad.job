@@ -44,7 +44,7 @@ job "mediasage" {
         sidecar = false
       }
       config {
-        image   = "busybox:latest"
+        image   = "busybox:1.38.0"
         command = "sh"
         args    = ["-c", "mkdir -p /data && chmod 777 /data"]
         volumes = [
@@ -60,7 +60,7 @@ job "mediasage" {
     task "mediasage" {
       driver = "docker"
       config {
-        image = "ghcr.io/ecwilsonaz/mediasage:latest"
+        image = "ghcr.io/ecwilsonaz/mediasage:latest@sha256:bec22809257abd149b91176bf29814b7bbf3e23bb547b599c7f7800b7ab2e4ea"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [

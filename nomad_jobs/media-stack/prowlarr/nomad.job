@@ -40,7 +40,7 @@ job "prowlarr" {
       driver = "docker"
 
       config {
-        image       = "linuxserver/prowlarr"
+        image       = "linuxserver/prowlarr:2.7.0"
         dns_servers = ["192.168.50.2"]
         ports       = ["http"]
         mount {

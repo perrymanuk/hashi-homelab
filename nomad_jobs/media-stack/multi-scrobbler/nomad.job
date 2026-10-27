@@ -40,7 +40,7 @@ job "multi-scrobbler" {
     task "multi-scrobbler" {
       driver = "docker"
       config {
-        image = "foxxmd/multi-scrobbler:latest"
+        image = "foxxmd/multi-scrobbler:0.20.3"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [

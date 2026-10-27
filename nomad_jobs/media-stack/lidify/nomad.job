@@ -40,7 +40,7 @@ job "lidify" {
     task "lidify" {
       driver = "docker"
       config {
-        image = "thewicklowwolf/lidify:latest"
+        image = "thewicklowwolf/lidify:0.2.11"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [
