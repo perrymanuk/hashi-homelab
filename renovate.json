@@ -56,6 +56,14 @@
       ],
       "enabled": false,
       "description": "Managed by radbot CI dispatch workflow"
+    },
+    {
+      "matchPackageNames": [
+        "/^linuxserver\\//",
+        "/^lscr.io\\/linuxserver\\//"
+      ],
+      "pinDigests": true,
+      "description": "linuxserver rebuilds images weekly under the same version tag (base OS/CA updates); track those rebuilds via digest"
     }
   ],
   "customManagers": [
@@ -65,7 +73,7 @@
         "/(^|/)*\\.job$/"
       ],
       "matchStrings": [
-        "\\s*image\\s*=\\s*\"(?<depName>.*?)[@:](?<currentValue>.*?)\"\\n"
+        "\\s*image\\s*=\\s*\"(?<depName>[^\"@:]+)(?::(?<currentValue>[^\"@]+))?(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?\"\\n"
       ],
       "datasourceTemplate": "docker"
     }

@@ -44,6 +44,8 @@ jobs:
             - 'nomad_jobs/media-stack/sabnzbd/*.job'
             - 'nomad_jobs/media-stack/prowlarr/*.job'
             - 'nomad_jobs/media-stack/tdarr/*.job'
+            - 'nomad_jobs/media-stack/maintainerr/*.job'
+            - 'nomad_jobs/media-stack/sonarr/*.job'
             - 'nomad_jobs/core-infra/smtp/*.job'
             - 'nomad_jobs/ai-ml/ollama/*.job'
             - 'nomad_jobs/ai-ml/open-webui/*.job'
