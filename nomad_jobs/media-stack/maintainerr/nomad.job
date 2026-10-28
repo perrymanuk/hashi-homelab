@@ -1,3 +1,4 @@
+# Deployed by .github/workflows/nomad.yaml (added to the deploy list 2026-10-28).
 job "maintainerr" {
   region = var.region
   datacenters = ["dc1"]
