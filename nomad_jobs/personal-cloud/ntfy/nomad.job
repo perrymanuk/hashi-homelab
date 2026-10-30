@@ -68,7 +68,7 @@ job "ntfy" {
       driver = "docker"
 
       config {
-        image      = "binwiederhier/ntfy:v2.34.0"
+        image      = "binwiederhier/ntfy:v2.35.0"
         force_pull = true
         ports      = ["http"]
         args       = ["serve"]
