@@ -64,7 +64,7 @@ job "tdarr" {
       driver = "docker"
 
       config {
-        image        = "ghcr.io/haveagitgat/tdarr:latest@sha256:0ea9217f69f40e49977dbcbc0319224e625c90d808d39bf075483fe45e9612f1"
+        image        = "ghcr.io/haveagitgat/tdarr:latest@sha256:283519d9364d23ac18f0505c3715e79dc8c8e7c071d6d00ed342521b347b01c0"
         network_mode = "host"
         privileged   = true
         runtime      = "nvidia"
