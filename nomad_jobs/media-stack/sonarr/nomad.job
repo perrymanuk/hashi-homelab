@@ -33,7 +33,7 @@ version = "11"  // Full config.xml template with API key
     task "sonarr" {
       driver = "docker"
       config {
-        image = "linuxserver/sonarr:4.0.20@sha256:386c962ee6e260e3a5656b25df2ed056bcc9b6410e197d075f9547fd14c23bca"
+        image = "linuxserver/sonarr:4.0.20@sha256:3b8c947d7fa173f70e40047d2c8d02835fb8416aeb5ae36def57d9ad15e2f906"
         dns_servers = ["192.168.50.2"]
         ports = ["http"]
         volumes = [
