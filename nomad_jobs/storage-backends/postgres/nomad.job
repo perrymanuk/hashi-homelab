@@ -42,7 +42,7 @@ version = "6"  // data on SSD CSI volume (was pool0 NFS share/paperless-postgres
       driver = "docker"
 
       config {
-        image = "postgres:15.19"
+        image = "postgres:15.20"
         ports = ["postgres"]
       }
 
