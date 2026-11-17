@@ -60,7 +60,7 @@ job "mediasage" {
     task "mediasage" {
       driver = "docker"
       config {
-        image = "ghcr.io/ecwilsonaz/mediasage:latest@sha256:9ea217900b9f17690c1887364b7dbdcdd5bed46f82501462928a12d3b004f9be"
+        image = "ghcr.io/ecwilsonaz/mediasage:latest@sha256:684c7b8245abaf1b12b2c88d59dd344049dc12ac7cb7c1b561ed51bf85791a79"
         ports = ["http"]
         dns_servers = ["192.168.50.2"]
         volumes = [
