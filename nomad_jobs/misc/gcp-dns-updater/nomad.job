@@ -25,7 +25,7 @@ job "gcp-dns-updater" {
 
       config {
         # pinned to 3.14: pyyaml has no 3.15 wheel yet, source build OOMs at pip install
-        image = "python:3.14-slim"
+        image = "python:3.15-slim"
         dns_servers = ["192.168.50.2"]
         command = "sh"
         args = ["-c", "pip install --no-cache-dir --root-user-action=ignore google-cloud-dns requests pyyaml && python /local/update_dns.py"]
