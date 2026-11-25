@@ -136,7 +136,7 @@ EOH
       driver = "docker"
 
       config {
-        image = "gotenberg/gotenberg:8"
+        image = "gotenberg/gotenberg:9"
         ports = ["gotenberg"]
         command = "gotenberg"
         args = ["--chromium-disable-javascript=true", "--chromium-allow-list=file:///tmp/.*"]
